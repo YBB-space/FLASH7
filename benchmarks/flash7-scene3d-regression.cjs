@@ -1,0 +1,132 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
+const frames = new Map();
+let nextFrame = 0;
+const camera = {targetX:12, targetY:20, targetZ:30, panX:2, panY:3, panZ:4, desiredDistance:10};
+const context = vm.createContext({
+  GYRO_FOV_DEG:44, DEG_TO_RAD:Math.PI / 180,
+  GYRO_TRAIL_BASE_METERS_PER_UNIT:4.2,GYRO_ROCKET_TARGET_LENGTH:1.56,GYRO_ROCKET_ACTUAL_HEIGHT_M:1.9,
+  gyroCameraState:camera, gyroGl:{}, el:{gyro3dViewport:null}, document:{hidden:false},
+  getGyroCameraMinDistance:()=>0.68,
+  getGyroCameraMaxDistance:()=>vm.runInContext("getGyroSceneZoomLimit(gyroSceneView.mode, gyroSceneView.flightFrameDistance)", context),
+  getGyroPreviewMode:()=>"3d",
+  clampLocal:(value, min, max)=>Math.max(min, Math.min(max, value)),
+  holdGyroManualZoom:()=>vm.runInContext("gyroSceneView.autoFrame = false; gyroSceneView.userAdjusted = true", context),
+  requestAnimationFrame:callback=>{frames.set(++nextFrame, callback); return nextFrame;},
+  cancelAnimationFrame:id=>frames.delete(id)
+});
+vm.runInContext(fs.readFileSync(path.resolve(__dirname, "../scripts/ui/shared/scene3d.js"), "utf8"), context);
+vm.runInContext(fs.readFileSync(path.resolve(__dirname, "../scripts/ui/shared/scene3d-environment.js"), "utf8"), context);
+const gridMetrics = vm.runInContext("getGyroSceneGridMetrics", context);
+const clipRange = vm.runInContext("getGyroSceneClipRange", context);
+const zoomLimit = vm.runInContext("getGyroSceneZoomLimit", context);
+assert.equal(zoomLimit("vehicle", 500), 22.5, "vehicle zoom must not inherit an excessive trajectory-view limit");
+assert.ok(Math.abs(zoomLimit("flight", 100) - 115) < 1e-8, "full-path view needs only a small margin beyond its fitted distance");
+assert.equal(zoomLimit("flight", 1000), 500, "trajectory framing retains a bounded upper limit");
+for(const distance of [0, -1, NaN, Infinity, 0.68, 2, 10, 50, 250, 500]){
+  const metrics = gridMetrics(distance);
+  assert.ok(Object.values(metrics).every(Number.isFinite), "grid must remain finite at every supported zoom");
+  assert.ok(metrics.span > metrics.fadeFar && metrics.fadeFar > metrics.fadeNear, "grid must fade before the ground edge");
+  assert.equal(metrics.fadeFar, gridMetrics(1).fadeFar, "zoom must not stretch the world-space ground fog with the camera");
+}
+for(const distance of [0.68, 2, 50, 250, 500]){
+  for(const altitude of [0, 20, 1000]){
+    const clip = clipRange(distance, altitude);
+    assert.ok(clip.far > Math.hypot(gridMetrics(distance).fadeFar, altitude + distance), "ground must fade before the far clip plane at maximum zoom-out");
+    assert.ok(clip.near > 0 && clip.near < distance / 2, "close-up camera must retain model clearance");
+  }
+}
+const orbitPitch = vm.runInContext("getGyroSceneOrbitPitch", context);
+assert.ok(orbitPitch(28, 0.68, 2) > 35, "close-up dolly must change the view of the ground");
+assert.ok(orbitPitch(28, 20, 2) < 15, "zoom-out must move the horizon instead of preserving the same orbit angle");
+assert.equal(orbitPitch(28, 2, 2), 28, "starting a zoom must preserve the current view");
+assert.equal(orbitPitch(84, 500, 2), 84, "top view must retain its overhead orientation");
+assert.equal(orbitPitch(0, 0.68, 2), 0, "side view must remain level");
+for(const distance of [0.68, 2, 22.5]){
+  assert.equal(orbitPitch(-80, distance, 2), 0, "orbit and dolly must never rotate underneath the ground");
+}
+camera.pitchDeg = 28;
+camera.distance = 10;
+vm.runInContext("gyroSceneView.dollyZoom = true; gyroSceneView.orbitReferenceDistance = 2; rebaseGyroSceneOrbit()", context);
+assert.ok(Math.abs(camera.pitchDeg - orbitPitch(28, 10, 2)) < 1e-8, "beginning an orbit drag after a zoom must not jump");
+assert.equal(vm.runInContext("gyroSceneView.orbitReferenceDistance", context), 10);
+vm.runInContext("gyroSceneView.dollyZoom = false", context);
+const frame = vm.runInContext("getGyroSceneFlightFrame", context);
+const pixelRatio = vm.runInContext("getGyroScenePixelRatio", context);
+assert.equal(pixelRatio(390, 844, 3, true), 2);
+assert.equal(pixelRatio(1440, 1000, 1, false), 1);
+assert.ok(1440 * 1000 * pixelRatio(1440, 1000, 2, false) ** 2 <= 3000001);
+assert.ok(pixelRatio(3840, 2160, 2, false) >= 1, "large displays must retain at least CSS-pixel resolution");
+assert.equal(pixelRatio(0, 0, NaN, true), 1);
+const first = {bounds:{minX:0, maxX:4, minY:0, maxY:10, minZ:-2, maxZ:2}};
+const second = {bounds:{minX:30, maxX:60, minY:5, maxY:40, minZ:-20, maxZ:10}};
+const before = JSON.stringify([first, second]);
+const fitted = frame(first, second, 1, 1.6);
+assert.deepEqual(JSON.parse(JSON.stringify(fitted.target)), {x:30, y:20, z:-5});
+const radius = Math.hypot(60, 40, 30) * 0.5;
+const sceneFov = vm.runInContext("GYRO_SCENE_FOV_DEG", context);
+assert.ok(sceneFov > 44, "flight scene needs a wider field of view for close-ups");
+assert.ok(fitted.distance * Math.sin(sceneFov * Math.PI / 360) > radius, "fit must contain both stages, not just their midpoint");
+assert.ok(frame(first, second, 1, 0.5).distance > fitted.distance, "portrait framing needs a wider camera distance");
+assert.equal(JSON.stringify([first, second]), before, "camera framing must not alter trajectory data");
+assert.ok(Number.isFinite(frame({current:{x:0, y:0.23, z:0}}, null, 0.5, 1).distance));
+
+vm.runInContext("zoomGyroSceneByFactor(0.8)", context);
+assert.equal(camera.desiredDistance, 8);
+assert.equal(vm.runInContext("gyroSceneView.autoFrame", context), false);
+for(let i = 0; i < 20; i++) vm.runInContext("requestGyroSceneRender()", context);
+assert.equal(frames.size, 1, "pointer bursts must share a single scheduled render");
+vm.runInContext("zoomGyroSceneByFactor(1e9)", context);
+assert.equal(camera.desiredDistance, 22.5);
+const frameCount = frames.size;
+vm.runInContext("zoomGyroSceneByFactor(1.25)", context);
+assert.equal(frames.size, frameCount, "zooming past the limit must not schedule another animation");
+vm.runInContext("zoomGyroSceneByFactor(1e-9)", context);
+assert.equal(camera.desiredDistance, 0.68);
+vm.runInContext("zoomGyroSceneByFactor(NaN)", context);
+assert.equal(camera.desiredDistance, 0.68);
+
+vm.runInContext("freezeGyroSceneCamera()", context);
+assert.deepEqual(JSON.parse(vm.runInContext("JSON.stringify(gyroSceneView.anchor)", context)), {x:10, y:17, z:26});
+camera.targetX = 99;
+vm.runInContext("freezeGyroSceneCamera()", context);
+assert.equal(vm.runInContext("gyroSceneView.anchor.x", context), 10);
+camera.panY = -100;
+vm.runInContext("constrainGyroScenePan()", context);
+assert.ok(vm.runInContext("gyroSceneView.anchor.y + gyroCameraState.panY", context) >= 0.08 - 1e-8, "panning must not drag the camera below ground");
+vm.runInContext("setGyroScenePreset('top')", context);
+assert.equal(camera.pitchDeg, 84);
+vm.runInContext("setGyroScenePreset('side')", context);
+assert.equal(camera.pitchDeg, 0);
+assert.equal(camera.yawDeg, 90);
+vm.runInContext("setGyroScenePreset('invalid')", context);
+assert.equal(camera.yawDeg, 90);
+const vehicleScale=vm.runInContext("getGyroSceneRocketScale",context);
+for(const units of [4.2,10,20]) assert.ok(Math.abs(vehicleScale(units)*1.56*units-1.9)<1e-8,"local vehicle size follows the same metric scale as its path");
+assert.ok(vehicleScale(1000)<=.04,"overview visibility floor is at most half the previous oversized marker");
+const vehicleLift=vm.runInContext("getGyroSceneVehicleLift",context);
+assert.ok(vehicleLift(vehicleScale(4.2),.23)<.03,"launch-pad clearance stays small");
+assert.equal(vehicleLift(vehicleScale(1000),3),0,"airborne vehicle stays on the trajectory endpoint instead of floating above it");
+const strokeWidth=vm.runInContext("getGyroSceneStrokeHalfWidth",context);
+const view=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+for(const depth of [.68,1.2,22.5]) for(const height of [240,783,1200]){
+  const half=strokeWidth({x:0,y:0,z:-depth},view,height,1.1);
+  const projected=half*height/(depth*Math.tan(sceneFov*Math.PI/360));
+  assert.ok(Math.abs(projected-1.1)<1e-8,"trail stays thin at close-up and overview distances");
+}
+const core=fs.readFileSync(path.resolve(__dirname,"../scripts/flash7-core.js"),"utf8");
+for(const name of ["vec3Cross","vec3Length","vec3Normalize","buildGyroTrailRibbonGeometry","buildGyroTrailArrowGeometry"]){
+  const start=core.indexOf("    function "+name+"(");
+  const tail=core.slice(start),next=tail.slice(1).search(/^    (?:async )?function /m);
+  vm.runInContext(next<0?tail:tail.slice(0,next+1),context);
+}
+const points=Array.from({length:1600},(_,i)=>({x:0,y:i*.01,z:-4})),original=JSON.stringify(points);
+const ribbon=vm.runInContext("buildGyroTrailRibbonGeometry",context)(points,[0,0,0],()=>.002,()=>[1,1,1,1]);
+assert.ok(Math.abs(Math.hypot(ribbon.pos[0]-ribbon.pos[3],ribbon.pos[1]-ribbon.pos[4],ribbon.pos[2]-ribbon.pos[5])-.004)<1e-8,"ribbon honors its projected-width callback");
+const arrows=vm.runInContext("buildGyroTrailArrowGeometry",context)(points,[0,0,0],()=>.003);
+assert.ok(arrows.count>0&&arrows.count<=18,"dense telemetry must not create a chain of oversized arrowheads");
+assert.ok(ribbon.pos.every(Number.isFinite)&&arrows.pos.every(Number.isFinite));
+assert.equal(JSON.stringify(points),original,"display geometry never changes telemetry positions");
+console.log("FLASH7 3D regression: PASS (framing, zoom limits, adaptive grid, metric vehicle scale, pixel-width trails, bounded direction markers)");

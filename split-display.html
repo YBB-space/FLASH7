@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>FLASH7 · 보조 화면</title>
+  <link rel="icon" href="img/Flash_logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261118-display-reconnect">
+  <script defer src="scripts/ui/shared/split-link.js?v=20261118-display-reconnect"></script>
+  <script defer src="scripts/ui/shared/flight-charts.js?v=20261118-display-reconnect"></script>
+  <script defer src="scripts/ui/shared/link-quality.js?v=20261118-display-reconnect"></script>
+  <script defer src="scripts/ui/desktop/split-display.js?v=20261118-display-reconnect"></script>
+</head>
+<body class="split-monitor">
+  <section id="splitDisplayWait" class="split-entry" aria-labelledby="splitDisplayWaitTitle">
+    <div class="split-entry-content">
+        <svg class="split-entry-icon" viewBox="0 0 80 64" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="3" stroke-linejoin="round">
+          <rect x="6" y="11" width="29" height="42" rx="6" opacity=".5"/>
+          <rect x="45" y="11" width="29" height="42" rx="6"/>
+        </svg>
+
+      <h1 id="splitDisplayWaitTitle">메인 화면을 찾고 있습니다</h1>
+      <p id="splitDisplayWaitCopy" class="split-entry-description">메인 화면이 열려 있으면 자동으로 연결됩니다.</p>
+      <div class="split-entry-status" role="status"><i aria-hidden="true"></i><span id="splitDisplayWaitStatus">메인 화면 연결을 대기 중입니다.</span></div>
+      <span class="split-entry-footnote">이 화면을 열어두면 자동으로 연결됩니다.</span>
+    </div>
+  </section>
+  <header class="split-monitor-header"><strong>FLASH7 / TELEMETRY</strong><span id="splitDisplayConnection" role="status">연결 대기</span></header>
+  <main class="split-monitor-main">
+    <div class="split-monitor-heading"><div><small id="splitDisplayStage">DISPLAY 02</small><h1 id="splitDisplayMission">FLASH7 MISSION</h1><p id="splitDisplayState">--</p></div><div class="camera-chart-settings" role="group" aria-label="텔레메트리 눈금 범위">
+        <strong>차트 범위</strong>
+        <div class="camera-chart-tools">
+          <button type="button" data-camera-chart-range="detail" aria-pressed="true" title="작은 변화 자세히 보기 · 범위 밖 피크는 화살표와 PEAK 값으로 표시">DETAIL</button>
+          <button type="button" data-camera-chart-range="full" aria-pressed="false" title="모든 피크를 포함한 전체 범위">FULL</button>
+        </div>
+      </div><strong id="splitDisplayCountdown" class="split-monitor-time">T- 00:00</strong></div>
+    <section id="splitDisplaySequence" class="split-sequence is-waiting" aria-label="미션 비행 단계">
+      <header><h2>MISSION SEQUENCE</h2><div><strong id="splitSequenceCurrent">수신 대기</strong><span id="splitSequenceStep">-- / 09</span></div></header>
+      <div class="split-sequence-rail">
+        <div class="split-sequence-line" aria-hidden="true"><i></i></div>
+        <ol>
+          <li data-sequence-step="standby"><i aria-hidden="true"></i><span>STANDBY</span></li>
+          <li data-sequence-step="count"><i aria-hidden="true"></i><span>COUNT</span></li>
+          <li data-sequence-step="ignition"><i aria-hidden="true"></i><span>IGNITION</span></li>
+          <li data-sequence-step="powered"><i aria-hidden="true"></i><span>POWERED</span></li>
+          <li data-sequence-step="coasting"><i aria-hidden="true"></i><span>COASTING</span></li>
+          <li data-sequence-step="separation"><i aria-hidden="true"></i><span>SEPARATION</span></li>
+          <li data-sequence-step="ejection"><i aria-hidden="true"></i><span>EJECTION</span></li>
+          <li data-sequence-step="descent"><i aria-hidden="true"></i><span>DESCENT</span></li>
+          <li data-sequence-step="landed"><i aria-hidden="true"></i><span>LANDED</span></li>
+        </ol>
+      </div>
+    </section>
+    <section class="split-quick-data" aria-label="실시간 퀵 데이터">
+      <header class="split-quick-header">
+        <h2>QUICK DATA</h2>
+        <div class="split-quick-chips">
+          <span id="splitQuickConnection"><i aria-hidden="true"></i><b id="splitQuickConnectionText">DISCONNECTED</b></span>
+          <span>CHIP <b id="splitQuickChip">--°C</b></span>
+          <span>PERF <b id="splitQuickPerf">--%</b></span>
+          <span aria-label="배터리"><svg viewBox="0 0 30 18" aria-hidden="true"><rect x="1" y="2" width="24" height="14" rx="3"/><path d="M28 6v6"/></svg><b id="splitQuickPower">N</b></span>
+        </div>
+      </header>
+      <div class="split-quick-body">
+        <div class="split-quick-primary">
+          <div><small>ALTITUDE</small><strong><span id="splitDisplayAltitude">--</span><em>m</em></strong></div>
+          <div><small>SPEED</small><strong><span id="splitDisplaySpeed">--</span><em>m/s</em></strong></div>
+        </div>
+        <div class="split-quick-details">
+          <div><small>STATE</small><strong id="splitQuickState">--</strong></div>
+          <div><small>SD CARD</small><strong id="splitQuickStorage">--</strong></div>
+          <div><small>점화 지연</small><strong><span id="splitQuickDelay">--</span><em>s</em></strong></div>
+          <div><small>ARM</small><strong><span id="splitQuickArm">--</span><em id="splitQuickArmLock" hidden>(LOCK ON)</em></strong></div>
+          <div><small>PYRO</small><strong id="splitQuickPyro">--</strong></div>
+          <div><small>GYRO X</small><strong><span id="splitQuickAttitudeX">--</span><em>deg</em></strong></div>
+          <div><small>GYRO Y</small><strong><span id="splitQuickAttitudeY">--</span><em>deg</em></strong></div>
+          <div><small>GYRO Z</small><strong><span id="splitQuickAttitudeZ">--</span><em>deg</em></strong></div>
+          <div><small>ACCELERATION</small><strong><span id="splitDisplayGforce">--</span><em>g</em></strong></div>
+        </div>
+      </div>
+    </section>
+    <div class="split-monitor-charts">
+      <section class="camera-telemetry-chart" aria-label="고도 및 속도 차트"><div class="camera-chart-header"><strong class="camera-chart-heading">ALTITUDE / SPEED</strong><div class="camera-chart-legend"><span class="camera-chart-legend-item camera-chart-legend-item--alt"><i></i>ALT</span><span class="camera-chart-legend-item camera-chart-legend-item--speed"><i></i>SPEED</span></div></div><div class="camera-chart-plot"><canvas id="splitDisplayAltitudeChart"></canvas></div></section>
+      <section class="camera-telemetry-chart" aria-label="가속도 및 자이로 차트"><div class="camera-chart-header"><strong class="camera-chart-heading">TELEMETRY</strong><div class="camera-chart-legend"><span class="camera-chart-legend-item camera-chart-legend-item--g"><i></i>G</span><span class="camera-chart-legend-item camera-chart-legend-item--gyro-x"><i></i>X <b id="splitDisplayGyroX">--</b></span><span class="camera-chart-legend-item camera-chart-legend-item--gyro-y"><i></i>Y <b id="splitDisplayGyroY">--</b></span><span class="camera-chart-legend-item camera-chart-legend-item--gyro-z"><i></i>Z <b id="splitDisplayGyroZ">--</b></span></div></div><div class="camera-chart-plot"><canvas id="splitDisplayDynamicsChart"></canvas></div></section>
+    </div>
+    <div class="split-monitor-systems" aria-label="링크 품질 및 에어브레이크">
+      <section class="comm-v3-quality-stage" data-split-quality-stage="1" aria-label="1단 링크 품질">
+        <header class="comm-v3-panel-head"><div><span>STAGE 1</span><strong>링크 품질</strong></div><em>최근 30초</em></header>
+        <div class="comm-v3-metrics" role="group" aria-label="1단 링크 지표 선택">
+          <button class="is-active" type="button" data-split-link-metric="rssi" aria-pressed="true"><small>RSSI</small><strong id="splitLink1Rssi">--</strong><i>dBm</i></button>
+          <button type="button" data-split-link-metric="loss" aria-pressed="false"><small>LOSS</small><strong id="splitLink1Loss">--</strong><i>%</i></button>
+          <button type="button" data-split-link-metric="hz" aria-pressed="false"><small>RX RATE</small><strong id="splitLink1Rate">--</strong><i>Hz</i></button>
+        </div>
+        <div class="comm-v3-chart"><span id="splitLink1Value" class="comm-v3-chart-value">-- dBm</span><canvas id="splitLink1Chart" aria-label="1단 최근 30초 링크 품질"></canvas></div>
+      </section>
+      <section id="splitAirbrake" class="split-airbrake is-unknown" aria-label="에어브레이크 전개 현황">
+        <header class="split-airbrake-header"><strong>AIRBRAKE</strong><span data-airbrake-mode>WAITING</span></header>
+        <div class="split-airbrake-body">
+          <div class="split-airbrake-visual" aria-hidden="true">
+            <svg viewBox="0 0 160 128" fill="none">
+              <circle class="split-airbrake-hull" cx="80" cy="64" r="37"/>
+              <circle class="split-airbrake-inset" cx="80" cy="64" r="27"/>
+              <g class="split-airbrake-interior">
+                <g transform="rotate(0 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <g transform="rotate(90 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <g transform="rotate(180 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <g transform="rotate(270 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <circle class="split-airbrake-fastener" cx="58" cy="42" r=".9"/>
+                <circle class="split-airbrake-fastener" cx="102" cy="42" r=".9"/>
+                <circle class="split-airbrake-fastener" cx="102" cy="86" r=".9"/>
+                <circle class="split-airbrake-fastener" cx="58" cy="86" r=".9"/>
+              </g>
+              <g class="split-airbrake-flap split-airbrake-flap--north" transform="rotate(0 80 64)"><path data-airbrake-panel="north" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <g class="split-airbrake-flap split-airbrake-flap--east" transform="rotate(90 80 64)"><path data-airbrake-panel="east" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <g class="split-airbrake-flap split-airbrake-flap--south" transform="rotate(180 80 64)"><path data-airbrake-panel="south" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <g class="split-airbrake-flap split-airbrake-flap--west" transform="rotate(270 80 64)"><path data-airbrake-panel="west" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <circle class="split-airbrake-hub" cx="80" cy="64" r="8"/>
+              <g class="split-airbrake-core" data-airbrake-servo-core><circle cx="80" cy="64" r="4.5"/><path d="M77 64H83"/></g>
+            </svg>
+          </div>
+          <div class="split-airbrake-readout">
+            <div class="split-airbrake-values">
+              <div><small>DEPLOYMENT</small><strong><span data-airbrake-value>--</span><i>%</i></strong></div>
+              <div class="split-airbrake-servo" aria-label="공통 서보 각도" title="시뮬레이션 기준: 수납 0°, 전개 90°"><small>SERVO ANGLE</small><strong><span data-airbrake-servo-angle>--</span><i>°</i></strong></div>
+            </div>
+            <span id="splitAirbrakeStatus" data-airbrake-status role="status">전개 데이터 대기</span>
+            <div class="split-airbrake-meter" role="meter" aria-label="에어브레이크 전개율" aria-valuemin="0" aria-valuemax="100" aria-valuetext="전개 데이터 대기"><i></i></div>
+          </div>
+        </div>
+        <div class="split-airbrake-auto" data-airbrake-auto hidden><span>TARGET<strong>10,000 ft</strong></span><span>PREDICTED<strong data-airbrake-prediction>--</strong></span></div>
+        <div class="split-airbrake-controls" role="group" aria-label="시뮬레이션 에어브레이크" aria-describedby="splitAirbrakeStatus">
+          <button type="button" data-airbrake-target="0" aria-pressed="false" disabled>수납</button>
+          <button type="button" data-airbrake-target="100" aria-pressed="false" disabled>전개</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</body>
+</html>

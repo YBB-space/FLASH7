@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>FLASH7 HUD LIVE</title>
+  <link rel="icon" href="img/Flash_logo.svg" type="image/svg+xml">
+  <style>
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent}
+    :root{
+      --white:#f4f4f5;
+      --muted:rgba(228,228,231,.68);
+      --faint:rgba(228,228,231,.42);
+      --line:rgba(255,255,255,.28);
+      --ok:#35d47a;
+      --warn:#f4c66a;
+      --bad:#ff6475;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","Pretendard","Noto Sans KR","Segoe UI",sans-serif;
+    }
+    body{
+      color:var(--white);
+      font-family:var(--sans);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:geometricPrecision;
+    }
+    .hud-top{
+      position:fixed;
+      top:calc(28px + env(safe-area-inset-top, 0px));
+      right:32px;
+      z-index:3;
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr);
+      align-items:center;
+      justify-items:end;
+      gap:5px 10px;
+      width:clamp(300px,27vw,420px);
+      pointer-events:none;
+      text-shadow:0 3px 14px rgba(0,0,0,.66);
+      transition:opacity .38s ease,filter .38s ease;
+    }
+    .source-pill{
+      position:fixed;
+      top:calc(28px + env(safe-area-inset-top, 0px));
+      left:36px;
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      min-height:18px;
+      padding:2px 7px;
+      border:1px solid rgba(255,255,255,.22);
+      border-radius:3px;
+      background:rgba(0,0,0,.24);
+      color:rgba(255,255,255,.82);
+      font:520 8px/1 var(--sans);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      backdrop-filter:blur(8px);
+      -webkit-backdrop-filter:blur(8px);
+    }
+    .source-pill::before{
+      content:"";
+      width:5px;
+      height:5px;
+      flex:0 0 5px;
+      border-radius:50%;
+      background:#7c828c;
+    }
+    .source-pill.is-online::before{
+      background:#22c55e;
+      box-shadow:0 0 7px rgba(34,197,94,.72);
+    }
+    .mission-name{
+      grid-column:1/-1;
+      grid-row:1;
+      justify-self:end;
+      max-width:100%;
+      overflow:hidden;
+      color:rgba(226,232,240,.66);
+      font:300 clamp(12px,.82vw,14px)/1.25 var(--sans);
+      letter-spacing:.09em;
+      text-align:right;
+      text-overflow:ellipsis;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+    .clock{
+      grid-column:1/-1;
+      grid-row:2;
+      justify-self:end;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:0;
+      min-width:0;
+    }
+    .clock-label{
+      display:none;
+    }
+    .clock-row{
+      display:flex;
+      align-items:baseline;
+      gap:9px;
+    }
+    .clock-tag{
+      color:rgba(190,196,204,.68);
+      font:400 clamp(17px,1.2vw,19px)/1 var(--sans);
+    }
+    .clock-time{
+      min-width:0;
+      color:#fff;
+      font:200 clamp(42px,3.2vw,48px)/1 var(--sans);
+      font-variant-numeric:tabular-nums;
+      letter-spacing:.025em;
+      text-align:right;
+    }
+    .hud-bottom{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:2;
+      height:300px;
+      padding:30px 36px calc(26px + env(safe-area-inset-bottom, 0px));
+      display:grid;
+      grid-template-columns:360px minmax(280px,1fr) 420px;
+      align-items:end;
+      gap:26px;
+      pointer-events:none;
+      transition:opacity .38s ease,filter .38s ease;
+    }
+    .hud-bottom::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      z-index:-1;
+      background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.48) 30%,rgba(4,7,13,.84) 66%,rgba(4,7,13,.98));
+    }
+    .instrument-group{
+      position:absolute;
+      left:36px;
+      bottom:calc(32px + env(safe-area-inset-bottom, 0px));
+      display:flex;
+      align-items:flex-end;
+      gap:26px;
+    }
+    .instrument{
+      --progress:0%;
+      width:clamp(152px,11vw,184px);
+      min-width:0;
+    }
+    .instrument-readout{
+      min-height:66px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 1px minmax(60px,.82fr);
+      align-items:center;
+      gap:14px;
+    }
+    .instrument-copy{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+    }
+    .instrument-label{
+      overflow:hidden;
+      color:rgba(255,255,255,.83);
+      font:620 11px/1 var(--sans);
+      letter-spacing:.12em;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .instrument-unit{
+      color:rgba(255,255,255,.58);
+      font:500 10px/1 var(--sans);
+      letter-spacing:.08em;
+    }
+    .instrument-divider{
+      align-self:stretch;
+      width:1px;
+      min-height:54px;
+      background:rgba(255,255,255,.48);
+    }
+    .instrument-value{
+      min-width:0;
+      color:#fff;
+      font:280 clamp(29px,2.35vw,43px)/1 var(--sans);
+      font-variant-numeric:tabular-nums;
+      letter-spacing:-.045em;
+      white-space:nowrap;
+    }
+    .instrument-track{
+      width:100%;
+      height:2px;
+      margin-top:13px;
+      overflow:hidden;
+      background:rgba(255,255,255,.21);
+    }
+    .instrument-track::after{
+      content:"";
+      display:block;
+      width:var(--progress);
+      height:100%;
+      background:rgba(255,255,255,.96);
+      box-shadow:0 0 8px rgba(255,255,255,.26);
+      transition:width .16s linear;
+    }
+    .mission-center{
+      position:absolute;
+      left:50%;
+      bottom:calc(34px + env(safe-area-inset-bottom, 0px));
+      width:min(780px,max(280px,calc(100vw - 900px)));
+      transform:translateX(-50%);
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-end;
+      gap:8px;
+      padding:0;
+      text-align:center;
+    }
+    .flight-state{
+      max-width:100%;
+      overflow:hidden;
+      color:#fff;
+      font:650 clamp(16px,1.35vw,23px)/1 var(--mono);
+      letter-spacing:.18em;
+      text-align:center;
+      text-overflow:ellipsis;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+    .flight-state.is-warn{color:#fff0c9}
+    .flight-state.is-bad{color:#ffd5da}
+    .timeline{
+      --timeline-line-y:32px;
+      position:relative;
+      width:min(780px,100%);
+      height:70px;
+      overflow:hidden;
+      -webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);
+      mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);
+    }
+    .timeline::before{
+      content:"";
+      position:absolute;
+      top:var(--timeline-line-y);
+      left:10px;
+      right:10px;
+      height:1px;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.58),transparent);
+    }
+    .timeline::after{
+      content:"";
+      position:absolute;
+      top:calc(var(--timeline-line-y) - 7px);
+      left:50%;
+      width:14px;
+      height:14px;
+      transform:translateX(-50%);
+      border:2px solid #fff;
+      border-radius:50%;
+      background:rgba(5,7,10,.48);
+      box-shadow:0 0 0 5px rgba(255,255,255,.08);
+    }
+    .timeline-rail{
+      position:absolute;
+      top:0;
+      left:50%;
+      display:flex;
+      gap:80px;
+      transform:translateX(-45px);
+      transition:transform .42s cubic-bezier(.2,.9,.2,1);
+    }
+    .timeline-item{
+      position:relative;
+      width:90px;
+      height:70px;
+      flex:0 0 90px;
+      opacity:.38;
+    }
+    .timeline-item i{
+      position:absolute;
+      top:calc(var(--timeline-line-y) - 4px);
+      left:50%;
+      width:9px;
+      height:9px;
+      transform:translateX(-50%);
+      border:1.5px solid rgba(255,255,255,.72);
+      border-radius:50%;
+      background:#15181d;
+    }
+    .timeline-item span{
+      position:absolute;
+      top:calc(var(--timeline-line-y) + 18px);
+      left:50%;
+      transform:translateX(-50%);
+      color:rgba(255,255,255,.72);
+      font:600 9px/1 var(--mono);
+      letter-spacing:.14em;
+      white-space:nowrap;
+    }
+    .timeline-item.is-passed{opacity:.7}
+    .timeline-item.is-passed i{background:rgba(255,255,255,.58)}
+    .timeline-item.is-active{opacity:1}
+    .timeline-item.is-active i{background:#fff;border-color:#fff}
+    .timeline-meta{
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:7px 18px;
+      max-width:100%;
+      color:rgba(255,255,255,.62);
+      font:620 10px/1.2 var(--mono);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .timeline-meta strong{color:rgba(255,255,255,.92);font-weight:700}
+    .altitude-wrap{
+      position:absolute;
+      right:36px;
+      bottom:calc(32px + env(safe-area-inset-bottom, 0px));
+      display:flex;
+      justify-content:flex-end;
+      align-items:flex-end;
+    }
+    .altitude-wrap .instrument{width:clamp(152px,11vw,184px)}
+    .offline-note{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      z-index:5;
+      transform:translateX(-50%);
+      color:rgba(255,255,255,.36);
+      font:600 9px/1 var(--mono);
+      letter-spacing:.16em;
+      opacity:0;
+      transition:opacity .2s ease;
+    }
+    body.is-offline .offline-note{opacity:1}
+    .hud-preroll{
+      --preroll-progress:0%;
+      position:fixed;
+      inset:0;
+      z-index:6;
+      display:grid;
+      place-items:center;
+      padding:8vh 8vw;
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+      transform:scale(.985);
+      transition:opacity .34s ease,transform .42s cubic-bezier(.2,.8,.2,1),visibility 0s linear .42s;
+      text-align:center;
+      text-shadow:0 5px 28px rgba(0,0,0,.72);
+    }
+    .hud-preroll-content{
+      width:min(760px,78vw);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+    .hud-preroll-kicker{
+      color:rgba(255,255,255,.48);
+      font:650 clamp(10px,.8vw,14px)/1 var(--mono);
+      letter-spacing:.26em;
+    }
+    .hud-preroll-title{
+      margin-top:clamp(17px,2.2vh,28px);
+      color:#fff;
+      font:620 clamp(46px,5.4vw,92px)/.95 var(--sans);
+      letter-spacing:.16em;
+      text-indent:.16em;
+    }
+    .hud-preroll-value{
+      margin-top:clamp(24px,4.5vh,52px);
+      color:#fff;
+      font:180 clamp(102px,13vw,220px)/.78 var(--sans);
+      font-variant-numeric:tabular-nums;
+      letter-spacing:-.07em;
+    }
+    .hud-preroll-rule{
+      width:100%;
+      height:1px;
+      margin-top:clamp(36px,6vh,72px);
+      overflow:hidden;
+      background:rgba(255,255,255,.18);
+    }
+    .hud-preroll-rule::after{
+      content:"";
+      display:block;
+      width:var(--preroll-progress);
+      height:100%;
+      background:#fff;
+      box-shadow:0 0 12px rgba(255,255,255,.3);
+      transition:width .14s linear;
+    }
+    .hud-preroll-caption{
+      margin-top:14px;
+      color:rgba(255,255,255,.47);
+      font:600 clamp(9px,.7vw,12px)/1 var(--mono);
+      letter-spacing:.18em;
+    }
+    body.is-preroll .hud-preroll{
+      opacity:1;
+      visibility:visible;
+      transform:none;
+      transition:opacity .34s ease,transform .42s cubic-bezier(.2,.8,.2,1),visibility 0s;
+    }
+    body.is-preroll .hud-top,
+    body.is-preroll .hud-bottom{
+      opacity:0;
+      filter:blur(5px);
+    }
+    body.is-preroll .offline-note{opacity:0}
+    @media(max-width:1100px){
+      .hud-top{
+        right:24px;
+      }
+      .hud-bottom{
+        height:290px;
+        grid-template-columns:300px minmax(240px,1fr) 300px;
+        padding-left:24px;
+        padding-right:24px;
+      }
+      .instrument-group{left:24px;gap:18px}
+      .altitude-wrap{right:24px}
+      .source-pill{left:24px}
+      .instrument{width:clamp(140px,14vw,160px)}
+      .altitude-wrap .instrument{width:clamp(140px,14vw,160px)}
+      .mission-center{
+        bottom:calc(132px + env(safe-area-inset-bottom, 0px));
+        width:min(620px,calc(100vw - 48px));
+      }
+    }
+    @media(max-width:760px){
+      .hud-top{
+        right:18px;
+        width:min(320px,72vw);
+      }
+      .source-pill{left:18px}
+      .hud-bottom{
+        height:320px;
+        grid-template-columns:1fr;
+        padding:24px 18px;
+      }
+      .mission-center{
+        position:absolute;
+        left:18px;
+        right:18px;
+        bottom:176px;
+      }
+      .instrument-group{left:18px;bottom:24px}
+      .altitude-wrap{right:18px;bottom:24px}
+      .instrument{width:min(140px,20vw)}
+      .altitude-wrap .instrument{width:min(140px,20vw)}
+    }
+  </style>
+</head>
+<body class="is-offline">
+  <header class="hud-top">
+    <div id="sourcePill" class="source-pill">STAGE 1 OFFLINE</div>
+    <div id="missionName" class="mission-name">FLASH7 MISSION</div>
+    <div class="clock">
+      <div id="clockLabel" class="clock-label">WAITING FOR TELEMETRY</div>
+      <div class="clock-row"><span id="clockTag" class="clock-tag">T-</span><span id="clockTime" class="clock-time">--:--</span></div>
+    </div>
+  </header>
+
+  <main class="hud-bottom">
+    <section class="instrument-group" aria-label="비행 계기">
+      <article id="speedInstrument" class="instrument">
+        <div class="instrument-readout">
+          <div class="instrument-copy"><span class="instrument-label">VELOCITY</span><span class="instrument-unit">m/s</span></div>
+          <i class="instrument-divider"></i>
+          <strong id="speedValue" class="instrument-value">--</strong>
+        </div>
+        <div class="instrument-track"></div>
+      </article>
+      <article id="gforceInstrument" class="instrument">
+        <div class="instrument-readout">
+          <div class="instrument-copy"><span class="instrument-label">G-FORCE</span><span class="instrument-unit">g</span></div>
+          <i class="instrument-divider"></i>
+          <strong id="gforceValue" class="instrument-value">--</strong>
+        </div>
+        <div class="instrument-track"></div>
+      </article>
+    </section>
+
+    <section class="mission-center">
+      <div id="flightState" class="flight-state">PRE_FLIGHT</div>
+      <div id="timeline" class="timeline">
+        <div id="timelineRail" class="timeline-rail">
+          <div class="timeline-item is-active"><i></i><span>STANDBY</span></div>
+          <div class="timeline-item"><i></i><span>COUNT</span></div>
+          <div class="timeline-item"><i></i><span>IGNITION</span></div>
+          <div class="timeline-item"><i></i><span>POWERED</span></div>
+          <div class="timeline-item"><i></i><span>COASTING</span></div>
+          <div class="timeline-item"><i></i><span>SEPARATION</span></div>
+          <div class="timeline-item"><i></i><span>EJECTION</span></div>
+          <div class="timeline-item"><i></i><span>DESCENT</span></div>
+          <div class="timeline-item"><i></i><span>LANDED</span></div>
+        </div>
+      </div>
+      <div class="timeline-meta">
+        <span>ARM <strong id="armValue">--</strong></span>
+        <span>IGN DELAY <strong id="ignitionDelayValue">--</strong> s</span>
+        <span>PYRO <strong id="pyroValue">--</strong></span>
+        <span>STORAGE <strong id="storageValue">--</strong></span>
+      </div>
+    </section>
+
+    <section class="altitude-wrap">
+      <article id="altitudeInstrument" class="instrument">
+        <div class="instrument-readout">
+          <div class="instrument-copy"><span class="instrument-label">ALTITUDE</span><span class="instrument-unit">m</span></div>
+          <i class="instrument-divider"></i>
+          <strong id="altitudeValue" class="instrument-value">--</strong>
+        </div>
+        <div class="instrument-track"></div>
+      </article>
+    </section>
+  </main>
+  <section id="hudPreroll" class="hud-preroll" aria-hidden="true">
+    <div class="hud-preroll-content">
+      <span class="hud-preroll-kicker">BROADCAST OUTPUT</span>
+      <strong class="hud-preroll-title">HUD LIVE</strong>
+      <span id="hudPrerollValue" class="hud-preroll-value">T−15</span>
+      <i class="hud-preroll-rule"></i>
+      <span class="hud-preroll-caption">PRE-ROLL · ABSOLUTE SEQUENCE</span>
+    </div>
+  </section>
+  <div class="offline-note">HUD LIVE · WAITING FOR MAIN CONSOLE OR AVIONICS</div>
+
+  <script>
+    (() => {
+      "use strict";
+      const CHANNEL_NAME = "hanwool_overlay_sync";
+      const SYNC_KEY = "hanwool_overlay_latest";
+      const params = new URLSearchParams(location.search);
+      const $ = (id) => document.getElementById(id);
+      const nodes = {
+        source:$("sourcePill"), mission:$("missionName"), clockLabel:$("clockLabel"),
+        clockTag:$("clockTag"), clockTime:$("clockTime"), state:$("flightState"),
+        speed:$("speedValue"), gforce:$("gforceValue"), altitude:$("altitudeValue"),
+        speedInstrument:$("speedInstrument"), gforceInstrument:$("gforceInstrument"),
+        altitudeInstrument:$("altitudeInstrument"), timeline:$("timeline"),
+        timelineRail:$("timelineRail"),
+        timelineItems:Array.from(document.querySelectorAll(".timeline-item")),
+        arm:$("armValue"), ignitionDelay:$("ignitionDelayValue"),
+        pyro:$("pyroValue"), storage:$("storageValue"),
+        preroll:$("hudPreroll"), prerollValue:$("hudPrerollValue")
+      };
+      const configuredMission = String(params.get("mission") || "FLASH7 MISSION").trim();
+      const replayRelayMode = String(params.get("mode") || "").toLowerCase() === "replay";
+      let lastMessageAt = 0;
+      let lastSample = null;
+      let socket = null;
+      let reconnectTimer = 0;
+      let eventSource = null;
+      let lastSyncPayload = "";
+
+      function finite(value){
+        const number = Number(value);
+        return Number.isFinite(number) ? number : NaN;
+      }
+      function pick(data, keys, fallback){
+        for(const key of keys){
+          if(data && data[key] != null && data[key] !== "") return data[key];
+        }
+        return fallback;
+      }
+      function setText(node, value){
+        if(!node) return;
+        const next = String(value == null || value === "" ? "--" : value);
+        if(node.textContent !== next) node.textContent = next;
+      }
+      function formatNumber(value, digits, fallback="--"){
+        const number = finite(value);
+        return Number.isFinite(number) ? number.toFixed(digits) : fallback;
+      }
+      function setProgress(node, value, max){
+        const number = finite(value);
+        const limit = finite(max);
+        const ratio = Number.isFinite(number) && Number.isFinite(limit) && limit > 0
+          ? Math.max(0, Math.min(1, number / limit))
+          : 0;
+        node.style.setProperty("--progress", (ratio * 100).toFixed(1) + "%");
+      }
+      function formatTimerBody(ms){
+        const value = Math.max(0, Math.round(Math.abs(finite(ms) || 0)));
+        const minutes = Math.floor(value / 60000);
+        const seconds = Math.floor((value % 60000) / 1000);
+        const centiseconds = Math.floor((value % 1000) / 10);
+        return String(minutes).padStart(2,"0") + ":" +
+          String(seconds).padStart(2,"0") + ":" +
+          String(centiseconds).padStart(2,"0");
+      }
+      function timerParts(data){
+        const explicit = String(pick(data, ["countdown","timerText"], "") || "").trim();
+        const match = explicit.match(/^(T[+-])\s*(.*)$/i);
+        if(match) return {tag:match[1].toUpperCase(), body:match[2] || "--:--"};
+        const td = finite(pick(data, ["td","tdMs"], NaN));
+        if(Number.isFinite(td)){
+          const state = finite(pick(data, ["st","state"], 0));
+          return {tag:(state === 1 || td < 0) ? "T-" : "T+", body:formatTimerBody(td)};
+        }
+        return {tag:"T-", body:"--:--"};
+      }
+      function timerBodySeconds(body){
+        const parts = String(body || "")
+          .trim()
+          .replace(",",".")
+          .split(":")
+          .map((part)=>finite(part));
+        if(!parts.length || parts.some((part)=>!Number.isFinite(part))) return NaN;
+        if(parts.length >= 3){
+          return parts[parts.length - 3] * 60 +
+            parts[parts.length - 2] +
+            parts[parts.length - 1] / 100;
+        }
+        if(parts.length === 2) return parts[0] * 60 + parts[1];
+        return parts[0];
+      }
+      function updatePreroll(data,timer){
+        let remaining = NaN;
+        const td = finite(pick(data,["td","tdMs"],NaN));
+        if(Number.isFinite(td) && td < 0){
+          remaining = Math.abs(td) / 1000;
+        }else if(timer && timer.tag === "T-"){
+          remaining = timerBodySeconds(timer.body);
+        }
+        const active = Number.isFinite(remaining) && remaining > 10 && remaining <= 15.5;
+        document.body.classList.toggle("is-preroll",active);
+        if(nodes.preroll) nodes.preroll.setAttribute("aria-hidden",active ? "false" : "true");
+        if(!active) return;
+        const displaySecond = Math.max(10,Math.min(15,Math.ceil(remaining)));
+        setText(nodes.prerollValue,"T−" + displaySecond);
+        const progress = Math.max(0,Math.min(1,(15 - remaining) / 5));
+        nodes.preroll.style.setProperty("--preroll-progress",(progress * 100).toFixed(1) + "%");
+      }
+      function stateInfo(data){
+        const explicit = String(pick(data, ["stateText","phaseLabel"], "") || "").trim();
+        const phaseCode = finite(pick(data, ["flightPhaseCode","flight_phase_code"], NaN));
+        const state = finite(pick(data, ["st","state"], 0));
+        if(explicit) return explicit.replace(/\s+/g," ");
+        if(phaseCode === 1) return "POWERED_FLIGHT";
+        if(phaseCode === 2) return "COASTING";
+        if(phaseCode === 3) return "DESCENT";
+        if(phaseCode === 4) return "LANDED";
+        if(state === 1) return "COUNTDOWN";
+        if(state === 2) return "IGNITION";
+        if(state === 4) return "WAITING_LAUNCH";
+        if(state === 5) return "LAUNCH_FAULT";
+        return "PRE_FLIGHT";
+      }
+      function timelineIndex(data){
+        const state = finite(pick(data, ["st","state"], 0));
+        const phase = finite(pick(data, ["flightPhaseCode","flight_phase_code"], NaN));
+        const deploymentState = finite(pick(data, ["deploymentState","deployment_state"], 0));
+        const deploymentFlags = finite(pick(data, ["deploymentFlags","deployment_flags"], 0));
+        let index = state === 1 ? 1 : (state === 2 || state === 3 || state === 4 || state === 5 ? 2 : 0);
+        if(phase === 1) index = 3;
+        else if(phase === 2) index = 4;
+        else if(phase === 3) index = 7;
+        else if(phase === 4) index = 8;
+        if(!Number.isFinite(phase) || phase < 3){
+          if((deploymentFlags & (1 << 5)) !== 0) index = 6;
+          else if(deploymentState >= 2) index = 5;
+        }
+        return Math.max(0,Math.min(nodes.timelineItems.length - 1,index));
+      }
+      function rawSpeed(data){
+        return finite(pick(data, ["speedMps","actual_speed_mps","vehicle_speed_mps","speed_mps"], NaN));
+      }
+      function rawAltitude(data){
+        return finite(pick(data, ["altitudeM","baro_altitude_m","altitude_m","alt","ba"], NaN));
+      }
+      function rawGforce(data){
+        const direct = finite(pick(data, ["gforceG","accel_mag_g","total_accel_g"], NaN));
+        if(Number.isFinite(direct)) return direct;
+        const ax = finite(pick(data, ["ax","accel_x"], NaN));
+        const ay = finite(pick(data, ["ay","accel_y"], NaN));
+        const az = finite(pick(data, ["az","accel_z"], NaN));
+        return [ax,ay,az].every(Number.isFinite) ? Math.hypot(ax,ay,az) : NaN;
+      }
+      function decodeWireFrame(frame){
+        if(!Array.isArray(frame)) return frame;
+        if(Number(frame[0]) !== 2 || frame.length < 32) return null;
+        const flags = (Number(frame[16]) || 0) & 0xffff;
+        const bit = (index)=>((flags >>> index) & 1);
+        const phaseCode = finite(frame[74]);
+        const verticalSpeed = finite(frame[75]);
+        const targetStage = Math.max(
+          1,
+          Math.min(2,Math.round(finite(frame[88]) || 1))
+        );
+        const storageUsed = finite(frame[66]);
+        const storageCapacity = finite(frame[67]);
+        return {
+          proto:2,
+          seq:finite(frame[1]),
+          ts:Date.now(),
+          stageId:targetStage,
+          connected:true,
+          p:finite(frame[3]),
+          altitudeM:finite(frame[4]),
+          ax:finite(frame[5]),
+          ay:finite(frame[6]),
+          az:finite(frame[7]),
+          gforceG:Math.hypot(
+            finite(frame[5]) || 0,
+            finite(frame[6]) || 0,
+            finite(frame[7]) || 0
+          ),
+          speedMps:Number.isFinite(verticalSpeed) ? Math.abs(verticalSpeed) : NaN,
+          st:finite(frame[18]) || 0,
+          td:finite(frame[19]) || 0,
+          ab:bit(8),
+          swOn:bit(5),
+          pyroText:(finite(frame[17]) || 0) ? "ACTIVE" : "ALL OFF",
+          ignitionDelayMs:finite(frame[82]),
+          ignitionDelayValid:Number(frame[83]) ? 1 : 0,
+          deploymentState:finite(frame[84]) || 0,
+          deploymentFlags:finite(frame[85]) || 0,
+          flightPhaseCode:Number.isFinite(phaseCode) ? phaseCode : null,
+          storagePercent:Number.isFinite(storageUsed) &&
+            Number.isFinite(storageCapacity) &&
+            storageCapacity > 0
+              ? Math.max(0,Math.min(100,(storageUsed / storageCapacity) * 100))
+              : null
+        };
+      }
+      function scheduleSocketSample(input){
+        if(replayRelayMode){
+          if(!input || Number(input.hud_live) !== 1 || !input.data) return;
+          input = input.data;
+        }else if(input && Number(input.hud_live) === 1 && input.data){
+          input = input.data;
+        }
+        const decoded = decodeWireFrame(input);
+        if(!decoded) return;
+        // OBS Browser Source throttles requestAnimationFrame when Chromium
+        // considers the page background/offscreen. Applying each 30–50 Hz
+        // WebSocket sample immediately keeps the HUD live in OBS as well as
+        // in the same-profile preview.
+        consume(decoded);
+      }
+      function updateTimeline(data){
+        const index = timelineIndex(data);
+        nodes.timelineItems.forEach((item,itemIndex)=>{
+          item.classList.toggle("is-active",itemIndex === index);
+          item.classList.toggle("is-passed",itemIndex < index);
+        });
+        const activeItem = nodes.timelineItems[index];
+        if(nodes.timelineRail && activeItem){
+          const center = activeItem.offsetLeft + activeItem.offsetWidth / 2;
+          nodes.timelineRail.style.transform = "translateX(" + (-center) + "px)";
+        }
+      }
+      function consume(input){
+        if(!input || typeof input !== "object") return;
+        const data = input.data && typeof input.data === "object"
+          ? Object.assign({},input,input.data)
+          : input;
+        lastMessageAt = Date.now();
+        lastSample = data;
+        document.body.classList.remove("is-offline");
+
+        const connectedRaw = pick(data, ["connected","linkOk"], true);
+        const connected = connectedRaw === true || Number(connectedRaw) !== 0;
+        const stage = Math.max(1,Math.min(2,Math.round(finite(pick(data, ["stageId","stage_id","node_id"], 1)) || 1)));
+        nodes.source.classList.toggle("is-online",connected);
+        setText(nodes.source,"STAGE " + stage + " " + (connected ? "LINKED" : "OFFLINE"));
+        setText(nodes.mission,String(pick(data,["mission"],configuredMission) || configuredMission).trim());
+
+        const state = stateInfo(data);
+        setText(nodes.state,state);
+        const tone = String(pick(data,["stateStatus"],"") || "").toLowerCase();
+        nodes.state.classList.toggle("is-warn",tone === "warn" || /WAIT|COUNT|COAST/.test(state));
+        nodes.state.classList.toggle("is-bad",tone === "bad" || /ABORT|FAULT|ERROR/.test(state));
+        setText(nodes.clockLabel,state.replace(/_/g," "));
+        const timer = timerParts(data);
+        setText(nodes.clockTag,timer.tag);
+        setText(nodes.clockTime,timer.body);
+        updatePreroll(data,timer);
+
+        const speed = rawSpeed(data);
+        const gforce = rawGforce(data);
+        const altitude = rawAltitude(data);
+        setText(nodes.speed,formatNumber(Math.max(0,speed),1));
+        setText(nodes.gforce,formatNumber(Math.max(0,gforce),2));
+        setText(nodes.altitude,formatNumber(altitude,1));
+        setProgress(nodes.speedInstrument,Math.max(0,speed),100);
+        setProgress(nodes.gforceInstrument,Math.max(0,gforce),20);
+        setProgress(nodes.altitudeInstrument,Math.max(0,altitude),300);
+
+        const arm = pick(data,["armText"],null);
+        const sw = pick(data,["swOn","s","sw"],null);
+        setText(nodes.arm,arm != null ? arm : (sw == null ? "--" : (Number(sw) ? "ON" : "OFF")));
+        const delayMs = finite(pick(data,["ignitionDelayMs","ignition_delay_ms"],NaN));
+        setText(nodes.ignitionDelay,Number.isFinite(delayMs) && delayMs >= 0 ? (delayMs / 1000).toFixed(2) : "--");
+        const pyro = pick(data,["pyroText"],null);
+        const pyroChannel = finite(pick(data,["pyroChannel","pyro_ch"],NaN));
+        setText(nodes.pyro,pyro != null ? pyro : (Number.isFinite(pyroChannel) ? "CH" + Math.round(pyroChannel) : "--"));
+        const storage = finite(pick(data,["storagePercent","storage_pct"],NaN));
+        setText(nodes.storage,Number.isFinite(storage) ? storage.toFixed(1) + "%" : "--");
+        updateTimeline(data);
+      }
+      function websocketUrl(){
+        const explicit = String(params.get("ws") || "").trim();
+        if(explicit) return explicit;
+        const source = String(params.get("source") || "").trim();
+        if(source){
+          try{
+            const url = new URL(source);
+            url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+            url.pathname = "/ws";
+            url.search = "";
+            url.hash = "";
+            return url.href;
+          }catch(_error){}
+        }
+        if(location.protocol === "http:" || location.protocol === "https:"){
+          return (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws";
+        }
+        return "";
+      }
+      function connectSocket(){
+        const url = websocketUrl();
+        if(!url || socket && (socket.readyState === 0 || socket.readyState === 1)) return;
+        try{
+          socket = new WebSocket(url);
+          socket.onmessage = (event)=>{
+            try{ scheduleSocketSample(JSON.parse(event.data)); }catch(_error){}
+          };
+          socket.onclose = ()=>{
+            socket = null;
+            clearTimeout(reconnectTimer);
+            reconnectTimer = setTimeout(connectSocket,1200);
+          };
+          socket.onerror = ()=>{ try{ socket.close(); }catch(_error){} };
+        }catch(_error){
+          reconnectTimer = setTimeout(connectSocket,1600);
+        }
+      }
+      function eventSourceUrl(){
+        const explicit = String(params.get("sse") || "").trim();
+        if(explicit) return explicit;
+        return replayRelayMode ? "http://127.0.0.1:4177/hud-stream" : "";
+      }
+      function connectEventSource(){
+        const url = eventSourceUrl();
+        if(!url || !("EventSource" in window) || eventSource) return;
+        try{
+          eventSource = new EventSource(url);
+          eventSource.onmessage = (event)=>{
+            try{
+              const data = JSON.parse(event.data);
+              scheduleSocketSample({hud_live:1,data});
+            }catch(_error){}
+          };
+          eventSource.onerror = ()=>{
+            // EventSource performs its own bounded reconnect. Keep the board
+            // WebSocket connected at the same time as an automatic fallback.
+          };
+        }catch(_error){
+          eventSource = null;
+        }
+      }
+      try{
+        if("BroadcastChannel" in window){
+          const channel = new BroadcastChannel(CHANNEL_NAME);
+          channel.onmessage = (event)=>consume(event.data);
+        }
+      }catch(_error){}
+      try{
+        const cached = localStorage.getItem(SYNC_KEY);
+        if(cached){
+          lastSyncPayload = cached;
+          consume(JSON.parse(cached));
+        }
+      }catch(_error){}
+      window.addEventListener("storage",(event)=>{
+        if(event.key !== SYNC_KEY || !event.newValue) return;
+        lastSyncPayload = event.newValue;
+        try{ consume(JSON.parse(event.newValue)); }catch(_error){}
+      });
+      // OBS/embedded Chromium does not consistently dispatch cross-window
+      // storage events. Poll the same lightweight sync record so HUD LIVE
+      // follows replay and telemetry without requiring a page refresh.
+      setInterval(()=>{
+        try{
+          const payload = localStorage.getItem(SYNC_KEY) || "";
+          if(!payload || payload === lastSyncPayload) return;
+          lastSyncPayload = payload;
+          consume(JSON.parse(payload));
+        }catch(_error){}
+      },33);
+      setText(nodes.mission,configuredMission);
+      setInterval(()=>{
+        const stale = !lastMessageAt || Date.now() - lastMessageAt > 2500;
+        if(!stale) return;
+        document.body.classList.add("is-offline");
+        nodes.source.classList.remove("is-online");
+        if(lastSample){
+          const stage = Math.max(1,Math.min(2,Math.round(finite(pick(lastSample,["stageId","stage_id"],1)) || 1)));
+          setText(nodes.source,"STAGE " + stage + " OFFLINE");
+        }
+      },500);
+      connectEventSource();
+      connectSocket();
+    })();
+  </script>
+</body>
+</html>

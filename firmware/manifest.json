@@ -1,0 +1,7 @@
+{
+  "file": "firmware.bin",
+  "product": "ALTIS INTELLIGENT3",
+  "sha256": "101721b8055b7b18a77134dfb4872cc3588572d683d49d7c781ad8ce3858581a",
+  "size": 1214064,
+  "target": "ESP32-S3"
+}

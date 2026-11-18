@@ -1,0 +1,412 @@
+@media (min-width:901px){
+  /* Dashboard geometry and surface hierarchy. */
+  body.dashboard-view-active #dashboardView > .shell{
+    gap:var(--ui-gap) !important;
+  }
+  body.dashboard-view-active #dashboardView :is(.row-top,.row-bottom){
+    gap:var(--ui-gap) !important;
+  }
+  body.dashboard-view-active #dashboardView .row-bottom{
+    align-items:stretch !important;
+  }
+  body.dashboard-view-active #dashboardView .row-bottom > :is(.charts-card,.controls-card){
+    height:clamp(260px,49vh,440px) !important;
+    align-self:stretch !important;
+  }
+  body.dashboard-view-active #dashboardView :is(.motor-card,.controls-card,.chart-box){
+    border:1px solid var(--ui-border) !important;
+    border-radius:var(--ui-radius) !important;
+    background:var(--ui-surface) !important;
+    box-shadow:none !important;
+  }
+  body.dashboard-view-active #dashboardView :is(.motor-card,.controls-card,.chart-box)::before,
+  body.dashboard-view-active #dashboardView :is(.motor-card,.controls-card,.chart-box)::after{
+    content:none !important;
+    display:none !important;
+  }
+
+  /* Quick Data now follows the same header/body rhythm as Control Panel. */
+  body.dashboard-view-active #dashboardView .motor-card{
+    padding:0 !important;
+  }
+  body.dashboard-view-active #dashboardView .motor-card > .quick-data-header{
+    min-height:var(--ui-section-height) !important;
+    margin:0 !important;
+    padding:0 16px 0 18px !important;
+    align-items:center !important;
+    border:0 !important;
+    border-bottom:1px solid var(--ui-divider) !important;
+    background:#191a1d !important;
+  }
+  body.dashboard-view-active #dashboardView .motor-card > .quick-data-body{
+    min-height:0 !important;
+    margin:0 !important;
+    padding:14px 16px 16px !important;
+  }
+  body.dashboard-view-active #dashboardView :is(.card-title,.chart-title-main){
+    color:var(--ui-text) !important;
+    font-size:14px !important;
+    line-height:1.1 !important;
+    font-weight:650 !important;
+    letter-spacing:.15em !important;
+  }
+  body.dashboard-view-active #dashboardView .motor-card :is(.status-metric,.item){
+    border:1px solid var(--ui-divider) !important;
+    border-radius:var(--ui-control-radius) !important;
+    background:var(--ui-surface-raised) !important;
+    box-shadow:none !important;
+  }
+
+  /* Vehicle cards use the same flat material; link state is carried by the dot. */
+  body.dashboard-view-active #dashboardView .stage-overview-panel .stage-telemetry-deck{
+    gap:var(--ui-gap) !important;
+  }
+  body.dashboard-view-active #dashboardView .stage-overview-panel .stage-telemetry-card{
+    border:1px solid var(--ui-border) !important;
+    border-radius:var(--ui-radius) !important;
+    background:var(--ui-surface) !important;
+    box-shadow:none !important;
+  }
+  body.dashboard-view-active #dashboardView .stage-overview-panel .stage-telemetry-card.is-selected{
+    border-color:#555a63 !important;
+    background:#15181d !important;
+  }
+  body.dashboard-view-active #dashboardView .stage-telemetry-metrics > span,
+  body.dashboard-view-active #dashboardView :is(.stage-telemetry-health,.stage-telemetry-card footer){
+    border-color:var(--ui-divider) !important;
+  }
+
+  /*
+   * Selected-stage telemetry is a dedicated desktop component. The legacy
+   * Quick Data DOM remains intact for mobile and direct-board operation.
+   */
+  body.dashboard-view-active:has(#stageTelemetryDeck:not(.hidden)) #dashboardView .motor-card{
+    overflow:hidden !important;
+  }
+  body.dashboard-view-active:has(#stageTelemetryDeck:not(.hidden)) #dashboardView .motor-card > .quick-data-body{
+    display:none !important;
+  }
+  body.dashboard-view-active:has(#stageTelemetryDeck:not(.hidden)) #dashboardView .motor-card > .stage-selected-telemetry{
+    display:grid !important;
+    flex:1 1 auto;
+    grid-template-columns:minmax(168px,24%) minmax(0,1fr);
+    min-width:0;
+    min-height:0;
+    height:100%;
+    background:#151618;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-primary{
+    display:grid;
+    grid-template-rows:repeat(2,minmax(0,1fr));
+    min-width:0;
+    min-height:0;
+    border-right:1px solid var(--ui-divider);
+    background:#17181a;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-primary-item{
+    display:flex;
+    position:relative;
+    flex-direction:column;
+    justify-content:center;
+    align-items:flex-start;
+    min-width:0;
+    min-height:0;
+    padding:18px 24px;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-primary-item + .stage-selected-primary-item{
+    border-top:1px solid var(--ui-divider);
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-primary-item > span,
+  body.dashboard-view-active #dashboardView .stage-selected-detail > span{
+    color:#7f8792;
+    font-size:9px;
+    font-weight:650;
+    line-height:1;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-primary-value{
+    display:flex;
+    align-items:baseline;
+    justify-content:flex-start;
+    gap:7px;
+    width:100%;
+    margin-top:13px;
+    min-width:0;
+    white-space:nowrap;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-primary-value strong{
+    overflow:hidden;
+    color:#f2f3f5;
+    font-size:28px;
+    font-weight:540;
+    line-height:1;
+    letter-spacing:-.035em;
+    text-overflow:ellipsis;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-primary-value i,
+  body.dashboard-view-active #dashboardView .stage-selected-detail-value i{
+    color:#8f959e;
+    font-size:9px;
+    font-style:normal;
+    font-weight:560;
+    letter-spacing:.04em;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-details{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    grid-template-rows:repeat(2,minmax(0,1fr));
+    min-width:0;
+    min-height:0;
+    padding:8px 18px;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-detail{
+    display:flex;
+    position:relative;
+    flex-direction:column;
+    align-items:flex-start;
+    justify-content:center;
+    min-width:0;
+    min-height:0;
+    padding:14px 16px;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-detail:nth-child(n+5){
+    border-top:1px solid var(--ui-divider);
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-detail:not(:nth-child(4n+1))::before{
+    position:absolute;
+    top:22%;
+    bottom:22%;
+    left:0;
+    width:1px;
+    background:rgba(112,118,128,.17);
+    content:"";
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-detail-value{
+    display:flex;
+    align-items:baseline;
+    justify-content:flex-start;
+    gap:5px;
+    width:100%;
+    margin-top:12px;
+    min-width:0;
+    white-space:nowrap;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-detail-value strong{
+    color:#e3e5e8;
+    font-size:15px;
+    font-weight:560;
+    line-height:1;
+    text-align:left;
+    letter-spacing:-.015em;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-detail-value strong[data-stage-selected="state"]{
+    font-size:14px;
+    white-space:nowrap;
+  }
+  body.dashboard-view-active #dashboardView .stage-selected-telemetry.is-offline :is(
+    .stage-selected-primary-value strong,
+    .stage-selected-detail-value strong
+  ){
+    color:#8a9099;
+  }
+
+  /* Charts keep the data prominent and remove unnecessary badge-shaped chrome. */
+  body.dashboard-view-active #dashboardView .charts-card{
+    background:transparent !important;
+  }
+  body.dashboard-view-active #dashboardView .chart-row{
+    gap:var(--ui-gap) !important;
+  }
+  body.dashboard-view-active #dashboardView .chart-box{
+    min-width:0 !important;
+    padding:14px 16px 12px !important;
+    overflow:hidden !important;
+  }
+  body.dashboard-view-active #dashboardView .chart-box-header{
+    min-height:28px !important;
+    margin:0 0 8px !important;
+    align-items:flex-start !important;
+  }
+  body.dashboard-view-active #dashboardView .chart-title{
+    color:var(--ui-text-soft) !important;
+    font-size:12px !important;
+    font-weight:620 !important;
+  }
+  body.dashboard-view-active #dashboardView .chart-badge{
+    min-height:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    color:var(--ui-muted) !important;
+    box-shadow:none !important;
+    font-size:9px !important;
+    font-weight:600 !important;
+    letter-spacing:.06em !important;
+  }
+  body.dashboard-view-active #dashboardView .chart-canvas-stage{
+    min-height:0 !important;
+  }
+
+  /* Control Panel shares exact section, tile, and action measurements. */
+  body.dashboard-view-active #controlsCard #controlsHeader{
+    flex:0 0 var(--ui-section-height) !important;
+    min-height:var(--ui-section-height) !important;
+    padding:0 14px 0 18px !important;
+  }
+  body.dashboard-view-active #controlsCard .controls-grid{
+    gap:8px !important;
+    padding:14px 16px 16px !important;
+  }
+  body.dashboard-view-active #controlsCard :is(
+    .primary-btn.sequence-btn,
+    .controls-main-row .secondary-btn
+  ){
+    height:54px !important;
+    min-height:54px !important;
+    border-radius:var(--ui-control-radius) !important;
+  }
+  body.dashboard-view-active #controlsCard :is(.control-tile,.control-tile.span-2,.control-tile-mode){
+    height:50px !important;
+    min-height:50px !important;
+    border-radius:var(--ui-control-radius) !important;
+  }
+  body.dashboard-view-active #controlsCard .controls-toolbar .controls-toolbar-action{
+    border-radius:var(--ui-control-radius) !important;
+  }
+
+  /*
+   * Settings: one content surface with dividers instead of a pile of nested
+   * cards. Product information and A.I LINK retain their intentional layouts.
+   */
+  html:not(.phone-landscape-layout) body #settingsOverlay > .settings-dialog{
+    width:min(1000px,calc(100vw - 64px)) !important;
+    max-width:1000px !important;
+    height:min(720px,calc(100dvh - 64px)) !important;
+    border-radius:var(--ui-radius) !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-body{
+    gap:20px !important;
+    padding:20px 22px 22px !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-nav{
+    width:184px !important;
+    padding-right:18px !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-nav-title{
+    margin:1px 0 9px !important;
+    color:var(--ui-faint) !important;
+    font-size:9px !important;
+    font-weight:700 !important;
+    letter-spacing:.16em !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-nav-btn{
+    min-height:40px !important;
+    padding:0 11px !important;
+    border-radius:var(--ui-control-radius) !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-panels{
+    padding:0 8px 2px 0 !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-panel{
+    min-width:0 !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-panel > .settings-group:not(.fw-info-group):not(.flash-link-settings-group){
+    margin:0 !important;
+    padding:0 0 18px !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-panel > .settings-group:not(.fw-info-group):not(.flash-link-settings-group) + .settings-group{
+    padding-top:19px !important;
+    border-top:1px solid var(--ui-divider) !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-group-title{
+    margin:0 0 8px !important;
+    color:var(--ui-muted) !important;
+    font-size:9px !important;
+    line-height:1 !important;
+    font-weight:700 !important;
+    letter-spacing:.14em !important;
+    text-transform:uppercase !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-panel > .settings-group:not(.fw-info-group):not(.flash-link-settings-group) .settings-row{
+    min-height:56px !important;
+    padding:10px 2px !important;
+    align-items:center !important;
+    border-bottom:1px solid #25272b !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-panel > .settings-group:not(.fw-info-group):not(.flash-link-settings-group) .settings-row:last-child{
+    border-bottom:0 !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-panel > .settings-group:not(.fw-info-group):not(.flash-link-settings-group) .settings-label{
+    font-size:12px !important;
+    font-weight:600 !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay .settings-panel > .settings-group:not(.fw-info-group):not(.flash-link-settings-group) .hint-mini{
+    margin-top:4px !important;
+    font-size:9px !important;
+    line-height:1.4 !important;
+  }
+  html:not(.phone-landscape-layout) body #settingsOverlay :is(
+    .settings-select,
+    .settings-number,
+    .settings-inline-btn,
+    .settings-btn
+  ){
+    min-height:36px !important;
+    border-radius:var(--ui-control-radius) !important;
+  }
+
+  /* The common modal frame and vertical rhythm also covers late-created dialogs. */
+  html:not(.phone-landscape-layout) body :is(
+    #hardwareServoOverlay,
+    #pyroControlOverlay,
+    #dataListOverlay,
+    #dataDownloadConfirmOverlay,
+    #dataResetConfirmOverlay,
+    #flashLinkReportOverlay,
+    #missionForceOverlay,
+    #missionArmRiskOverlay,
+    #rebootConfirmOverlay,
+    #connectMethodOverlay,
+    #wifiConnectOverlay,
+    #serialConnectOverlay
+  ){
+    align-items:center !important;
+    justify-content:center !important;
+    padding:32px !important;
+  }
+  html:not(.phone-landscape-layout) body :is(
+    #hardwareServoOverlay,
+    #pyroControlOverlay,
+    #dataListOverlay,
+    #flashLinkReportOverlay,
+    #wifiConnectOverlay,
+    #serialConnectOverlay
+  ) > :is(
+    .settings-dialog,
+    .data-storage-dialog
+  ){
+    border-radius:var(--ui-radius) !important;
+  }
+  html:not(.phone-landscape-layout) body :is(
+    .settings-header,
+    .mobile-chart-picker-head,
+    .connection-guide-header,
+    .launcher-header
+  ){
+    min-height:var(--ui-section-height) !important;
+  }
+  html:not(.phone-landscape-layout) body :is(
+    .settings-close-btn,
+    .mobile-chart-picker-close,
+    .connection-guide-close,
+    .launcher-close-btn
+  ){
+    border-radius:var(--ui-control-radius) !important;
+  }
+}

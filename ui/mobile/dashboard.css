@@ -1,0 +1,106 @@
+@media (max-width:900px){
+  html[data-theme="dark"] body{
+    --ui-gap:10px;
+    --ui-radius:8px;
+    --ui-control-radius:6px;
+  }
+  body.dashboard-view-active .stage-telemetry-deck{
+    gap:var(--ui-gap) !important;
+    margin-bottom:16px !important;
+  }
+  body.dashboard-view-active .stage-telemetry-card{
+    border:1px solid var(--ui-border) !important;
+    border-radius:var(--ui-radius) !important;
+    background:var(--ui-surface) !important;
+    box-shadow:none !important;
+  }
+  body.dashboard-view-active .quick-data-body .quick-metrics{
+    gap:var(--ui-gap) !important;
+  }
+  body.dashboard-view-active .quick-data-body .quick-metrics .status-metric{
+    border:1px solid var(--ui-border) !important;
+    border-radius:var(--ui-radius) !important;
+    background:var(--ui-surface) !important;
+  }
+  body.dashboard-view-active .mobile-device-control-section{
+    margin-top:24px !important;
+  }
+  body.dashboard-view-active .mobile-device-control-title{
+    margin:0 0 12px 2px !important;
+    color:var(--ui-text) !important;
+    font-size:16px !important;
+    font-weight:600 !important;
+  }
+  body.dashboard-view-active .mobile-device-control-grid{
+    gap:var(--ui-gap) !important;
+  }
+  body.dashboard-view-active .mobile-device-control-card{
+    border:1px solid var(--ui-border) !important;
+    border-radius:var(--ui-radius) !important;
+    background:var(--ui-surface) !important;
+    box-shadow:none !important;
+  }
+  body.dashboard-view-active :is(
+    #mobileIntelligentCalibrationBtn,
+    #mobileAgentBtn
+  ){
+    border-color:#3a3d43 !important;
+    background:var(--ui-surface-raised) !important;
+  }
+
+  /* Portrait control dialogs remain bottom sheets with one shared rhythm. */
+  html:not(.phone-landscape-layout) body :is(
+    #hardwareServoOverlay,
+    #pyroControlOverlay,
+    #dataListOverlay,
+    #flashLinkReportOverlay
+  ){
+    align-items:flex-end !important;
+    justify-content:center !important;
+    padding:0 !important;
+  }
+  html:not(.phone-landscape-layout) body :is(
+    #hardwareServoOverlay,
+    #pyroControlOverlay,
+    #dataListOverlay,
+    #flashLinkReportOverlay
+  ) > :is(.settings-dialog,.data-storage-dialog){
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 !important;
+    border-radius:10px 10px 0 0 !important;
+    border-bottom:0 !important;
+    background:var(--ui-surface) !important;
+  }
+  html:not(.phone-landscape-layout) body :is(
+    #hardwareServoOverlay,
+    #pyroControlOverlay,
+    #dataListOverlay,
+    #flashLinkReportOverlay
+  ) .settings-header{
+    min-height:56px !important;
+    padding-left:16px !important;
+    border-bottom:1px solid var(--ui-divider) !important;
+    background:#191a1d !important;
+  }
+  html:not(.phone-landscape-layout) body :is(
+    #hardwareServoOverlay,
+    #pyroControlOverlay,
+    #dataListOverlay,
+    #flashLinkReportOverlay,
+    #rebootConfirmOverlay,
+    #missionForceOverlay
+  ) :is(
+    .loadcell-primary,
+    .confirm-cancel,
+    .settings-btn,
+    .pyro-control-run,
+    .pyro-control-confirm-btn,
+    .data-storage-download,
+    .data-storage-reset
+  ){
+    min-height:48px !important;
+    border-radius:var(--ui-control-radius) !important;
+    box-shadow:none !important;
+  }
+}

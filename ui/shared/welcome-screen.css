@@ -1,0 +1,116 @@
+/* Shared welcome identity; desktop and mobile own their screen geometry. */
+body.welcome-connect-active{overflow:hidden!important;background:#000!important}
+body.welcome-connect-active::before,
+body.welcome-connect-active :is(#splash,.app-shell,.footer-nav,.toast-container){display:none!important}
+#welcomeConnectScreen{
+  --welcome-inset:clamp(28px,3.8vw,64px);
+  position:fixed;inset:0;z-index:2147483000;
+  display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+  padding:28px var(--welcome-inset) 24px;overflow:hidden;isolation:isolate;
+  color:#f5f5f5;background:#000;font-family:inherit;
+}
+#welcomeConnectScreen.hidden{display:none!important}
+#welcomeConnectScreen button{-webkit-tap-highlight-color:transparent}
+#welcomeConnectScreen button:focus-visible{outline:2px solid #fff;outline-offset:6px}
+#welcomeConnectScreen .welcome-home-header{display:flex;justify-content:space-between;align-items:center;gap:24px;min-width:0;min-height:42px}
+#welcomeConnectScreen .welcome-home-brand{display:flex;align-items:center;gap:12px;flex-shrink:0;font-size:24px;font-weight:750;letter-spacing:.055em}
+#welcomeConnectScreen .welcome-home-brand img{display:block;width:31px;height:31px;object-fit:contain;filter:brightness(0) invert(1)}
+#welcomeConnectScreen .welcome-home-mission{display:flex;align-items:center;gap:12px;min-width:0;min-height:44px;margin:0;padding:6px 0 6px 12px;border:0;border-radius:6px;background:none;box-shadow:none;color:inherit;font-family:inherit;cursor:pointer}
+#welcomeConnectScreen .welcome-home-mission svg{width:15px;height:15px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;color:#9fa3a3}
+#welcomeConnectScreen .welcome-home-mission:hover strong{text-decoration:underline;text-underline-offset:4px}
+#welcomeConnectScreen .welcome-home-mission:disabled{opacity:.5;cursor:wait}
+#welcomeConnectScreen .welcome-home-mission>span{font-size:10px;font-weight:650;letter-spacing:.15em;color:rgba(255,255,255,.55)}
+#welcomeConnectScreen .welcome-home-mission strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:650;letter-spacing:.025em}
+#welcomeConnectScreen .welcome-home-stage{display:grid;grid-template-columns:340px minmax(0,1fr);gap:clamp(32px,6vw,100px);align-items:center;min-width:0;min-height:0;padding:0}
+#welcomeConnectScreen .welcome-home-simulation{align-self:center;justify-self:center;width:min(100%,560px);min-width:0;padding-bottom:48px}
+#welcomeConnectScreen .welcome-home-simulation[hidden]{display:none!important}
+#welcomeConnectScreen .welcome-home-simulation header{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:22px}
+#welcomeConnectScreen .welcome-home-simulation h2{margin:0;color:#ebeded;font-size:19px;font-weight:550;letter-spacing:-.02em}
+#welcomeConnectScreen .welcome-home-simulation p{margin:0;color:#818686;font-size:12px;line-height:1.5}
+#welcomeConnectScreen #welcomeSimConnectBtn[aria-expanded="true"]{color:#fff}
+#welcomeConnectScreen .welcome-home-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+#welcomeConnectScreen .welcome-home-modes button{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0;min-height:184px;padding:24px;border:1px solid #252828;border-radius:12px;background:#080909;box-shadow:none;color:#f0f2f2;font-family:inherit;line-height:1.4;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+#welcomeConnectScreen .welcome-home-modes button:hover{border-color:#6c7373;background:#101212}
+#welcomeConnectScreen .welcome-home-modes svg{width:32px;height:32px;margin-bottom:12px;fill:none;stroke:#b8bdbd;stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round}
+#welcomeConnectScreen .welcome-home-modes strong{font-size:23px;font-weight:550;letter-spacing:.025em}
+#welcomeConnectScreen .welcome-home-modes button>span{color:#929999;font-size:12px}
+#welcomeConnectScreen .welcome-home-readiness{width:340px;max-width:100%;max-height:100%;overflow:auto;padding:24px;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+#welcomeConnectScreen .welcome-home-status-line{display:flex;align-items:center;justify-content:space-between;gap:14px;color:#d3d4d4;font-size:13px;font-weight:550}
+#welcomeConnectScreen .welcome-home-state{display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:9px;font-weight:650;letter-spacing:.1em;color:#b9bcbc}
+#welcomeConnectScreen .welcome-home-state i{width:5px;height:5px;border-radius:50%;background:currentColor}
+#welcomeConnectScreen #welcomeConnectStatus{margin:21px 0 10px;font-size:27px;font-weight:550;line-height:1.35;letter-spacing:-.035em;overflow-wrap:anywhere;color:#fff}
+#welcomeConnectScreen .welcome-home-description{margin:0;color:#b8baba;font-size:13px;line-height:1.65;letter-spacing:-.015em}
+#welcomeConnectScreen .welcome-home-guide{margin-top:24px;border-top:1px solid rgba(255,255,255,.11)}
+#welcomeConnectScreen .welcome-home-guide h2{display:flex;align-items:center;min-height:44px;margin:0;padding-top:10px;font-size:12px;font-weight:500;color:#d7d9d9}
+#welcomeConnectScreen .welcome-home-guide-content{max-height:min(240px,33dvh);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#606464 transparent}
+#welcomeConnectScreen .welcome-home-guide ol{display:grid;gap:14px;margin:14px 0 18px;padding:0;list-style:none}
+#welcomeConnectScreen .welcome-home-guide li{display:flex;align-items:baseline;gap:12px;font-size:12px;line-height:1.6;color:#c3c6c6}
+#welcomeConnectScreen .welcome-home-guide li b{font-size:10px;color:#8f9696;font-weight:550}
+#welcomeConnectScreen #welcomeConnectHelp{margin:0 0 2px;font-size:11px;line-height:1.6;color:#999f9f}
+#welcomeConnectScreen .welcome-home-footer{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14)}
+#welcomeConnectScreen .welcome-home-shortcuts{display:flex;gap:40px;align-items:center}
+#welcomeConnectScreen .welcome-home-shortcut{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-width:68px;min-height:62px;padding:4px 0;border:0;border-radius:6px;background:transparent;box-shadow:none;color:#d9dbdb;font-family:inherit;font-size:12px;font-weight:500;line-height:1.3;cursor:pointer}
+#welcomeConnectScreen .welcome-home-shortcut svg{display:block;width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+#welcomeConnectScreen .welcome-home-shortcut:hover{color:#fff}
+#welcomeConnectScreen .welcome-home-shortcut[aria-pressed="true"]{color:#fff;font-weight:650}
+#welcomeConnectScreen .welcome-home-shortcut[aria-pressed="true"] svg{stroke-width:1.8}
+#welcomeConnectScreen .welcome-home-connect{display:flex;align-items:center;gap:22px}
+#welcomeConnectScreen .welcome-home-connect>span{font-size:11px;font-weight:500;letter-spacing:.06em;color:#a3a7a7}
+#welcomeConnectScreen #welcomeBoardSearchBtn{display:flex;align-items:center;justify-content:center;min-width:228px;height:62px;padding:0 28px;border:1px solid #eee;border-radius:9px;background:#eee;box-shadow:none;color:#141515;font-family:inherit;font-size:17px;font-weight:650;line-height:1.3;cursor:pointer;transition:background .15s}
+#welcomeConnectScreen #welcomeBoardSearchBtn:hover{background:#fff}
+#welcomeConnectScreen #welcomeBoardSearchBtn:disabled{opacity:.6;cursor:wait}
+#welcomeConnectScreen.is-connecting .welcome-home-state i{animation:welcome-home-pulse 1.2s ease-in-out infinite}
+#welcomeConnectScreen.is-connected .welcome-home-state{color:#fff}
+@keyframes welcome-home-pulse{50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){#welcomeConnectScreen.is-connecting .welcome-home-state i{animation:none}}
+.welcome-mission-note{display:none}
+#welcomeConnectScreen:not([data-welcome-view="flight"]) .welcome-home-readiness,
+#welcomeConnectScreen:not([data-welcome-view="flight"]) .welcome-home-connect{display:none!important}
+#welcomeConnectScreen:not([data-welcome-view="flight"]) .welcome-home-stage{display:grid;grid-template-columns:minmax(0,1fr);place-items:center;gap:0;padding:0}
+#welcomeConnectScreen:not([data-welcome-view="flight"]) .welcome-home-simulation{align-self:center;justify-self:center;margin:0;padding:0}
+#welcomeConnectScreen .welcome-home-pane{width:min(100%,880px);max-height:100%;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#4a4e4e transparent}
+#welcomeConnectScreen .welcome-home-pane[hidden]{display:none!important}
+#welcomeConnectScreen .welcome-home-mission-pane{width:min(100%,700px)}
+#welcomeConnectScreen .welcome-home-pane-header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:22px}
+#welcomeConnectScreen .welcome-home-pane-header h2{margin:0;font-size:22px;font-weight:550;letter-spacing:-.025em;color:#f1f2f2}
+#welcomeConnectScreen .welcome-fc-guide{width:min(100%,520px)}
+#welcomeConnectScreen .welcome-fc-guide .welcome-home-pane-header{margin-bottom:12px}
+#welcomeConnectScreen .welcome-fc-status{margin:0;color:#a7acac;font-size:13px;line-height:1.6}
+#welcomeConnectScreen .welcome-fc-steps{display:grid;gap:28px;margin:36px 0;padding:0;list-style:none}
+#welcomeConnectScreen .welcome-fc-steps li{display:flex;align-items:flex-start;gap:18px}
+#welcomeConnectScreen .welcome-fc-steps li>span{display:grid;place-items:center;flex-shrink:0;width:34px;height:34px;border:1px solid #737979;border-radius:50%;color:#f0f2f2;font-size:14px;font-weight:500;line-height:1}
+#welcomeConnectScreen .welcome-fc-steps h3{margin:2px 0 7px;font-size:15px;font-weight:550;color:#ededed}
+#welcomeConnectScreen .welcome-fc-steps p{margin:0;color:#999f9f;font-size:13px;line-height:1.6;word-break:keep-all}
+#welcomeConnectScreen .welcome-fc-enter{width:100%;min-height:48px;padding:12px 18px;border:1px solid #3e4343;border-radius:8px;background:none;box-shadow:none;color:#dedfdf;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer}
+#welcomeConnectScreen .welcome-fc-enter:hover{border-color:#929999;background:#101111}
+#welcomeConnectScreen .welcome-fc-enter:disabled{opacity:.4;cursor:default}
+#welcomeConnectScreen #replayDataPickerOverlay.is-welcome-inline{position:static!important;inset:auto!important;width:100%!important;height:auto!important;max-height:none!important;min-height:0!important;z-index:auto!important;margin:0!important;padding:0!important;background:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-picker-dialog{width:100%!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;overflow:visible!important}
+#welcomeConnectScreen #replayDataPickerOverlay .mobile-chart-picker-head{display:none!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-picker-body{display:grid!important;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr)!important;gap:28px!important;padding:0!important;min-height:0!important;max-height:none!important;overflow:visible!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-summary{gap:12px!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-summary-card{min-height:0!important;padding:14px!important;border:1px solid #252828!important;border-radius:10px!important;background:#090a0a!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-summary-empty{padding:8px 0!important;min-height:0!important;color:#909797!important;font-size:12px!important;line-height:1.5!important}
+#welcomeConnectScreen #replayDataPickerOverlay :is(.replay-data-picker-file,.replay-data-picker-item,.replay-data-picker-mode-toggle){border-color:#292d2d!important;border-radius:9px!important;background:#090a0a!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-picker-file-arrow{display:none!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-picker-empty{min-height:110px!important;padding:20px!important;border:1px dashed #2d3232!important;border-radius:10px!important;background:none!important;color:#909797!important;font-size:12px!important;line-height:1.6!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-picker-tabs button{color:#8e9696!important;background:none!important;border-color:#292d2d!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-picker-tabs button.is-active{color:#f0f2f2!important;background:#181b1b!important}
+#welcomeConnectScreen #replayDataPickerOverlay #replayProceedBtn{min-height:42px!important;border:1px solid #d7dada!important;border-radius:8px!important;background:#e4e6e6!important;color:#151818!important;box-shadow:none!important;font-size:13px!important}
+#welcomeConnectScreen #replayDataPickerOverlay #replayProceedBtn:disabled{border-color:#272b2b!important;background:#171a1a!important;color:#737c7c!important;opacity:1!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-picker-list{max-height:min(34dvh,300px)!important}
+#welcomeConnectScreen #replayDataPickerOverlay .replay-data-picker-toggle-track{background:#333939!important}
+#welcomeConnectScreen #replayDataPickerOverlay [aria-checked="true"] .replay-data-picker-toggle-track{background:#a4adad!important}
+#welcomeConnectScreen #welcomeMissionMount>.settings-panel{display:block!important;min-width:0;padding:0!important}
+#welcomeConnectScreen #welcomeMissionMount .welcome-mission-note{display:block;margin:0 0 24px;color:#939c9c;font-size:12px;line-height:1.7}
+#welcomeConnectScreen #welcomeMissionMount .settings-group{margin:0 0 22px;padding:0 0 20px;border:0;border-bottom:1px solid #202525;border-radius:0;background:none;box-shadow:none}
+#welcomeConnectScreen #welcomeMissionMount .settings-group-title{margin:0 0 14px;color:#e1e5e5;font-size:14px;font-weight:550}
+#welcomeConnectScreen #welcomeMissionMount .mission-selector-settings>.settings-group-title{display:none}
+#welcomeConnectScreen #welcomeMissionMount .settings-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,210px);align-items:center;gap:18px;margin:0;padding:12px 0;min-width:0;border-color:#202525}
+#welcomeConnectScreen #welcomeMissionMount .settings-label{color:#e1e5e5;font-size:13px;font-weight:500}
+#welcomeConnectScreen #welcomeMissionMount :is(.hint-mini,.settings-desc){margin-top:4px;color:#8a9595;font-size:11px;line-height:1.6}
+#welcomeConnectScreen #welcomeMissionMount :is(input.settings-number,select.settings-select,select.settings-number){width:100%;min-width:0;min-height:40px;border:1px solid #323a3a;border-radius:7px;background:#101414;color:#e6eaea;font-family:inherit;font-size:13px}
+#welcomeConnectScreen #welcomeMissionMount :is(.settings-number-wrap,.settings-number-row){min-width:0}
+#welcomeConnectScreen #welcomeMissionMount :is(.settings-inline-btn,.settings-btn){min-height:38px;padding:8px 14px;border:1px solid #394141;border-radius:7px;background:#1c2222;color:#e5eaea;box-shadow:none;font-family:inherit;font-size:12px}
+#welcomeConnectScreen #welcomeMissionMount .mission-profile-description{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 0;padding:12px 0;border:0;border-radius:0;background:none;color:#8e9a9a;font-size:12px;line-height:1.6}
+#welcomeConnectScreen #welcomeMissionMount .mission-profile-description b{color:#d6dede;font-weight:550}

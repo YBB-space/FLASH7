@@ -1,0 +1,71 @@
+@media(max-width:900px){
+  #welcomeConnectScreen{--welcome-inset:24px;padding:calc(20px + env(safe-area-inset-top,0px)) var(--welcome-inset) calc(16px + env(safe-area-inset-bottom,0px))}
+  #welcomeConnectScreen .welcome-home-brand{gap:10px;font-size:20px}
+  #welcomeConnectScreen .welcome-home-brand img{width:26px;height:26px}
+  #welcomeConnectScreen .welcome-home-mission{gap:8px}
+  #welcomeConnectScreen .welcome-home-mission>span{display:none}
+  #welcomeConnectScreen .welcome-home-mission strong{font-size:12px}
+}
+@media(max-width:600px){
+  #welcomeConnectScreen .welcome-home-pane-header{margin-bottom:16px}
+  #welcomeConnectScreen .welcome-home-pane-header h2{font-size:19px}
+  #welcomeConnectScreen .welcome-fc-steps{gap:20px;margin:24px 0}
+  #welcomeConnectScreen .welcome-fc-steps li{gap:14px}
+  #welcomeConnectScreen .welcome-fc-steps li>span{width:30px;height:30px;font-size:13px}
+  #welcomeConnectScreen .welcome-fc-steps h3{font-size:14px}
+  #welcomeConnectScreen .welcome-fc-steps p{font-size:12px}
+  #welcomeConnectScreen #replayDataPickerOverlay .replay-data-picker-body{grid-template-columns:minmax(0,1fr)!important;gap:22px!important}
+  #welcomeConnectScreen #replayDataPickerOverlay .replay-data-picker-empty{min-height:70px!important}
+  #welcomeConnectScreen #welcomeMissionMount .settings-row{grid-template-columns:minmax(0,1fr);gap:10px}
+  #welcomeConnectScreen #welcomeMissionMount .welcome-mission-note{font-size:11px;margin-bottom:18px}
+}
+@media(max-width:600px) and (orientation:portrait){
+  #welcomeConnectScreen .welcome-home-stage{display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:18px;padding:0}
+  #welcomeConnectScreen .welcome-home-readiness{order:2}
+  #welcomeConnectScreen .welcome-home-simulation{order:1;align-self:stretch;width:100%;margin:auto 0;padding:0}
+  #welcomeConnectScreen .welcome-home-simulation header{margin-bottom:12px}
+  #welcomeConnectScreen .welcome-home-simulation h2{font-size:16px}
+  #welcomeConnectScreen .welcome-home-simulation p{display:none}
+  #welcomeConnectScreen .welcome-home-modes{gap:12px}
+  #welcomeConnectScreen .welcome-home-modes button{min-height:126px;padding:16px;gap:5px;border-radius:10px}
+  #welcomeConnectScreen .welcome-home-modes svg{width:24px;height:24px;margin-bottom:7px}
+  #welcomeConnectScreen .welcome-home-modes strong{font-size:19px}
+  #welcomeConnectScreen .welcome-home-modes button>span{font-size:10px;letter-spacing:-.025em}
+  #welcomeConnectScreen .welcome-home-readiness{width:100%;padding:0;border:0;border-radius:0;background:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+  #welcomeConnectScreen #welcomeConnectStatus{margin:12px 0 7px;font-size:25px}
+  #welcomeConnectScreen .welcome-home-guide{margin-top:12px}
+  #welcomeConnectScreen .welcome-home-guide-content{max-height:17dvh}
+  #welcomeConnectScreen .welcome-home-footer{flex-direction:column;align-items:stretch;gap:14px;padding-top:0;border-top:0}
+  #welcomeConnectScreen .welcome-home-connect{order:-1}
+  #welcomeConnectScreen .welcome-home-connect>span{display:none}
+  #welcomeConnectScreen #welcomeBoardSearchBtn{width:100%;min-width:0;height:54px}
+  #welcomeConnectScreen .welcome-home-shortcuts{justify-content:center;gap:clamp(16px,6vw,28px)}
+  #welcomeConnectScreen .welcome-home-shortcut{gap:7px;min-height:56px;font-size:11px}
+  #welcomeConnectScreen .welcome-home-shortcut svg{width:22px;height:22px}
+}
+@media(max-width:900px) and (orientation:landscape){
+  #welcomeConnectScreen{--welcome-inset:28px;padding-top:12px;padding-bottom:12px}
+  #welcomeConnectScreen .welcome-home-header{min-height:30px}
+  #welcomeConnectScreen .welcome-home-stage{grid-template-columns:300px minmax(0,1fr);gap:24px;padding:0}
+  #welcomeConnectScreen .welcome-home-simulation{padding:0;align-self:center}
+  #welcomeConnectScreen .welcome-home-simulation header{margin-bottom:10px}
+  #welcomeConnectScreen .welcome-home-simulation h2{font-size:15px}
+  #welcomeConnectScreen .welcome-home-simulation p{display:none}
+  #welcomeConnectScreen .welcome-home-modes{gap:12px}
+  #welcomeConnectScreen .welcome-home-modes button{min-height:122px;padding:16px;gap:6px}
+  #welcomeConnectScreen .welcome-home-modes strong{font-size:20px}
+  #welcomeConnectScreen .welcome-home-modes svg{width:23px;height:23px;margin-bottom:4px}
+  #welcomeConnectScreen .welcome-home-modes button>span{font-size:10px}
+  #welcomeConnectScreen .welcome-home-readiness{width:300px;padding:16px 20px}
+  #welcomeConnectScreen #welcomeConnectStatus{font-size:22px;margin:10px 0 5px}
+  #welcomeConnectScreen .welcome-home-description{font-size:12px}
+  #welcomeConnectScreen .welcome-home-guide{margin-top:10px}
+  #welcomeConnectScreen .welcome-home-guide h2{min-height:30px;padding-top:6px}
+  #welcomeConnectScreen .welcome-home-guide-content{max-height:65px}
+  #welcomeConnectScreen .welcome-home-footer{padding-top:10px;align-items:center}
+  #welcomeConnectScreen .welcome-home-shortcuts{gap:30px}
+  #welcomeConnectScreen .welcome-home-shortcut{min-height:44px;flex-direction:row;gap:9px}
+  #welcomeConnectScreen .welcome-home-shortcut svg{width:21px;height:21px}
+  #welcomeConnectScreen .welcome-home-connect>span{display:none}
+  #welcomeConnectScreen #welcomeBoardSearchBtn{height:46px;min-width:190px;font-size:15px}
+}

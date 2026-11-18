@@ -1,0 +1,27 @@
+              <div class="scene3d-controls" role="group" aria-label="3D 시점 조작">
+                <div class="scene3d-heading"><strong>3D 화면</strong><span class="scene3d-mode"><i aria-hidden="true"></i><span data-gyro-mode-label>기체 추적</span></span></div>
+                <div class="scene3d-presets" role="group" aria-label="시점 선택">
+                  <button type="button" data-gyro-preset="orbit" aria-pressed="true" title="입체 시점">입체</button>
+                  <button type="button" data-gyro-preset="top" aria-pressed="false" title="위에서 보기">상단</button>
+                  <button type="button" data-gyro-preset="side" aria-pressed="false" title="옆에서 보기">측면</button>
+                </div>
+                <button type="button" data-gyro-action="follow" aria-pressed="true" aria-label="기체 추적 전환" title="기체 추적 / 시점 고정">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/><path d="M12 2v5m0 10v5M2 12h5m10 0h5"/></svg><span>기체</span>
+                </button>
+                <button type="button" data-gyro-action="fit" aria-pressed="false" aria-label="전체 비행 경로 맞춤" title="전체 비행 경로 보기">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6M8 16l4-8 4 8"/></svg><span>경로</span>
+                </button>
+                <div class="scene3d-zoom" role="group" aria-label="확대와 축소">
+                  <button type="button" data-gyro-action="zoom-out" aria-label="3D 축소" title="축소">−</button>
+                  <button type="button" data-gyro-action="zoom-in" aria-label="3D 확대" title="확대">+</button>
+                </div>
+                <button type="button" data-gyro-action="grid" aria-pressed="true" aria-label="격자 표시 전환" title="격자 표시">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3v18M16 3v18M3 8h18M3 16h18"/></svg><span>격자</span>
+                </button>
+                <button type="button" data-gyro-action="reset" aria-label="3D 시점 초기화" title="시점 초기화 (0)">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 2 8M4 4v6h6"/></svg><span>초기화</span>
+                </button>
+                <button type="button" data-gyro-action="expand" aria-expanded="false" aria-label="3D 화면 크게 보기" title="3D 화면 크게 보기">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg><span>화면 확대</span>
+                </button>
+              </div>

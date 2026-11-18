@@ -1,0 +1,173 @@
+/* Compact glass cards share existing navigation and hardware action bindings. */
+#controlCenterPanel{
+  width:min(380px,calc(100vw - 24px));
+  max-height:calc(100dvh - 58px - env(safe-area-inset-bottom,0px));
+  padding:14px;
+  gap:10px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#ffffff36 transparent;
+  border:1px solid rgba(255,255,255,.23);
+  border-radius:24px;
+  background:rgba(27,29,32,.72);
+  color:#eef0f3;
+  -webkit-backdrop-filter:blur(28px) saturate(.75);
+  backdrop-filter:blur(28px) saturate(.75);
+  box-shadow:0 20px 60px #0006,inset 0 1px 0 #ffffff20 !important;
+}
+#controlCenterPanel > *{flex-shrink:0;min-width:0}
+.control-center-home{display:flex;flex-direction:column;gap:10px;min-width:0}
+#controlCenterPanel :is(#controlCenterHome,#controlCenterContent,.control-center-back)[hidden]{display:none !important}
+#controlCenterPanel.is-detail{width:min(var(--control-center-detail-width,620px),calc(100vw - 24px))}
+#controlCenterPanel.is-detail > .alarm-history-header{
+  position:sticky;top:-14px;z-index:20;min-height:38px;
+  background:rgba(27,29,32,.94);border-radius:10px;
+}
+#controlCenterPanel.is-detail > .alarm-history-header > strong{display:none}
+#controlCenterPanel .control-center-back{
+  padding:6px 4px;border:0;background:none;color:#d3d7dd;
+  font:500 12px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;
+}
+#controlCenterContent{min-width:0}
+/* Keep each original dialog's contents and bindings; remove its fullscreen shell. */
+#controlCenterPanel #controlCenterContent > .control-center-surface{
+  position:relative !important;inset:auto !important;display:block !important;
+  width:100% !important;height:auto !important;min-height:0 !important;max-height:none !important;
+  margin:0 !important;padding:0 !important;overflow:visible !important;
+  background:transparent !important;transform:none !important;opacity:1 !important;
+  z-index:auto !important;pointer-events:auto !important;
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+}
+#controlCenterPanel #controlCenterContent > .control-center-surface > :first-child{
+  position:relative !important;inset:auto !important;width:100% !important;
+  max-width:none !important;min-width:0 !important;height:auto !important;
+  max-height:none !important;min-height:0 !important;margin:0 !important;
+  transform:none !important;opacity:1 !important;box-shadow:none !important;
+  background:transparent !important;border:0 !important;border-radius:0 !important;
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+}
+#controlCenterPanel #controlCenterContent > .control-center-surface > :first-child::before,
+#controlCenterPanel #controlCenterContent > .control-center-surface > :first-child::after{content:none !important}
+#controlCenterPanel #controlCenterContent .control-center-surface :is(.settings-header,.mobile-chart-picker-head){
+  background:transparent !important;border-radius:0 !important;box-shadow:none !important;
+}
+#controlCenterPanel #controlCenterContent > .control-center-surface:is(.hidden,.is-control-center-suspended){display:none !important}
+#controlCenterPanel #controlCenterContent #settingsOverlay .settings-header{width:100% !important;max-width:100% !important}
+#controlCenterPanel .alarm-history-header{
+  display:flex;justify-content:space-between;
+  min-height:30px;padding:0 3px 4px;
+  border:0;background:transparent;
+}
+#controlCenterPanel .alarm-history-header strong{font-size:14px;font-weight:600}
+#controlCenterPanel .control-center-close{
+  padding:6px 4px;border:0;background:transparent;
+  color:#bfc3c8;font-size:11px;cursor:pointer;
+}
+#controlCenterPanel .control-center-close:hover{color:#fff}
+.control-center-overview{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.control-center-shortcuts{display:grid;gap:10px}
+body:not(.camera-view-active) .control-center-overview{grid-template-columns:minmax(0,1fr)}
+body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}
+#controlCenterPanel :is(.alarm-control-button,.control-center-display,.scene3d-controls,.alarm-control-more-toggle){
+  border:1px solid rgba(255,255,255,.17);
+  border-radius:18px;
+  background:rgba(255,255,255,.07);
+  box-shadow:inset 0 1px 0 #ffffff15 !important;
+}
+#controlCenterPanel :is(.alarm-control-button,.control-center-display){
+  display:flex;min-width:0;align-items:center;gap:10px;
+  padding:12px;color:#edf0f3;text-align:left;
+  cursor:pointer;transform:none !important;
+  font:500 12px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  transition:background .15s,border-color .15s;
+}
+#controlCenterPanel .alarm-control-button{min-height:56px}
+#controlCenterPanel :is(.alarm-control-button,.control-center-display):hover{
+  background:rgba(255,255,255,.13);border-color:#ffffff40;
+}
+#controlCenterPanel .alarm-control-button.is-active{background:#ffffff1f;border-color:#ffffff45}
+#controlCenterPanel :is(.alarm-control-button,.control-center-display) svg{
+  flex:0 0 auto;width:22px;height:22px;fill:none;stroke:currentColor;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+}
+.control-center-shortcut-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.control-center-shortcut-copy strong{font-size:12px;font-weight:600}
+.control-center-shortcut-copy small{font-size:10px;color:#b2b6bc;white-space:nowrap}
+#controlCenterPanel .control-center-display{
+  display:none;flex-direction:column;align-items:flex-start;justify-content:center;
+  width:100%;gap:5px;margin:0;padding:16px;
+}
+#controlCenterPanel .control-center-display svg{width:32px;height:32px;margin-bottom:6px}
+#controlCenterPanel .control-center-display strong{font-size:12px;font-weight:600}
+#controlCenterPanel .control-center-display span{font-size:10px;font-weight:400;color:#b2b6bc}
+#controlCenterPanel .alarm-control-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+  padding:0;background:transparent;
+}
+#controlCenterPanel .alarm-control-grid .alarm-control-button{
+  min-height:44px;padding:8px;gap:6px;justify-content:center;border-radius:14px;
+}
+#controlCenterPanel .alarm-control-grid svg{width:16px;height:16px}
+#controlCenterPanel .alarm-control-grid span{font-size:11px;white-space:nowrap}
+#controlCenterPanel .scene3d-controls{margin:0;padding:13px;gap:7px;font-size:11px;color:#eef0f3}
+#controlCenterPanel .scene3d-heading{margin-bottom:3px}
+#controlCenterPanel .scene3d-heading strong{font-size:12px}
+#controlCenterPanel .scene3d-controls button{
+  min-height:34px;padding:0 5px;border:1px solid #ffffff12;
+  border-radius:10px;background:#00000012;color:#c4c9cf;
+}
+#controlCenterPanel .scene3d-presets{gap:3px;padding:3px;border-radius:12px;background:#00000028}
+#controlCenterPanel .scene3d-presets button{min-height:30px;border:0;background:transparent}
+#controlCenterPanel .scene3d-controls button:hover:not(:disabled){background:#ffffff18;color:#fff}
+#controlCenterPanel .scene3d-controls button[aria-pressed="true"]{background:#ffffff24;color:#fff;border-color:#ffffff20}
+#controlCenterPanel .scene3d-controls button:disabled{opacity:.35;cursor:default}
+#controlCenterPanel .alarm-control-more-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  min-height:56px;gap:10px;margin:0;padding:12px 14px;color:#e6e9ed;
+  cursor:pointer;transform:none !important;
+}
+.alarm-control-more-toggle-label{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.alarm-control-more-toggle-label strong{font-size:12px;font-weight:600}
+.alarm-control-more-toggle-label small{font-size:10px;color:#aeb4bd}
+.alarm-control-more-chevron{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;transition:transform .16s}
+.alarm-control-more-toggle.is-active .alarm-control-more-chevron,
+.control-center-scene[open] > summary .alarm-control-more-chevron{transform:rotate(180deg)}
+#controlCenterPanel .control-center-scene > summary{list-style:none}
+#controlCenterPanel .control-center-scene > summary::-webkit-details-marker{display:none}
+#controlCenterPanel .control-center-scene[open] > summary{margin-bottom:8px}
+#controlCenterPanel .control-center-scene:not([open]) > .scene3d-controls{display:none}
+#controlCenterPanel .alarm-control-more-toggle:hover{background:#ffffff13}
+#controlCenterPanel .alarm-control-more{padding:0 2px 2px;border:0;background:transparent}
+.alarm-control-more.hidden{display:none !important}
+.control-center-command-group + .control-center-command-group{margin-top:12px}
+.control-center-command-group h3{margin:1px 0 7px;padding:0 3px;font-size:10px;font-weight:500;color:#acb2ba}
+.alarm-control-more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.alarm-control-more-grid button{
+  display:flex;align-items:center;min-width:0;min-height:38px;gap:8px;padding:8px 10px;
+  border:1px solid #ffffff16;border-radius:11px;background:#ffffff09;color:#d3d7dc;
+  font-size:11px;text-align:left;cursor:pointer;transform:none !important;
+}
+.alarm-control-more-grid button svg{flex:0 0 auto;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.alarm-control-more-grid button:hover:not(:disabled){background:#ffffff18;border-color:#ffffff30;color:#fff}
+.alarm-control-more-grid button.is-active{background:#ffffff20;border-color:#ffffff38;color:#fff}
+.alarm-control-more-grid button:disabled{opacity:.35;cursor:not-allowed}
+#controlCenterPanel :is(button,a):focus-visible{outline:2px solid #d9dde3;outline-offset:2px}
+@media(min-width:768px) and (pointer:fine){
+  body.camera-view-active #controlCenterPanel .control-center-display{display:flex}
+}
+@media(max-width:767px),(pointer:coarse){
+  .control-center-overview{grid-template-columns:minmax(0,1fr)}
+  .control-center-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-transparency:reduce){
+  #controlCenterPanel{background:#24262a;-webkit-backdrop-filter:none;backdrop-filter:none}
+}
+
+#controlCenterPanel .control-center-sim-start{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:60px;padding:12px 14px;border:1px solid #ffffff24;border-radius:18px;background:#ffffff0d;color:#edf1f4;text-align:left;cursor:pointer}
+#controlCenterPanel .control-center-sim-start[hidden]{display:none!important}
+.control-center-sim-start span{display:flex;flex-direction:column;gap:5px}
+.control-center-sim-start strong{font-size:12px;font-weight:600}
+.control-center-sim-start small{font-size:10px;color:#aeb8c2}
+.control-center-sim-start b{font-size:11px;font-weight:500;color:#d4e4df}
+.control-center-sim-start:disabled{opacity:.4;cursor:default}

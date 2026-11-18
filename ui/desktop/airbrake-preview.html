@@ -1,0 +1,40 @@
+      <section id="splitAirbrake" class="split-airbrake is-unknown" aria-label="에어브레이크 전개 현황">
+        <header class="split-airbrake-header"><strong>AIRBRAKE</strong><span data-airbrake-mode>WAITING</span></header>
+        <div class="split-airbrake-body">
+          <div class="split-airbrake-visual" aria-hidden="true">
+            <svg viewBox="0 0 160 128" fill="none">
+              <circle class="split-airbrake-hull" cx="80" cy="64" r="37"/>
+              <circle class="split-airbrake-inset" cx="80" cy="64" r="27"/>
+              <g class="split-airbrake-interior">
+                <g transform="rotate(0 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <g transform="rotate(90 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <g transform="rotate(180 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <g transform="rotate(270 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <circle class="split-airbrake-fastener" cx="58" cy="42" r=".9"/>
+                <circle class="split-airbrake-fastener" cx="102" cy="42" r=".9"/>
+                <circle class="split-airbrake-fastener" cx="102" cy="86" r=".9"/>
+                <circle class="split-airbrake-fastener" cx="58" cy="86" r=".9"/>
+              </g>
+              <g class="split-airbrake-flap split-airbrake-flap--north" transform="rotate(0 80 64)"><path data-airbrake-panel="north" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <g class="split-airbrake-flap split-airbrake-flap--east" transform="rotate(90 80 64)"><path data-airbrake-panel="east" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <g class="split-airbrake-flap split-airbrake-flap--south" transform="rotate(180 80 64)"><path data-airbrake-panel="south" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <g class="split-airbrake-flap split-airbrake-flap--west" transform="rotate(270 80 64)"><path data-airbrake-panel="west" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <circle class="split-airbrake-hub" cx="80" cy="64" r="8"/>
+              <g class="split-airbrake-core" data-airbrake-servo-core><circle cx="80" cy="64" r="4.5"/><path d="M77 64H83"/></g>
+            </svg>
+          </div>
+          <div class="split-airbrake-readout">
+            <div class="split-airbrake-values">
+              <div><small>DEPLOYMENT</small><strong><span data-airbrake-value>--</span><i>%</i></strong></div>
+              <div class="split-airbrake-servo" aria-label="공통 서보 각도" title="시뮬레이션 기준: 수납 0°, 전개 90°"><small>SERVO ANGLE</small><strong><span data-airbrake-servo-angle>--</span><i>°</i></strong></div>
+            </div>
+            <span id="splitAirbrakeStatus" data-airbrake-status role="status">전개 데이터 대기</span>
+            <div class="split-airbrake-meter" role="meter" aria-label="에어브레이크 전개율" aria-valuemin="0" aria-valuemax="100" aria-valuetext="전개 데이터 대기"><i></i></div>
+          </div>
+        </div>
+        <div class="split-airbrake-auto" data-airbrake-auto hidden><span>TARGET<strong>10,000 ft</strong></span><span>PREDICTED<strong data-airbrake-prediction>--</strong></span></div>
+        <div class="split-airbrake-controls" role="group" aria-label="시뮬레이션 에어브레이크" aria-describedby="splitAirbrakeStatus">
+          <button type="button" data-airbrake-target="0" aria-pressed="false" disabled>수납</button>
+          <button type="button" data-airbrake-target="100" aria-pressed="false" disabled>전개</button>
+        </div>
+      </section>

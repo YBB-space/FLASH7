@@ -1,0 +1,25 @@
+@media(max-width:900px){
+  .scene3d-controls{margin:0 12px 12px;padding:12px}
+  .scene3d-controls button{min-height:40px;padding:0 5px}
+  html.phone-landscape-layout:not(.status-map-expanded) body.dashboard-view-active #gyro3dViewport.status-gyro-canvas--3d{
+    position:fixed !important;inset:0 !important;width:100vw !important;height:100dvh !important;
+    min-height:0 !important;max-height:100dvh !important;aspect-ratio:auto !important;
+    border:0 !important;border-radius:0 !important;
+  }
+  html.gyro3d-expanded #mobileBoardHeader{display:none !important}
+  html.phone-landscape-layout body.dashboard-view-active #mobileBoardHeader{
+    position:fixed !important;top:12px !important;left:12px !important;right:auto !important;
+    width:112px !important;height:30px !important;min-height:0 !important;padding:0 !important;
+    background:transparent !important;border:0 !important;
+  }
+  html.phone-landscape-layout #mobileBoardHeader .mobile-board-main{width:100%;min-height:30px;padding:0}
+  html.phone-landscape-layout #mobileBoardHeader .mobile-board-name{max-width:88px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  html.phone-landscape-layout #mobileBoardHeader .mobile-board-state,
+  html.phone-landscape-layout #mobileBoardHeader .mobile-board-actions{display:none}
+  html.phone-landscape-layout #mobileBoardHeader .mobile-board-panel{top:38px;width:min(360px,calc(100vw - 24px));max-height:calc(100dvh - 64px);overflow-y:auto}
+  html.phone-landscape-layout #gyro3dViewport .gyro3d-expanded-left{padding-left:120px;max-width:calc(100% - 260px)}
+  html.phone-landscape-layout #gyro3dViewport .gyro3d-expanded-mainline{flex-wrap:nowrap}
+  html.phone-landscape-layout #gyro3dViewport .countdown-inline-status{min-width:0}
+  html.phone-landscape-layout #gyro3dViewport .countdown-inline-status-text{max-width:180px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  html.phone-landscape-layout.gyro3d-expanded #gyro3dViewport .gyro3d-expanded-left{padding-left:0}
+}

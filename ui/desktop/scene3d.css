@@ -1,0 +1,3 @@
+@media(min-width:901px){
+  body.camera-view-active.camera-gyro-plus-layout #gyro3dViewport.is-camera-gyro-plus-mounted{cursor:grab !important}
+}

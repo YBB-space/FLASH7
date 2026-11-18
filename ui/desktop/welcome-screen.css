@@ -1,0 +1,3 @@
+@media(min-width:901px){
+  #welcomeConnectScreen .welcome-home-guide-content{max-height:min(240px,calc(100dvh - 390px))}
+}

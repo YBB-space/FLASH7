@@ -1,0 +1,31 @@
+# Local dependencies, editor files and caches
+node_modules/
+.DS_Store
+._*
+.idea/
+.vscode/
+*.log
+
+# Local credentials and signing material
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Local development coordination
+platformio-upload-handoff.json
+
+# Native web copies are rebuilt with sync:web and cap copy
+mobile_app_native/www/
+mobile_app_native/.build/
+mobile_app_native/ios/DerivedData/
+mobile_app_native/android/app/src/main/assets/public/
+
+# Local duplicate copies of generated Capacitor configuration
+mobile_app_native/**/config [0-9]*.xml
+mobile_app_native/**/capacitor.config [0-9]*.json

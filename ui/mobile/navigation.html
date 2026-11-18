@@ -1,0 +1,281 @@
+    <aside class="side-nav side-nav-mobile" aria-label="mobile navigation">
+      <div id="mobileControlsPanel" class="mobile-controls-panel" aria-hidden="true">
+        <div class="mobile-controls-handle" aria-hidden="true"></div>
+        <div class="mobile-controls-head">
+          <div class="mobile-controls-head-title">CONTROL PANEL</div>
+        </div>
+        <div class="mobile-controls-top-actions">
+          <button id="mobileSequenceWideBtn" class="primary-btn sequence-btn mobile-top-action-sequence" type="button">
+            <span class="sequence-btn-text">
+              <span id="mobileSequenceWideLabel" class="sequence-btn-title" data-i18n="sequenceStartBtn">SEQUENCE START</span>
+            </span>
+            <span id="mobileSequenceWideStatus" class="sequence-status-pill">준비</span>
+          </button>
+          <button id="mobileArmLockWideBtn" class="mobile-top-action-btn mobile-top-action-arm hidden" type="button" aria-label="ARM ON LOCK">
+            <svg class="arm-icon-locked" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5" y="11" width="14" height="9" rx="2"></rect>
+              <path d="M8 11V8a4 4 0 1 1 8 0v3"></path>
+              <circle cx="12" cy="15.5" r="1"></circle>
+            </svg>
+            <svg class="arm-icon-unlocked" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5" y="11" width="14" height="9" rx="2"></rect>
+              <path d="M8 11V8a4 4 0 1 1 6.8-2.8"></path>
+              <circle cx="12" cy="15.5" r="1"></circle>
+            </svg>
+            <span class="sr-only">ARM ON LOCK</span>
+          </button>
+          <button id="mobileMissionWideBtn" class="mobile-top-action-btn mobile-top-action-mission" type="button" aria-label="미션 지정">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 20V6"></path>
+              <path d="M7 7h9l-1.6 2.8L16 13H7"></path>
+            </svg>
+            <span class="sr-only">미션 지정</span>
+          </button>
+        </div>
+        <div class="mobile-controls-slot">
+          <button type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="launcher">
+            <span class="mobile-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M8 9l4-4 4 4"/><path d="M8 15l4 4 4-4"/></svg>
+            </span>
+            <span class="mobile-quick-label" data-i18n="controlLauncherLabel">발사대</span>
+          </button>
+          <button type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="gyro_zero">
+            <span class="mobile-quick-icon tone-blue" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="2.2"></circle>
+                <circle cx="12" cy="12" r="7"></circle>
+                <path d="M12 3v4"></path>
+                <path d="M12 17v4"></path>
+                <path d="M3 12h4"></path>
+                <path d="M17 12h4"></path>
+              </svg>
+            </span>
+            <span class="mobile-quick-label">자이로 영점</span>
+          </button>
+          <button id="mobileFindingBuzzerBtn" type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="finding_buzzer" aria-pressed="false">
+            <span class="mobile-quick-icon tone-blue" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M7 10v4"></path>
+                <path d="M10 7.5v9"></path>
+                <path d="M13 5v14"></path>
+                <path d="M16 8.5v7"></path>
+                <path d="M19 10.5v3"></path>
+              </svg>
+            </span>
+            <span class="mobile-quick-label">파인딩 버저</span>
+            <span id="mobileFindingBuzzerStatus" class="mobile-quick-state pill pill-gray">OFF</span>
+          </button>
+          <button type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="downloads">
+            <span class="mobile-quick-icon tone-blue" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 4.5h7l5 5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"></path>
+                <path d="M13 4.5V10h5"></path>
+                <path d="M11 12v5"></path>
+                <path d="m8.8 14.8 2.2 2.2 2.2-2.2"></path>
+              </svg>
+            </span>
+            <span class="mobile-quick-label">파일</span>
+          </button>
+          <button type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="servo">
+            <span class="mobile-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="4.5" y="8" width="15" height="8" rx="2"></rect>
+                <path d="M8 8V6"></path>
+                <path d="M12 8V6"></path>
+                <path d="M16 8V6"></path>
+                <path d="M8 12h8"></path>
+              </svg>
+            </span>
+            <span class="mobile-quick-label">서보모터</span>
+          </button>
+          <button type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="safety">
+            <span class="mobile-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 4 6 7v5c0 3.5 2.4 6.1 6 7.3 3.6-1.2 6-3.8 6-7.3V7z"/><path d="m9.5 12.2 1.7 1.7 3.3-3.3"/></svg>
+            </span>
+            <span class="mobile-quick-label" data-i18n="controlSafetyLabel">안전 모드</span>
+            <span class="mobile-quick-state pill pill-gray" data-mobile-pill="safety">OFF</span>
+          </button>
+          <button type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="serial">
+            <span class="mobile-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 5v9"></path>
+                <path d="M9 8h6"></path>
+                <path d="M9 14a3 3 0 0 0 6 0"></path>
+                <path d="M12 2.8v2.2"></path>
+                <path d="M10.8 2.8h2.4"></path>
+              </svg>
+            </span>
+            <span class="mobile-quick-label" data-i18n="controlSerialLabel">CONNECT</span>
+            <span class="mobile-quick-state pill pill-gray" data-mobile-pill="serial">OFF</span>
+          </button>
+          <button type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="inspection">
+            <span class="mobile-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M14.2 5.2a4.2 4.2 0 0 0 4.6 5.6l-3.1 3.1-2.8-2.8-2.9 2.9 2.8 2.8-4.6 4.6-2.2-2.2 4.6-4.6"/><circle cx="7.1" cy="16.9" r="1"/></svg>
+            </span>
+            <span class="mobile-quick-label" data-i18n="controlInspectionLabel">설비 점검</span>
+            <span class="mobile-quick-state pill pill-gray" data-mobile-pill="inspection">대기</span>
+          </button>
+          <button id="mobileVirtualMissionBtn" type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="virtual_mission">
+            <span class="mobile-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M7 5v14"></path>
+                <path d="M7 6h9l-1.6 3L16 12H7"></path>
+                <path d="M17.5 15.5v5"></path>
+                <path d="M15 18h5"></path>
+              </svg>
+            </span>
+            <span class="mobile-quick-label">강제 미션</span>
+            <span id="mobileVirtualMissionStatus" class="mobile-quick-state pill pill-gray">대기</span>
+          </button>
+          <button id="mobileMissionStandbyBtn" type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="mission_standby">
+            <span class="mobile-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3v5"></path>
+                <path d="M8.5 6.5 12 10l3.5-3.5"></path>
+                <path d="M5 13.5a7 7 0 1 0 14 0"></path>
+              </svg>
+            </span>
+            <span class="mobile-quick-label">미션 대기</span>
+            <span id="mobileMissionStandbyStatus" class="mobile-quick-state pill pill-gray">준비</span>
+          </button>
+          <button type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="export">
+            <span class="mobile-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 5v9"/><path d="m8.5 11 3.5 3.5 3.5-3.5"/><path d="M6.5 18.5h11"/></svg>
+            </span>
+            <span class="mobile-quick-label">저장공간</span>
+          </button>
+          <button id="mobileFlightLoggingBtn" type="button" class="control-tile mobile-control mobile-quick-btn" data-mobile-control="flight_logging" aria-pressed="false">
+            <span class="mobile-quick-icon tone-green" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>
+            </span>
+            <span class="mobile-quick-label">비행데이터 로깅</span>
+            <span id="mobileFlightLoggingStatus" class="mobile-quick-state pill pill-gray">OFF</span>
+          </button>
+        </div>
+        <div id="mobileLauncherPanel" class="launcher-panel mobile-launcher-panel" aria-hidden="true">
+          <div class="mobile-launcher-head">
+            <div class="mobile-launcher-title">LAUNCHER CONTROL</div>
+            <button id="mobileLauncherBackBtn" class="mobile-launcher-back" type="button" aria-label="Back">×</button>
+          </div>
+          <div class="launcher-panel-note" data-i18n-html="launcherNote">
+            발사대 모터/액추에이터 제어가 적용됩니다.<br>
+            버튼을 누르는 동안 모터가 구동됩니다.
+          </div>
+          <div class="launcher-controls">
+            <div class="launcher-arrow-row">
+              <button id="launcherUpMobileBtn" class="launcher-arrow-btn" type="button">▲</button>
+              <button id="launcherDownMobileBtn" class="launcher-arrow-btn" type="button">▼</button>
+            </div>
+            <div class="launcher-angle">
+              <div id="launcherPitchAngleMobile" class="launcher-angle-value">--°</div>
+              <div class="launcher-angle-label">PITCH</div>
+            </div>
+            <div class="launcher-auto-row">
+              <button id="launcherAutoMobileBtn" class="launcher-auto-btn launcher-text-btn" type="button" data-i18n="launcherAutoBtn">자동 기립</button>
+            </div>
+          </div>
+        </div>
+        <div id="mobileServoPanel" class="servo-panel mobile-servo-panel" aria-hidden="true">
+          <div class="mobile-launcher-head">
+            <div class="mobile-launcher-title">SERVO MOTOR CONTROL</div>
+            <button id="mobileServoBackBtn" class="mobile-launcher-back" type="button" aria-label="Back">×</button>
+          </div>
+          <div id="mobileServoPanelMount" class="mobile-servo-dialog-mount"></div>
+        </div>
+        <div id="mobileMissionPanel" class="mission-panel mobile-mission-panel" aria-hidden="true">
+          <div class="mobile-launcher-head">
+            <div class="mobile-launcher-title">MISSION PROFILE</div>
+            <button id="mobileMissionBackBtn" class="mobile-launcher-back" type="button" aria-label="Back">×</button>
+          </div>
+          <div class="panel-action-note">패널에서 미션을 바로 지정합니다.</div>
+          <div class="panel-action-grid">
+            <button class="panel-action-btn mission-quick-btn is-frontier" type="button" data-mission-quick="frontier2025">
+              <span class="mission-quick-chip">Frontier</span>
+              <span class="mission-quick-title">frontier2025</span>
+              <span class="mission-quick-meta">기본 프리셋</span>
+            </button>
+            <button class="panel-action-btn mission-quick-btn is-stage" type="button" data-mission-quick="frontier2026 stg2 pvc">
+              <span class="mission-quick-chip">Frontier 2026</span>
+              <span class="mission-quick-title">stage 2 PVC</span>
+              <span class="mission-quick-meta">2단 시험 프리셋</span>
+            </button>
+            <button class="panel-action-btn mission-quick-btn is-quail" type="button" data-mission-quick="QUAIL1 motor">
+              <span class="mission-quick-chip">QUAIL1</span>
+              <span class="mission-quick-title">motor</span>
+              <span class="mission-quick-meta">시험체 프리셋</span>
+            </button>
+            <button class="panel-action-btn mission-quick-btn is-manual" type="button" data-mission-quick="no-motor">
+              <span class="mission-quick-chip">Manual</span>
+              <span class="mission-quick-title">메타데이터 없음</span>
+              <span class="mission-quick-meta">수동 입력 기준</span>
+            </button>
+          </div>
+        </div>
+        <div id="mobileInspectionPanel" class="inspection-panel mobile-inspection-panel" aria-hidden="true">
+          <div class="mobile-launcher-head">
+            <div class="mobile-launcher-title" data-i18n="inspectionTitle">설비 점검</div>
+            <button id="mobileInspectionBackBtn" class="mobile-launcher-back" type="button" aria-label="Back">×</button>
+          </div>
+          <div class="panel-action-note">점검을 패널에서 직접 실행합니다.</div>
+          <div class="panel-action-grid">
+            <button class="panel-action-btn" type="button" data-inspection-action="run">점검 시작</button>
+            <button class="panel-action-btn" type="button" data-inspection-action="retry">다시 점검</button>
+            <button class="panel-action-btn" type="button" data-inspection-action="close">닫기</button>
+          </div>
+          <div class="panel-action-status" data-inspection-panel-result>점검 대기중…</div>
+        </div>
+        <div id="mobileDownloadsPanel" class="downloads-panel mobile-downloads-panel" aria-hidden="true">
+          <div class="mobile-launcher-head">
+            <div class="mobile-launcher-title">DOWNLOAD FILES</div>
+            <button id="mobileDownloadsBackBtn" class="mobile-launcher-back" type="button" aria-label="Back">×</button>
+          </div>
+          <div id="mobileDownloadStatus" class="panel-action-note">앱에서 내려받은 비행 로그를 리플레이할 수 있습니다.</div>
+          <div class="mobile-download-actions">
+            <button id="mobileDownloadDumpBtn" class="panel-action-btn" type="button">SPI Flash 다운로드</button>
+            <button id="mobileReplayLatestBtn" class="panel-action-btn" type="button">최근 파일 리플레이</button>
+            <button id="mobileOpenReplayBtn" class="panel-action-btn js-replay-open" type="button">Replay 열기</button>
+          </div>
+          <div id="mobileDownloadList" class="mobile-download-list" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="mobile-abort-wrapper">
+        
+      </div>
+      <div class="mobile-sequence-nav-float">
+        <div class="mobile-sequence-nav-timer" aria-live="polite">
+          <span id="mobileSequenceNavTime">T-00:00</span>
+        </div>
+        <button id="mobileSequenceNavAbortBtn" class="mobile-sequence-nav-abort" type="button" aria-label="시퀀스 긴급 중단" title="시퀀스 긴급 중단">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 18v-6a5 5 0 0 1 10 0v6"></path>
+            <path d="M5 21h14"></path>
+            <path d="M12 3v2"></path>
+            <path d="M4.9 5.9 6.3 7.3"></path>
+            <path d="M19.1 5.9 17.7 7.3"></path>
+            <path d="M2 13h2"></path>
+            <path d="M20 13h2"></path>
+            <path d="M10 18v-5a2 2 0 0 1 4 0v5"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="side-nav-menu">
+        <button class="side-nav-item active" data-page-title="Dashboard" data-nav-label="홈" aria-label="Dashboard">
+          <svg viewBox="0 0 24 24">
+            <path d="M3.5 16a8.5 8.5 0 0 1 17 0"/>
+            <path d="M12 15l2.8-3"/>
+          </svg>
+        </button>
+        <button class="side-nav-item" data-page-title="Hardware" data-nav-label="장치" aria-label="Hardware">
+          <svg viewBox="0 0 24 24"><path d="M7 3v6"/><path d="M17 3v6"/><path d="M3 11h18"/><path d="M5 11v7h14v-7"/><path d="M8 21h8"/></svg>
+        </button>
+        <button class="side-nav-item" data-page-title="Terminal" data-nav-label="터미널" aria-label="Terminal">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18v12H3z"/><path d="M7 10l3 2-3 2"/><path d="M12 14h5"/></svg>
+        </button>
+        <button class="side-nav-btn js-launcher-open" data-nav-label="런처" aria-label="Launcher">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 5 18 11H6z" style="fill:currentColor;stroke:none"></path>
+            <path d="M12 19 6 13h12z" style="fill:currentColor;stroke:none"></path>
+          </svg>
+        </button>
+      </div>
+    </aside>

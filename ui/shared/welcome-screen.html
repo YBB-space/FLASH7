@@ -1,0 +1,72 @@
+    <section id="welcomeConnectScreen" class="welcome-connect-screen hidden" data-welcome-view="flight" style="display:none;" aria-label="FLASH7 시작" aria-hidden="true">
+      <header class="welcome-home-header">
+        <div class="welcome-home-brand"><img src="img/Flash_logo_plain.svg" alt="FLASH7"></div>
+        <button id="welcomeMissionBtn" class="welcome-home-mission" type="button" aria-label="미션 수정" aria-controls="welcomeMissionPane" aria-expanded="false"><span>MISSION</span><strong id="welcomeMissionName">ARAEA-I</strong><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12.5 3.5 4 4M4 12l8.5-8.5a1.4 1.4 0 0 1 2 0l2 2a1.4 1.4 0 0 1 0 2L8 16l-4.5.5Z"/></svg></button>
+      </header>
+      <div class="welcome-home-stage">
+        <section class="welcome-home-readiness" aria-label="지상국 연결 상태">
+          <div class="welcome-home-status-line"><span>비행 준비</span><span class="welcome-home-state"><i aria-hidden="true"></i><span data-welcome-state>STANDBY</span></span></div>
+          <h1 id="welcomeConnectStatus" role="status" aria-live="polite">지상국 연결 대기</h1>
+          <p id="welcomeConnectDescription" class="welcome-home-description">Wi-Fi 또는 USB로 지상국을 연결하세요.</p>
+          <section class="welcome-home-guide" aria-labelledby="welcomeGuideTitle">
+            <h2 id="welcomeGuideTitle">연결 가이드</h2>
+            <div class="welcome-home-guide-content">
+              <ol>
+                <li><b>1</b><span>보드 Wi-Fi에 연결되어 있으면 자동으로 확인합니다.</span></li>
+                <li><b>2</b><span>Wi-Fi 연결이 없으면 허용된 USB 포트를 확인합니다.</span></li>
+                <li><b>3</b><span>처음 연결하는 보드는 USB 목록에서 선택하세요.</span></li>
+              </ol>
+              <p id="welcomeConnectHelp">기본 Wi-Fi 비밀번호 12345678 · USB 연결은 데이터 케이블을 사용하세요.</p>
+            </div>
+          </section>
+        </section>
+        <section id="welcomeFcGuide" class="welcome-home-pane welcome-fc-guide" aria-labelledby="welcomeFcTitle" hidden>
+          <header class="welcome-home-pane-header"><h2 id="welcomeFcTitle">FC 연결하기</h2></header>
+          <p id="welcomeFcGuideStatus" class="welcome-fc-status" role="status" aria-live="polite">지상국 연결됨 · 기기 찾는중</p>
+          <ol class="welcome-fc-steps">
+            <li><span aria-hidden="true">1</span><div><h3>FC 전원 켜기</h3><p>FC 전원을 켜고 부팅이 끝날 때까지 기다려주세요.</p></div></li>
+            <li><span aria-hidden="true">2</span><div><h3>통신 역할 확인</h3><p>FC는 AVIONICS, 지상국은 GROUND로 설정해주세요.</p></div></li>
+            <li><span aria-hidden="true">3</span><div><h3>연결 감지 대기</h3><p>FC 텔레메트리가 수신되면 지상국 화면으로 자동 진입합니다.</p></div></li>
+          </ol>
+          <button id="welcomeEnterGroundBtn" class="welcome-fc-enter" type="button">지상국 화면 진입</button>
+        </section>
+        <section id="welcomeReplayPane" class="welcome-home-pane" aria-labelledby="welcomeReplayTitle" hidden>
+          <header class="welcome-home-pane-header"><h2 id="welcomeReplayTitle">리플레이</h2></header>
+          <div id="welcomeReplayMount"></div>
+        </section>
+        <section id="welcomeMissionPane" class="welcome-home-pane welcome-home-mission-pane" aria-labelledby="welcomeMissionTitle" hidden>
+          <header class="welcome-home-pane-header"><h2 id="welcomeMissionTitle">미션 설정</h2></header>
+          <div id="welcomeMissionMount"></div>
+        </section>
+        <section id="welcomeSimulationChoices" class="welcome-home-simulation" aria-labelledby="welcomeSimulationTitle" hidden>
+          <header><h2 id="welcomeSimulationTitle">시뮬레이션</h2><p>기체 연결 없이 시작하세요.</p></header>
+          <div class="welcome-home-modes">
+            <button type="button" data-simulation-mode="flight">
+              <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3c4 5 6 11 6 17l-6 8-6-8c0-6 2-12 6-17Z"/><path d="m10 18-5 6v5l7-4m10-7 5 6v5l-7-4M13 17h6"/></svg>
+              <strong>FLIGHT</strong><span>고도 · 자세 · 비행 시퀀스</span>
+            </button>
+            <button type="button" data-simulation-mode="daq">
+              <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="5" width="10" height="8" rx="1.5"/><rect x="21" y="19" width="8" height="8" rx="1.5"/><path d="M13 9h6v14h2M8 13v10h5m0-3v6h6v-6Z"/></svg>
+              <strong>DAQ</strong><span>추진기관 · 센서 계측</span>
+            </button>
+          </div>
+        </section>
+      </div>
+      <footer class="welcome-home-footer">
+        <nav class="welcome-home-shortcuts" aria-label="시작 메뉴">
+          <button id="welcomeFlightBtn" class="welcome-home-shortcut" type="button" aria-pressed="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 17-8-4-8 4Z"/><path d="M12 3v13"/></svg><span>비행</span>
+          </button>
+          <button id="welcomeReplayBtn" class="welcome-home-shortcut" type="button" aria-pressed="false" aria-controls="welcomeReplayPane">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="m10 9 5 3-5 3Z"/></svg><span>리플레이</span>
+          </button>
+          <button id="welcomeSimConnectBtn" class="welcome-home-shortcut" type="button" aria-controls="welcomeSimulationChoices" aria-expanded="false" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg><span>시뮬레이션</span>
+          </button>
+        </nav>
+        <div class="welcome-home-connect">
+          <span>Wi-Fi · USB</span>
+          <button id="welcomeBoardSearchBtn" type="button" aria-controls="welcomeFcGuide" aria-expanded="false"><span id="welcomeBoardSearchLabel">지상국 연결</span></button>
+        </div>
+      </footer>
+    </section>

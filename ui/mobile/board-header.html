@@ -1,0 +1,72 @@
+    <header id="mobileBoardHeader" class="mobile-board-header" aria-label="Board selector">
+      <button id="mobileBoardSelectBtn" class="mobile-board-main" type="button" aria-expanded="false" aria-controls="mobileBoardPanel">
+        <span class="mobile-board-title-row">
+          <span id="mobileBoardName" class="mobile-board-name">N/A</span>
+          <span class="mobile-board-caret" aria-hidden="true"></span>
+        </span>
+        <span class="mobile-board-state">
+          <span id="mobileBoardDot" class="mobile-board-dot"></span>
+          <span id="mobileBoardStatus">수신기 오프라인 · -- hz</span>
+        </span>
+      </button>
+      <div class="mobile-board-actions">
+        <button class="mobile-board-icon-btn js-sidebar-settings" type="button" aria-label="설정">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z"></path>
+          </svg>
+        </button>
+      </div>
+      <div id="mobileBoardPanel" class="mobile-board-panel" aria-hidden="true">
+        <label class="mobile-board-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg>
+          <input id="mobileBoardSearchInput" type="search" placeholder="보드 ID 또는 이름으로 검색" autocomplete="off">
+        </label>
+        <button id="mobileBoardRow" class="mobile-board-row" type="button">
+          <span>
+            <span id="mobileBoardPanelName" class="mobile-board-row-name">N/A</span>
+            <span class="mobile-board-row-state">
+              <span class="mobile-board-dot"></span>
+              <span id="mobileBoardPanelStatus">수신기 오프라인 · -- hz</span>
+            </span>
+          </span>
+          <svg class="mobile-board-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4 4L19 7"></path></svg>
+        </button>
+        <div id="mobileBoardConnectSection" class="mobile-board-connect-section" aria-label="기기 연결">
+          <button id="mobileBoardAddBtn" class="mobile-board-add" type="button" aria-expanded="false" aria-controls="mobileBoardConnectMethods">
+            <span class="mobile-board-add-copy">
+              <span id="mobileBoardConnectLabel" class="mobile-board-add-label">기기 연결</span>
+              <span class="mobile-board-add-status">
+                <span class="mobile-board-add-dot" aria-hidden="true"></span>
+                <span id="mobileBoardConnectSummary" class="mobile-board-add-sub">연결 준비 · 현재: 오프라인</span>
+              </span>
+            </span>
+            <span class="mobile-board-add-icon" aria-hidden="true">
+              <svg id="mobileBoardConnectIcon" viewBox="0 0 24 24">
+                <path d="M12 5v14"></path>
+                <path d="M5 12h14"></path>
+              </svg>
+            </span>
+          </button>
+          <div id="mobileBoardConnectMethods" class="connect-method-actions mobile-board-connect-methods">
+            <button id="mobileConnectMethodUsbBtn" class="connect-method-btn is-usb" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12"></path>
+                <path d="M8 7l4-4 4 4"></path>
+                <path d="M7 15h10v3a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"></path>
+              </svg>
+              <strong>시리얼 연결</strong>
+              <span>USB 포트 선택으로 바로 연결</span>
+            </button>
+            <button id="mobileConnectMethodSimBtn" class="connect-method-btn is-sim" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M8 5v14l11-7z"></path>
+                <path d="M4 7v10"></path>
+              </svg>
+              <strong>시뮬레이션</strong>
+              <span>보드 없이 데모 데이터 실행</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
