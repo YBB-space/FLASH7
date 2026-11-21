@@ -1,5 +1,6 @@
 # Local dependencies, editor files and caches
 node_modules/
+_site/
 .DS_Store
 ._*
 .idea/

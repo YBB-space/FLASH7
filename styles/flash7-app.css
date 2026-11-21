@@ -19995,19 +19995,30 @@
     }
 /* Camera page overlay skin: mirrors FLASH7/overlay.html inside the dashboard shell. */
 body.camera-view-active .top-bar{display:none !important}
-.daq-header-clock,.daq-board-status{display:none}
 html.sim-active.mode-daq body.daq-simulation-main .page-wrap{padding:8px clamp(12px,1.25vw,24px) 12px!important;gap:8px!important}
-html.sim-active.mode-daq body.daq-simulation-main .top-bar{min-height:22px;align-items:center!important;margin:0!important;padding:0!important}
+.daq-board-status{display:none}
+html.sim-active.mode-daq body.daq-simulation-main .top-bar{min-height:28px;align-items:center!important;margin:0!important;padding:0!important}
 html.sim-active.mode-daq body.daq-simulation-main .top-left{display:none!important}
-html.sim-active.mode-daq body.daq-simulation-main .countdown-header{min-width:0;gap:0}
-html.sim-active.mode-daq body.daq-simulation-main .countdown-header>.countdown-label,
-html.sim-active.mode-daq body.daq-simulation-main .countdown-header>.countdown-mainline{display:none!important}
-html.sim-active.mode-daq body.daq-simulation-main .daq-header-clock{display:inline-flex;align-items:center;padding-right:14px;border-right:1px solid rgba(142,151,164,.25);color:var(--ui-text);font:650 9px/1 SFMono-Regular,ui-monospace,Menlo,Monaco,Consolas,monospace;letter-spacing:.035em;font-variant-numeric:tabular-nums}
 html.sim-active.mode-daq body.daq-simulation-main .top-right{min-width:0;flex:1;flex-wrap:nowrap}
-html.sim-active.mode-daq body.daq-simulation-main .daq-board-status{display:flex;align-items:center;justify-content:flex-end;gap:16px;width:100%;min-width:0;white-space:nowrap;color:var(--ui-muted);font:650 9px/1 SFMono-Regular,ui-monospace,Menlo,Monaco,Consolas,monospace;letter-spacing:.035em}
-.daq-board-status>span{display:inline-flex;align-items:baseline;gap:6px}.daq-board-status small{color:var(--ui-muted);font:inherit}.daq-board-status b,.daq-board-status strong,.daq-board-status em{color:var(--ui-text);font:inherit;font-style:normal}.daq-board-state b{color:#ef7180}.daq-board-online{align-items:center!important;gap:7px!important}.daq-board-online b{color:#35c980}.daq-board-online i{width:6px;height:6px;border-radius:50%;background:#35c980;box-shadow:0 0 8px rgba(53,201,128,.5)}
-.daq-board-control{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:24px;margin-left:2px;padding:0 9px;border:1px solid rgba(148,163,184,.26);border-radius:6px;background:rgba(148,163,184,.055);color:var(--ui-muted);font:650 7.5px/1 SFMono-Regular,ui-monospace,Menlo,Monaco,Consolas,monospace;letter-spacing:.045em;white-space:nowrap;cursor:pointer;transition:border-color .16s ease,background .16s ease,color .16s ease}.daq-board-control svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.daq-board-control:hover{border-color:rgba(148,163,184,.52);background:rgba(148,163,184,.1);color:var(--ui-text)}.daq-board-control.is-active{border-color:rgba(59,130,246,.42);background:rgba(59,130,246,.1);color:#60a5fa}
-@media(max-width:1180px){html.sim-active.mode-daq body.daq-simulation-main .daq-board-status{gap:10px}.daq-header-clock{padding-right:10px}.daq-board-status .is-secondary{display:none}}
+html.sim-active.mode-daq body.daq-simulation-main .daq-board-status{display:flex;align-items:center;justify-content:space-between;gap:20px;width:100%;min-width:0;color:var(--ui-muted);font:600 11px/1 "SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.015em;white-space:nowrap}
+.daq-board-stage,.daq-board-online,.daq-board-metrics,.daq-board-tools{display:flex;align-items:center;gap:14px;min-width:0}
+.daq-board-online{gap:7px;color:var(--ui-text)}
+.daq-board-online b{color:#78dca5;font:inherit}
+.daq-board-online strong{font:inherit}
+.daq-board-online i{width:5px;height:5px;border-radius:50%;background:#45d582}
+.daq-board-metrics{gap:13px;overflow:hidden}
+.daq-board-metrics span{flex:0 0 auto}
+.daq-board-metrics b{margin-left:4px;color:var(--ui-text);font:inherit;font-variant-numeric:tabular-nums}
+.daq-board-metrics #daqBoardState{color:#fbbf24}
+.daq-board-tools{flex:0 0 auto;gap:14px}
+.daq-board-tools time{font:inherit;font-variant-numeric:tabular-nums}
+.daq-board-tools button{display:inline-flex;align-items:center;justify-content:center;width:auto;min-width:0;min-height:28px;padding:0;margin:0;border:0;border-radius:0;background:transparent;color:inherit;box-shadow:none;font:inherit;letter-spacing:inherit;cursor:pointer}
+.daq-board-tools button:is(:hover,.is-active,.is-open,.has-unread){color:var(--ui-text)}
+.daq-board-tools button:focus-visible{outline:1px solid var(--ui-muted);outline-offset:3px}
+html.sim-active.mode-daq body.daq-simulation-main :is(.alarm-history-toggle,.control-center-toggle){display:none!important}
+@media(max-width:1100px){.daq-board-metrics{gap:9px}.daq-board-metrics span:nth-child(2),.daq-board-metrics span:nth-child(3){display:none}}
+@media(max-width:700px){.daq-board-metrics{display:none}.daq-board-tools{gap:10px}html.sim-active.mode-daq body.daq-simulation-main .daq-board-status{gap:10px;font-size:10px}}
+
 body.camera-view-active .page-wrap{
   padding:0 !important;
   gap:0 !important;
@@ -28638,37 +28649,32 @@ html.sim-active.mode-daq body.daq-simulation-main #dashboardView .dashboard-draw
 }
 .daq-overview-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
 .daq-overview-card{
-  position:relative;
-  min-width:0;
-  display:grid;
-  grid-template-columns:30px minmax(0,1fr) minmax(48px,auto) auto;
-  grid-template-rows:auto 2px;
-  gap:7px 10px;
-  align-items:center;
-  align-content:center;
-  padding:10px 12px;
-  overflow:visible;
-  border:0;
-  border-radius:0;
-  background:transparent;
+  position:relative;min-width:0;display:grid;
+  grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto 2px;
+  gap:4px 16px;align-items:center;align-content:center;padding:12px 18px;
+  border:0;border-radius:0;background:transparent;
 }
-.daq-overview-card+.daq-overview-card{border-top:1px solid var(--ui-line)}
-.daq-overview-index{grid-row:1/3;align-self:center;color:var(--daq-accent,#64748b)}
 .daq-overview-card>div{display:contents}
-.daq-overview-card>div small{grid-column:2;grid-row:1;align-self:center;overflow:hidden;color:var(--ui-muted);font:650 8px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em;white-space:nowrap;text-overflow:ellipsis}
-.daq-overview-card>div strong{grid-column:3;grid-row:1/3;align-self:center;justify-self:end;font:560 16px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.035em}
-.daq-overview-card>em{grid-column:4;grid-row:1/3;align-self:center;color:var(--ui-muted);font:650 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal}
-.daq-overview-meter{
-  position:relative;
-  grid-column:2;
-  grid-row:2;
-  width:100%;
-  height:2px;
-  overflow:hidden;
-  border-radius:99px;
-  background:rgba(148,163,184,.16);
+.daq-overview-card small{
+  grid-column:1;grid-row:1;min-width:0;color:var(--ui-text);
+  font-size:11px;font-weight:600;line-height:1.3;letter-spacing:.07em;
 }
-.daq-overview-meter b{display:block;height:100%;min-width:2px;border-radius:inherit;background:color-mix(in srgb,var(--daq-accent,#64748b) 78%,#94a3b8 22%);transition:width .3s ease}
+.daq-overview-card strong{
+  grid-column:2;grid-row:1/3;justify-self:end;color:var(--ui-text);
+  font:300 40px/1 "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-variant-numeric:tabular-nums;letter-spacing:-.035em;
+}
+.daq-overview-card>em{
+  grid-column:1;grid-row:2;color:var(--ui-muted);font-size:11px;font-weight:450;line-height:1.2;font-style:normal;
+}
+.daq-overview-meter{
+  grid-column:1/-1;grid-row:3;display:block;align-self:end;width:100%;height:2px;
+  margin-top:5px;overflow:hidden;border-radius:2px;background:color-mix(in srgb,var(--ui-muted) 18%,transparent);
+}
+.daq-overview-meter b{
+  display:block;height:100%;width:0;min-width:0;border-radius:inherit;
+  background:color-mix(in srgb,var(--daq-accent,#aab5c2) 52%,#c0c9d1 48%);transition:width .3s ease;
+}
 .daq-overview-card.is-gox{--daq-accent:#ef5b64}.daq-overview-card.is-n2{--daq-accent:#31a36d}.daq-overview-card.is-ethanol{--daq-accent:#14b8a6}.daq-overview-card.is-water{--daq-accent:#3b82f6}.daq-overview-card.is-thrust{--daq-accent:#8b5cf6}
 .daq-console-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(310px,.72fr);gap:12px;align-items:stretch}
 .daq-panel{border:1px solid var(--ui-line);border-radius:12px;background:var(--ui-surface);overflow:hidden}
@@ -28677,12 +28683,11 @@ html.sim-active.mode-daq body.daq-simulation-main #dashboardView .dashboard-draw
 .daq-panel-head small{color:var(--ui-muted);font:750 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em}
 .daq-panel-head strong{font-size:12px;letter-spacing:.035em}
 .daq-panel-head>em{color:var(--ui-muted);font:750 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal;letter-spacing:.08em}
-.daq-pid-panel{--daq-pid-head-height:58px;position:relative}
+.daq-pid-panel{--daq-pid-head-height:58px;position:relative;overflow:clip}
 .daq-pid-head-tools{display:flex;align-items:center;justify-content:flex-end;gap:14px;min-width:0}
 .daq-flow-legend{display:flex!important;flex-direction:row!important;gap:11px!important;flex-wrap:wrap;justify-content:flex-end}
 .daq-flow-legend span{display:flex;align-items:center;gap:5px;color:var(--ui-muted);font:750 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace}
 .daq-flow-legend span::before{content:"";width:16px;height:2px;background:currentColor}.daq-flow-legend .is-gox{color:#ef5b64}.daq-flow-legend .is-n2{color:#31a36d}.daq-flow-legend .is-ethanol{color:#14b8a6}.daq-flow-legend .is-water{color:#3b82f6}
-.daq-pid-actions{display:flex;align-items:center;gap:6px;flex:0 0 auto}
 .daq-pid-tool{display:flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:0 10px;border:1px solid var(--ui-line);border-radius:7px;background:var(--ui-bg);color:var(--ui-muted);font:800 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;cursor:pointer;transition:border-color .16s ease,background .16s ease,color .16s ease,box-shadow .16s ease}
 .daq-pid-tool svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .daq-pid-tool:hover{border-color:#64748b;color:var(--ui-text)}
@@ -28780,99 +28785,38 @@ body #daqValveUnlockOverlay .daq-valve-unlock-actions .daq-valve-unlock-confirm:
 }
 .daq-pid-stage{min-height:480px;display:grid;place-items:center;padding:12px;background:color-mix(in srgb,var(--ui-surface) 97%,var(--ui-bg) 3%)}
 .daq-pid-svg{display:block;width:100%;height:auto;max-height:520px}
-.daq-pid-zone rect{fill:rgba(148,163,184,.012);stroke:rgba(148,163,184,.14);stroke-width:1}
-.daq-pid-zone text{fill:color-mix(in srgb,var(--ui-muted) 72%,transparent);font:600 8.5px/1 "SF Pro Text","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;letter-spacing:.85px}
-.daq-line{fill:none;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s ease,filter .2s ease}.daq-line.gox{stroke:#d95c67}.daq-line.n2{stroke:#378d6b}.daq-line.ethanol{stroke:#2d9992}.daq-line.water{stroke:#4779c6}.daq-line.is-vent{stroke-dasharray:5 6}.daq-line:not(.is-flowing){opacity:.68}.daq-line.is-flowing{filter:drop-shadow(0 0 2px currentColor);stroke-dasharray:9 7;animation:daq-flow 1s linear infinite}
+.daq-line{fill:none;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s ease,filter .2s ease}.daq-line.gox{stroke:#d95c67}.daq-line.n2{stroke:#378d6b}.daq-line.ethanol{stroke:#2d9992}.daq-line.water{stroke:#4779c6}.daq-line.is-vent{stroke-dasharray:5 6}.daq-line:not(.is-flowing){opacity:.68}.daq-line.is-flowing{filter:drop-shadow(0 0 2px currentColor);stroke-dasharray:9 7;animation:daq-flow var(--daq-flow-duration,1s) linear infinite}
 .daq-equipment rect,.daq-equipment circle,.daq-equipment path{fill:color-mix(in srgb,var(--ui-surface) 91%,var(--ui-bg) 9%);stroke:#667085;stroke-width:1.35}.daq-equipment text{fill:var(--ui-text);font:600 11px/1 "SF Pro Text","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;text-anchor:middle}.daq-equipment.daq-regulator text{font-size:10px}.daq-equipment.daq-tank path{stroke-width:1;opacity:.72}.daq-equipment.daq-tank.is-water path{stroke:#4779c6}.daq-equipment.daq-tank.is-ethanol path{stroke:#2d9992}.daq-equipment.is-gox rect,.daq-equipment.is-gox circle,.daq-equipment.is-gox path{stroke:#d95c67}.daq-equipment.daq-engine .daq-engine-outline{fill:color-mix(in srgb,var(--ui-surface) 95%,var(--ui-bg) 5%);stroke:#596273;stroke-width:1.2;stroke-linejoin:round}.daq-equipment.daq-engine text{fill:var(--ui-muted);font-size:7.5px;font-weight:650;letter-spacing:.08em}.daq-equipment.daq-engine .daq-engine-label{text-anchor:middle}
-.daq-svg-valve{cursor:pointer;outline:none;transition:opacity .16s ease,filter .16s ease}.daq-svg-valve path{fill:color-mix(in srgb,var(--ui-surface) 92%,var(--ui-bg) 8%);stroke:#667085;stroke-width:1.35;transform:scale(.86);transform-box:fill-box;transform-origin:center;transition:fill .16s ease,stroke .16s ease}.daq-svg-valve .daq-valve-tag{fill:var(--ui-bg);stroke:rgba(148,163,184,.45);stroke-width:1;transition:fill .16s ease,stroke .16s ease}.daq-svg-valve text{fill:var(--ui-muted);font:650 6.5px ui-monospace,SFMono-Regular,Menlo,monospace;text-anchor:middle;pointer-events:none}.daq-svg-valve:hover,.daq-svg-valve:focus-visible{filter:drop-shadow(0 0 4px rgba(96,165,250,.45))}.daq-svg-valve:hover path,.daq-svg-valve:focus-visible path,.daq-svg-valve:hover .daq-valve-tag,.daq-svg-valve:focus-visible .daq-valve-tag{stroke:#60a5fa}.daq-svg-valve.is-open path{fill:rgba(34,197,94,.14);stroke:#22a35a}.daq-svg-valve.is-open .daq-valve-tag{fill:#16834b;stroke:#22a35a}.daq-svg-valve.is-open text{fill:#fff}.daq-pid-panel.is-valve-locked .daq-svg-valve{cursor:not-allowed;filter:none}.daq-pid-panel.is-valve-locked .daq-svg-valve:hover path,.daq-pid-panel.is-valve-locked .daq-svg-valve:focus-visible path,.daq-pid-panel.is-valve-locked .daq-svg-valve:hover .daq-valve-tag,.daq-pid-panel.is-valve-locked .daq-svg-valve:focus-visible .daq-valve-tag{stroke:#c9973e}
+.daq-svg-valve{cursor:pointer;outline:none;transition:opacity .16s ease,filter .16s ease}.daq-svg-valve path{fill:color-mix(in srgb,var(--ui-surface) 92%,var(--ui-bg) 8%);stroke:#667085;stroke-width:1.35;transform:scale(.86);transform-box:fill-box;transform-origin:center;transition:fill .16s ease,stroke .16s ease}.daq-svg-valve text{fill:var(--ui-muted);font:650 9.5px ui-monospace,SFMono-Regular,Menlo,monospace;text-anchor:middle;pointer-events:none}.daq-svg-valve:hover,.daq-svg-valve:focus-visible{filter:drop-shadow(0 0 4px rgba(96,165,250,.45))}.daq-svg-valve:hover path,.daq-svg-valve:focus-visible path{stroke:#60a5fa}.daq-svg-valve.is-open path{fill:rgba(34,197,94,.14);stroke:#22a35a}.daq-svg-valve.is-open text{fill:#fff}.daq-pid-panel.is-valve-locked .daq-svg-valve{cursor:not-allowed;filter:none}.daq-pid-panel.is-valve-locked .daq-svg-valve:hover path,.daq-pid-panel.is-valve-locked .daq-svg-valve:focus-visible path{stroke:#c9973e}
+.daq-valve-hit-target{fill:transparent;stroke:none;pointer-events:all;touch-action:manipulation}
+.daq-svg-valve:focus-visible .daq-valve-hit-target{stroke:#8caed3;stroke-width:1;stroke-dasharray:3 3}
 .daq-junction{fill:#667085;stroke:var(--ui-surface);stroke-width:1.5}
 .daq-instrument-tap{fill:none;stroke:#717b8d;stroke-width:1.1;stroke-dasharray:3 3}.daq-instrument-tap.ethanol{stroke:#2d9992}.daq-instrument-tap.gox{stroke:#d95c67}
-.daq-pt rect{fill:var(--ui-bg);stroke:rgba(139,92,246,.5);stroke-width:1}.daq-pt text{fill:var(--ui-muted);font:650 7.5px ui-monospace,SFMono-Regular,Menlo,monospace;text-anchor:middle}.daq-pt text:last-child{fill:var(--ui-text);font-weight:600}.daq-vent-label,.daq-line-label{fill:color-mix(in srgb,var(--ui-muted) 82%,transparent);font:600 7.5px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.35px}.daq-line-label{opacity:.9}
+.daq-pt rect{fill:var(--ui-bg);stroke:rgba(139,92,246,.5);stroke-width:1}.daq-pt text{fill:var(--ui-muted);font:650 9px ui-monospace,SFMono-Regular,Menlo,monospace;text-anchor:middle}.daq-pt text:last-child{fill:var(--ui-text);font-weight:600}.daq-vent-label,.daq-line-label{fill:color-mix(in srgb,var(--ui-muted) 82%,transparent);font:600 8.5px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.35px}.daq-line-label{opacity:.9}
 .daq-side-stack{display:grid;grid-template-rows:auto auto;gap:10px;align-content:start;min-width:0}
-.daq-side-stack>.daq-sequence-panel{width:min(100%,410px);display:grid;grid-template-rows:auto auto auto;justify-self:start;border-radius:8px;background:var(--ui-surface)}
-.daq-sensor-panel{width:min(100%,410px);align-self:start;justify-self:start;border-radius:8px;background:var(--ui-surface)}
-.daq-sensor-panel>.daq-panel-head{min-height:44px;padding:9px 12px;background:color-mix(in srgb,var(--ui-surface) 94%,var(--ui-bg) 6%)}
-.daq-sensor-panel>.daq-panel-head small{font-size:7px;font-weight:650;letter-spacing:.14em}.daq-sensor-panel>.daq-panel-head strong{font-size:11px;font-weight:600;letter-spacing:.05em}.daq-sensor-panel>.daq-panel-head>em{font-size:8px;font-weight:650}
-.daq-sensor-list{display:grid;gap:0}.daq-sensor-list article{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr) minmax(48px,auto) auto;grid-template-rows:auto 2px;gap:7px 10px;align-items:center;align-content:center;padding:10px 12px;border-bottom:1px solid var(--ui-line)}.daq-sensor-list article:last-child{border-bottom:0}.daq-sensor-index{width:28px;height:28px;display:grid;place-items:center;border:1px solid var(--ui-line);border-radius:6px;background:var(--ui-bg);color:var(--ui-muted);font:750 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.daq-sensor-list article>.daq-sensor-index{grid-row:1/3;align-self:center}.daq-overview-card .daq-overview-index{border-color:color-mix(in srgb,var(--daq-accent,#64748b) 26%,var(--ui-line));background:var(--ui-bg);color:color-mix(in srgb,var(--daq-accent,#64748b) 70%,var(--ui-muted) 30%)}.daq-sensor-list article>div{display:contents}.daq-sensor-list article small{grid-column:2;grid-row:1;align-self:center;font-size:8px;font-weight:560;letter-spacing:.07em}.daq-sensor-list article strong{grid-column:3;grid-row:1/3;align-self:center;justify-self:end;font:560 16px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.035em}.daq-sensor-list article>em{grid-column:4;grid-row:1/3;align-self:center;color:var(--ui-muted);font:650 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal}.daq-sensor-list article>i{grid-column:2;grid-row:2;height:2px;border-radius:99px;overflow:hidden;background:rgba(148,163,184,.14)}.daq-sensor-list article>i b{display:block;width:50%;height:100%;border-radius:inherit;background:#64748b;transition:width .3s ease}
-.daq-sensor-section-label{min-height:28px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 12px;border-top:1px solid var(--ui-line);border-bottom:1px solid var(--ui-line);color:var(--ui-muted);font:650 7px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em}.daq-sensor-section-label em{font-style:normal;color:var(--ui-muted)}
-.daq-valve-panel-shade{position:absolute;z-index:5;inset:var(--daq-pid-head-height) 0 0;border:0;background:rgba(2,6,23,.34);opacity:0;pointer-events:none;cursor:pointer;transition:opacity .2s ease;-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px)}
-.daq-valve-panel{position:absolute;z-index:6;top:calc(var(--daq-pid-head-height) + 8px);right:8px;bottom:8px;display:flex;flex-direction:column;width:min(440px,calc(100% - 16px));min-height:0;overflow:hidden;opacity:0;pointer-events:none;transform:translateX(calc(100% + 18px));box-shadow:0 18px 48px rgba(2,6,23,.42);transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .18s ease}
-.daq-valve-panel.is-open{opacity:1;pointer-events:auto;transform:translateX(0)}
-.daq-pid-panel.is-controller-open .daq-valve-panel-shade{opacity:1;pointer-events:auto}
-.daq-valve-panel-head-actions{display:flex;align-items:center;gap:9px}.daq-valve-panel-head-actions em{color:#f59e0b;font:800 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal;letter-spacing:.08em}.daq-valve-panel-head-actions em.is-ready{color:#22c55e}.daq-valve-panel-head-actions button{display:grid;place-items:center;width:28px;height:28px;padding:0;border:1px solid var(--ui-line);border-radius:7px;background:var(--ui-bg);color:var(--ui-muted);font-size:18px;line-height:1;cursor:pointer}.daq-valve-panel-head-actions button:hover{border-color:#64748b;color:var(--ui-text)}
-.daq-valve-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:12px;overflow:auto}.daq-valve-grid button{display:grid;grid-template-columns:32px minmax(0,1fr);grid-template-rows:auto auto;gap:2px 8px;align-items:center;min-height:54px;padding:9px;border:1px solid var(--ui-line);border-radius:8px;background:var(--ui-bg);color:var(--ui-text);text-align:left;cursor:pointer}.daq-valve-grid button:hover{border-color:#94a3b8}.daq-valve-grid button:disabled{cursor:not-allowed;opacity:.44}.daq-valve-grid button:disabled:hover{border-color:var(--ui-line)}.daq-valve-grid button>span{grid-row:1/3;width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(148,163,184,.4);border-radius:7px;color:var(--ui-muted);font:800 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.daq-valve-grid button strong{overflow:hidden;font-size:9px;white-space:nowrap;text-overflow:ellipsis;letter-spacing:.02em}.daq-valve-grid button em{color:var(--ui-muted);font:750 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal}.daq-valve-grid button.is-open{border-color:rgba(22,163,74,.4);background:rgba(34,197,94,.07)}.daq-valve-grid button.is-open>span{border-color:rgba(22,163,74,.35);background:#16a34a;color:#fff}.daq-valve-grid button.is-open em{color:#16a34a}.daq-valve-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:auto;padding:0 12px 12px}.daq-valve-actions button,.daq-sequence-actions button{min-height:36px;border:1px solid var(--ui-line);border-radius:7px;background:var(--ui-surface);color:var(--ui-text);font:800 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;cursor:pointer}.daq-valve-actions button:hover,.daq-sequence-actions button:hover{border-color:#94a3b8;background:var(--ui-bg)}.daq-valve-actions button:disabled{cursor:not-allowed;opacity:.42}#daqPurgeBtn{border-color:rgba(49,163,109,.35);color:#168652}
-.daq-sequence-track{display:flex;align-items:center;min-width:0;padding:14px 12px 10px}.daq-sequence-track>span{display:flex;flex:0 1 48px;min-width:0;flex-direction:column;align-items:center;gap:4px;color:var(--ui-muted)}.daq-sequence-track>span b{width:25px;height:25px;display:grid;place-items:center;border:1px solid var(--ui-line);border-radius:50%;background:var(--ui-bg);font:800 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.daq-sequence-track>span em{max-width:100%;overflow:hidden;font:750 6px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal;letter-spacing:.035em;text-overflow:ellipsis;white-space:nowrap}.daq-sequence-track>span.is-active{color:#16a34a}.daq-sequence-track>span.is-active b{border-color:#16a34a;background:#16a34a;color:#fff}.daq-sequence-track>i{height:1px;min-width:5px;flex:1;background:var(--ui-line)}.daq-sequence-actions{display:grid;grid-template-columns:1fr 1.35fr .8fr;gap:6px;padding:0 10px 10px}#daqRunBtn{border-color:rgba(37,99,235,.35);background:#2563eb;color:#fff}#daqRunBtn:disabled{opacity:.45;cursor:not-allowed}#daqArmBtn.is-armed{border-color:rgba(22,163,74,.46);background:rgba(34,197,94,.10);color:#22c55e}#daqAbortBtn.is-abort{border-color:rgba(239,68,68,.34);color:#dc2626}.daq-panel-head>button{border:0;background:transparent;color:var(--ui-muted);font:750 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}
-.daq-sequence-head-status{display:flex;align-items:center;gap:9px;min-width:0}.daq-sequence-clock{display:inline-flex;align-items:baseline;gap:5px;min-width:0}.daq-sequence-clock small{color:var(--ui-muted);font-size:6.5px;letter-spacing:.06em}.daq-sequence-clock strong{font:650 10px/1 SFMono-Regular,ui-monospace,Menlo,Monaco,Consolas,monospace;letter-spacing:.025em;font-variant-numeric:tabular-nums;white-space:nowrap}.daq-sequence-head-status>em{padding:4px 6px;border:1px solid var(--ui-line);border-radius:5px;background:var(--ui-bg);color:var(--ui-muted);font:750 7px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal;letter-spacing:.065em;white-space:nowrap}
-
+.daq-sensor-panel{width:100%;min-width:0;background:var(--ui-surface)}
+.daq-valve-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:12px;overflow:auto}.daq-valve-grid button{display:grid;grid-template-columns:32px minmax(0,1fr);grid-template-rows:auto auto;gap:2px 8px;align-items:center;min-height:54px;padding:9px;border:1px solid var(--ui-line);border-radius:8px;background:var(--ui-bg);color:var(--ui-text);text-align:left;cursor:pointer}.daq-valve-grid button:hover{border-color:#94a3b8}.daq-valve-grid button:disabled{cursor:not-allowed;opacity:.44}.daq-valve-grid button:disabled:hover{border-color:var(--ui-line)}.daq-valve-grid button>span{grid-row:1/3;width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(148,163,184,.4);border-radius:7px;color:var(--ui-muted);font:800 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace}.daq-valve-grid button strong{overflow:hidden;font-size:9px;white-space:nowrap;text-overflow:ellipsis;letter-spacing:.02em}.daq-valve-grid button em{color:var(--ui-muted);font:750 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-style:normal}.daq-valve-grid button.is-open{border-color:rgba(22,163,74,.4);background:rgba(34,197,94,.07)}.daq-valve-grid button.is-open>span{border-color:rgba(22,163,74,.35);background:#16a34a;color:#fff}.daq-valve-grid button.is-open em{color:#16a34a}
+.daq-valve-command-note{display:flex;flex-wrap:wrap;gap:4px 8px;margin:0;padding:9px 12px 0;color:var(--ui-text);font:650 9px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+.daq-valve-command-note span{color:var(--ui-muted);font-weight:450}
+.daq-valve-grid{flex:1 1 auto;min-height:0;align-content:start}
+.daq-valve-control{min-width:0;border:1px solid var(--ui-line);border-radius:8px;background:var(--ui-bg);overflow:hidden}
+.daq-valve-control>button{width:100%;border:0;border-radius:0;background:transparent}
+.daq-valve-opening{display:grid;grid-template-columns:auto minmax(0,1fr) 34px;align-items:center;gap:7px;padding:3px 10px 10px;color:var(--ui-muted);font:550 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace}
+.daq-valve-opening input{width:100%;min-width:0;min-height:24px;margin:0;accent-color:#83ac9d;cursor:pointer}
+.daq-valve-opening input:disabled{cursor:not-allowed;opacity:.4}
+.daq-valve-opening output{text-align:right;font-variant-numeric:tabular-nums}
+.daq-pid-svg .daq-line.is-purge-overlay:not(.is-flowing){opacity:0}
+.daq-svg-valve .daq-svg-opening{font-size:8px;font-weight:550;fill:var(--ui-muted)}
+.daq-check-valve path{fill:var(--ui-surface);stroke:#378d6b;stroke-width:1.3;stroke-linejoin:round}
+.daq-outlet path{fill:none;stroke:#4779c6;stroke-width:1.5;stroke-linecap:round;opacity:.35}
+.daq-outlet.is-flowing path{opacity:1}
+.daq-temperature{--daq-accent:#c19470}.daq-temperature rect{stroke:#9b795f}
+.daq-valve-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:auto;padding:0 12px 12px}.daq-valve-actions button,.daq-sequence-actions button{min-height:36px;border:1px solid var(--ui-line);border-radius:7px;background:var(--ui-surface);color:var(--ui-text);font:800 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;cursor:pointer}.daq-valve-actions button:hover,.daq-sequence-actions button:hover{border-color:#94a3b8;background:var(--ui-bg)}.daq-valve-actions button:disabled{cursor:not-allowed;opacity:.42}#daqPurgeBtn{border-color:rgba(49,163,109,.35);color:#168652}
+.daq-sequence-actions{display:grid;grid-template-columns:1fr 1.35fr .8fr;gap:6px;padding:0 10px 10px}#daqRunBtn{border-color:rgba(37,99,235,.35);background:#2563eb;color:#fff}#daqRunBtn:disabled{opacity:.45;cursor:not-allowed}#daqArmBtn.is-armed{border-color:rgba(22,163,74,.46);background:rgba(34,197,94,.10);color:#22c55e}#daqAbortBtn.is-abort{border-color:rgba(239,68,68,.34);color:#dc2626}.daq-panel-head>button{border:0;background:transparent;color:var(--ui-muted);font:750 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}
 @keyframes daq-live-pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.35)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
 @keyframes daq-flow{to{stroke-dashoffset:-34}}
 
 html[data-theme="dark"] .daq-line:not(.is-flowing){opacity:.54}
-
-@media(min-width:1101px) and (min-height:780px){
-  html.sim-active.mode-daq body.daq-simulation-main .page-wrap{overflow:hidden!important}
-  html.sim-active.mode-daq .daq-console{
-    height:calc(100dvh - 64px);
-    min-height:0;
-    display:grid;
-    grid-template-columns:minmax(0,1fr) clamp(360px,28vw,410px);
-    grid-template-rows:minmax(0,1fr);
-    gap:10px;
-    overflow:hidden;
-    padding-bottom:0;
-  }
-  .daq-overview-grid{
-    grid-template-columns:minmax(0,1fr);
-    grid-template-rows:repeat(5,minmax(0,1fr));
-    min-height:0;
-    gap:0;
-    padding:0;
-    overflow:hidden;
-    border:0;
-    border-radius:0;
-    background:transparent;
-  }
-  .daq-overview-card{
-    height:auto;
-    min-height:0;
-    grid-template-columns:30px minmax(0,1fr) minmax(48px,auto) auto;
-    grid-template-rows:auto 2px;
-    gap:4px 8px;
-    padding:3px 10px;
-    overflow:visible;
-    border:0;
-    border-radius:0;
-    background:transparent;
-  }
-  .daq-overview-card+.daq-overview-card{border-top:1px solid var(--ui-line)}
-  .daq-overview-card>div strong{font-size:16px}
-  .daq-overview-index{width:28px;height:28px;font-size:8px}
-  .daq-overview-meter{width:100%;max-width:none;height:2px;min-height:2px;max-height:2px}
-  .daq-console-layout{display:contents}
-  .daq-panel,.daq-side-stack{min-height:0}
-  .daq-pid-panel{--daq-pid-head-height:46px;grid-column:1;grid-row:1;display:grid;grid-template-rows:46px minmax(0,1fr)}
-  .daq-pid-stage{height:auto;min-height:0;padding:6px}
-  .daq-pid-svg{height:100%;max-height:100%}
-  .daq-side-stack{grid-column:2;grid-row:1;display:grid;grid-template-rows:178px minmax(0,1fr);gap:10px;height:100%;overflow:hidden}
-  .daq-side-stack>.daq-sequence-panel{width:100%;height:178px;grid-template-rows:42px minmax(0,1fr) 46px}
-  .daq-side-stack>.daq-sequence-panel>.daq-panel-head{min-height:42px;padding:7px 11px}
-  .daq-side-stack>.daq-sequence-panel .daq-sequence-track{padding:10px 9px 7px}
-  .daq-side-stack>.daq-sequence-panel .daq-sequence-actions{align-items:end;padding:0 9px 9px}
-  .daq-sensor-panel{display:grid;grid-template-rows:40px minmax(0,5fr) 26px minmax(0,3fr);height:100%;align-self:stretch}
-  .daq-sensor-panel>.daq-panel-head{min-height:40px;padding:7px 11px}
-  .daq-panel-head{min-height:46px;padding:9px 13px}
-  .daq-sensor-section-label{min-height:26px;padding:5px 11px}
-  .daq-sensor-list{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(3,minmax(0,1fr));min-height:0}
-  .daq-sensor-list article{grid-template-columns:30px minmax(0,1fr) minmax(48px,auto) auto;grid-template-rows:auto 2px;gap:4px 8px;padding:3px 10px;border-bottom:0;border-top:1px solid var(--ui-line)}
-  .daq-sensor-list article:first-child{border-top:0}
-  .daq-sensor-index{width:28px;height:28px}
-  .daq-sensor-list article strong{font-size:16px}
-  .daq-valve-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:12px}
-  .daq-valve-grid button{min-height:54px;padding:9px}
-  .daq-valve-grid button>span{width:30px;height:30px}
-  .daq-valve-actions{gap:7px;padding:0 12px 12px}
-  .daq-valve-actions button,.daq-sequence-actions button{min-height:36px}
-}
 
 @media(max-width:1100px){
   .daq-console-layout{grid-template-columns:1fr}
@@ -28882,8 +28826,143 @@ html[data-theme="dark"] .daq-line:not(.is-flowing){opacity:.54}
   .daq-overview-grid{grid-template-columns:minmax(0,1fr)}
   .daq-panel-head{align-items:flex-start}.daq-pid-head-tools{gap:7px}.daq-flow-legend{display:none!important}.daq-pid-stage{min-height:300px;padding:4px;overflow:auto}.daq-pid-svg{min-width:720px;max-height:none}.daq-side-stack{grid-template-columns:1fr}.daq-sequence-track{overflow-x:auto;justify-content:flex-start}.daq-sequence-track>span{flex:0 0 48px}.daq-sequence-track>i{min-width:18px}.daq-sequence-actions{grid-template-columns:1fr}
 }
-@media(max-width:480px){.daq-pid-tool{width:34px;padding:0}.daq-pid-tool span{display:none}.daq-board-control{width:26px;padding:0}.daq-board-control span{display:none}.daq-valve-panel{top:calc(var(--daq-pid-head-height) + 5px);right:5px;bottom:5px;width:calc(100% - 10px)}.daq-valve-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.daq-pid-tool{width:34px;padding:0}.daq-pid-tool span{display:none}.daq-valve-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.simulation-live-dot,.daq-line.is-flowing{animation:none}}
+
+/* DAQ visual hierarchy. Kept after the base DAQ responsive rules. */
+.daq-console{--daq-panel-inset:16px}
+.daq-console .daq-panel{border-radius:10px}
+.daq-console .daq-panel-head{gap:12px;padding:12px var(--daq-panel-inset)}
+.daq-console .daq-panel-head small{font-size:9px;line-height:1.3;letter-spacing:.1em}
+.daq-console .daq-panel-head strong{font-size:14px;line-height:1.25;letter-spacing:.015em}
+.daq-console .daq-panel-head>em{font-size:10px;letter-spacing:.04em}
+.daq-console .daq-pid-head-tools{gap:12px}
+.daq-console .daq-pid-tool{min-height:34px;padding:0 12px;font-size:10px;letter-spacing:.025em}
+.daq-console .daq-flow-legend{gap:12px!important}
+.daq-console .daq-flow-legend span{gap:6px;font-size:10px;font-weight:600}
+.daq-console .daq-flow-legend span::before{width:14px}
+.daq-console .daq-console-layout,.daq-console .daq-pid-panel,.daq-console .daq-pid-stage{min-width:0}
+.daq-console .daq-pid-stage{padding:14px}
+.daq-console .daq-line{stroke-width:2.3}
+.daq-console .daq-pipe-crossing{fill:none;stroke:color-mix(in srgb,var(--ui-surface) 97%,var(--ui-bg) 3%);stroke-width:7;stroke-linecap:round}
+.daq-console .daq-line:not(.is-flowing){opacity:.78}
+.daq-console .daq-line.gox{color:#d95c67}
+.daq-console .daq-line.n2{color:#378d6b}
+.daq-console .daq-line.ethanol{color:#2d9992}
+.daq-console .daq-line.water{color:#4779c6}
+.daq-console .daq-line.is-flowing{stroke-width:2.8;filter:drop-shadow(0 0 1.5px currentColor)}
+.daq-console .daq-pid-svg .daq-line.is-purge-overlay:not(.is-flowing){opacity:0}
+.daq-console .daq-equipment text{font-size:14.5px;font-weight:650}
+.daq-console .daq-equipment.daq-regulator text{font-size:12px}
+.daq-console .daq-equipment.daq-engine text{font-size:10px;letter-spacing:.06em}
+.daq-console .daq-svg-valve text{fill:var(--ui-text);font-size:11px;font-weight:700}
+.daq-console .daq-svg-valve .daq-svg-valve-id{font-size:14px;paint-order:stroke;stroke:var(--ui-surface);stroke-width:4px;stroke-linejoin:round}
+.daq-console .daq-svg-valve:not(.is-open) .daq-svg-opening{display:none}
+.daq-console .daq-pid-divider{fill:none;stroke:var(--ui-line);stroke-width:1;opacity:.5}
+.daq-console .daq-pid-column-label{fill:var(--ui-muted);font:550 10px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:1px}
+.daq-console .daq-pid-lane-label{fill:var(--ui-text);font:650 14px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.8px}
+.daq-console .daq-pid-lane-label.is-water{fill:#8caed3}
+.daq-console .daq-pid-lane-label.is-ethanol{fill:#8dbbb4}
+.daq-console .daq-pid-lane-label.is-gox{fill:#c69b9e}
+.daq-console .daq-svg-valve .daq-svg-opening{fill:var(--ui-muted);font-size:10px;font-weight:550}
+.daq-console .daq-svg-valve.is-open .daq-svg-opening{fill:#95c5ad}
+.daq-console .daq-pt rect{stroke:#646c80;stroke-width:1.1}
+.daq-console .daq-pt text{font-size:11px;font-weight:550}
+.daq-console .daq-pt text:last-child{font-size:14px;font-weight:650;font-variant-numeric:tabular-nums}
+.daq-console .daq-temperature rect{stroke:#9b795f}
+.daq-console .daq-vent-label,.daq-console .daq-line-label{
+  fill:color-mix(in srgb,var(--ui-text) 76%,var(--ui-muted) 24%);
+  font-size:12px;font-weight:550;letter-spacing:.15px;
+  paint-order:stroke;stroke:var(--ui-surface);stroke-width:3px;stroke-linejoin:round;
+}
+
+/* Readout cards retain the same channels, units and simulation gauges. */
+.daq-console .daq-sensor-panel{display:grid;grid-template-rows:64px minmax(0,1fr);min-height:0}
+.daq-console .daq-sensor-panel>.daq-panel-head{min-height:64px;padding:12px var(--daq-panel-inset)}
+.daq-console .daq-sensor-panel>.daq-panel-head strong{font-size:17px;letter-spacing:.12em}
+.daq-console .daq-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(96px,1fr));gap:10px;padding:var(--daq-panel-inset);min-height:0}
+.daq-console .daq-overview-card{
+  grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto 1fr 2px;
+  gap:5px 5px;padding:12px;min-height:0;border:1px solid var(--ui-line);border-radius:9px;
+  background:color-mix(in srgb,var(--ui-bg) 60%,var(--ui-surface) 40%);
+}
+.daq-console .daq-overview-card small{
+  grid-column:1/-1;grid-row:1;color:var(--ui-muted);
+  font:550 10px/1.35 "SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.025em;
+}
+.daq-console .daq-overview-card strong{
+  grid-column:1;grid-row:2;align-self:end;justify-self:end;min-width:0;
+  font-size:28px;font-weight:450;letter-spacing:-.035em;
+}
+.daq-console .daq-overview-card.is-primary strong{font-size:36px;font-weight:350}
+.daq-console .daq-overview-card>em{grid-column:2;grid-row:2;align-self:end;padding-bottom:2px;font-size:10px;font-weight:450}
+.daq-console .daq-overview-meter{margin-top:4px}
+
+/* The unboxed clock leads the horizontal sequence. */
+.daq-sequence-row{display:grid;grid-template-columns:clamp(230px,23vw,320px) minmax(0,1fr);gap:14px;min-width:0}
+.daq-console .daq-sequence-time-panel{display:flex;flex-direction:column;justify-content:center;gap:12px;min-width:0;padding:12px 4px;background:transparent}
+.daq-sequence-time-panel h2{margin:0;color:var(--ui-muted);font-size:10px;font-weight:600;letter-spacing:.13em}
+.daq-sequence-time-panel .daq-console-elapsed{align-self:flex-start;font-size:clamp(28px,2.5vw,36px)}
+.daq-console-elapsed{color:var(--ui-text);font:350 clamp(28px,2.5vw,36px)/1 "SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.035em;white-space:nowrap}
+.daq-console .daq-sequence-panel{padding:14px 18px 16px;min-width:0;background:transparent}
+.daq-sequence-panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.daq-sequence-panel h2{margin:0;color:var(--ui-muted);font-size:11px;font-weight:650;letter-spacing:.13em}
+.daq-sequence-panel>header>div{display:flex;align-items:center;gap:18px;font-size:11px}
+.daq-sequence-panel>header strong{font-weight:600;letter-spacing:.05em}
+.daq-sequence-panel>header span{color:var(--ui-muted);font-variant-numeric:tabular-nums}
+.daq-console .daq-sequence-track{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:relative;margin-top:16px;padding:0;overflow:visible}
+.daq-sequence-track::before{content:"";position:absolute;top:5px;left:10%;right:10%;height:1px;background:var(--ui-line)}
+.daq-console .daq-sequence-track>i{display:none}
+.daq-console .daq-sequence-track>span{display:flex;position:relative;align-items:center;flex-direction:column;gap:11px;min-width:0;color:var(--ui-muted)}
+.daq-console .daq-sequence-track>span b{display:block;box-sizing:border-box;width:7px;height:7px;margin:2px 0;border:1px solid #77818a;border-radius:50%;background:var(--ui-bg)}
+.daq-console .daq-sequence-track>span em{font:550 10px/1.2 "SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-style:normal;white-space:nowrap}
+.daq-console .daq-sequence-track>span.is-complete{color:color-mix(in srgb,var(--ui-text) 65%,var(--ui-muted) 35%)}
+.daq-console .daq-sequence-track>span.is-complete b{background:#929da5;border-color:#929da5}
+.daq-console .daq-sequence-track>span.is-active{color:var(--ui-text)}
+.daq-console .daq-sequence-track>span.is-active b{border-color:var(--ui-text);background:var(--ui-text);box-shadow:0 0 0 3px var(--ui-bg),0 0 0 4px var(--ui-text)}
+.daq-console .daq-sequence-track>span.is-active em{font-weight:650}
+.daq-console .daq-side-stack{grid-template-rows:minmax(0,1fr);align-content:stretch;gap:12px}
+
+@media(min-width:1101px) and (min-height:780px){
+  html.sim-active.mode-daq body.daq-simulation-main .page-wrap{overflow:hidden!important}
+  html.sim-active.mode-daq .daq-console{display:grid;height:calc(100dvh - 70px);min-height:0;grid-template-columns:minmax(0,1fr);grid-template-rows:106px minmax(0,1fr);gap:14px;padding-bottom:0;overflow:hidden}
+  .daq-console .daq-console-layout{display:grid;grid-template-columns:minmax(0,1fr) clamp(360px,28vw,420px);min-height:0;gap:14px}
+  .daq-console .daq-pid-panel{--daq-pid-head-height:56px;display:grid;grid-template-rows:56px minmax(0,1fr);min-height:0}
+  .daq-console .daq-pid-stage{height:auto;min-height:0;padding:12px}
+  .daq-console .daq-pid-svg{height:100%;max-height:100%}
+  .daq-console .daq-side-stack{grid-template-rows:minmax(0,1fr);height:100%;min-height:0;align-content:stretch}
+  .daq-console .daq-sensor-panel{height:100%;grid-template-rows:56px minmax(0,1fr)}
+  .daq-console .daq-sensor-panel>.daq-panel-head{min-height:56px}
+  .daq-console .daq-overview-grid{grid-template-rows:repeat(4,minmax(0,1fr));gap:8px}
+  .daq-console .daq-overview-card{padding:10px}
+}
+@media(min-width:1101px) and (min-height:780px) and (max-height:860px){
+  html.sim-active.mode-daq .daq-console{grid-template-rows:96px minmax(0,1fr);gap:12px}
+  .daq-console .daq-sequence-panel{padding:12px 18px}
+  .daq-console .daq-overview-grid{padding:10px;gap:6px}
+  .daq-console .daq-overview-card{padding:7px;gap:3px 4px}
+  .daq-console .daq-overview-card strong{font-size:24px}
+  .daq-console .daq-overview-card.is-primary strong{font-size:28px}
+}
+@media(max-width:1100px){
+  .daq-console .daq-side-stack{grid-template-columns:minmax(0,1fr);grid-template-rows:auto}
+  .daq-console .daq-overview-grid{grid-template-rows:repeat(4,minmax(100px,1fr))}
+}
+@media(max-width:700px){
+  .daq-console{--daq-panel-inset:14px;gap:14px}
+  .daq-sequence-row{grid-template-columns:minmax(0,1fr);gap:10px}
+  .daq-console .daq-sequence-time-panel{flex-direction:row;align-items:center;justify-content:space-between;padding:14px}
+  .daq-sequence-time-panel .daq-console-elapsed{align-self:auto;font-size:28px}
+  .daq-console .daq-sequence-panel{padding:14px 10px}
+  .daq-console .daq-sequence-track>span em{font-size:8px}
+  .daq-console .daq-sequence-panel h2,.daq-console .daq-sequence-panel>header>div{font-size:10px}
+  .daq-console .daq-pid-panel{--daq-pid-head-height:64px}
+  .daq-console .daq-pid-panel>.daq-panel-head{min-height:64px;align-items:center;flex-wrap:nowrap}
+  .daq-console .daq-pid-head-tools{gap:6px}
+  .daq-console .daq-pid-stage{display:block;place-items:start;text-align:left;min-height:0;overflow:auto;padding:12px;overscroll-behavior-x:contain}
+  .daq-console .daq-pid-svg{min-width:960px;height:auto;max-height:none}
+}
+
 
 .mission-force-dialog{
   width:min(92vw,640px) !important;
@@ -30817,6 +30896,17 @@ html:not(.phone-landscape-layout) body #hardwareServoDialog .hardware-servo-pres
 :is(.alarm-history-toggle,.control-center-toggle):focus-visible{outline:1px solid rgba(255,255,255,.7);outline-offset:2px}
 .alarm-history-toggle.has-unread{color:#fff}
 .alarm-history-panel{
+  --center-bg:#151618;
+  --center-surface:#1b1d20;
+  --center-control:#202226;
+  --center-hover:#25272b;
+  --center-active:#2c3035;
+  --center-border:#35383d;
+  --center-active-border:#4a4f56;
+  --center-radius:16px;
+  --center-card-radius:10px;
+  --center-button-radius:8px;
+  --center-shadow:none;
   position:fixed;
   top:38px;
   left:50%;
@@ -30826,11 +30916,11 @@ html:not(.phone-landscape-layout) body #hardwareServoDialog .hardware-servo-pres
   display:flex;
   flex-direction:column;
   overflow:hidden;
-  border:1px solid #35383d;
-  border-radius:8px;
-  background:#151618;
+  border:1px solid var(--center-border);
+  border-radius:var(--center-radius);
+  background:var(--center-bg);
   color:#eef0f3;
-  box-shadow:0 24px 70px rgba(0,0,0,.48);
+  box-shadow:var(--center-shadow);
   transform:translateX(-50%) !important;
 }
 .alarm-history-panel.hidden{ display:none !important; }
@@ -30863,7 +30953,7 @@ html.sim-active.mode-daq body.daq-simulation-main .alarm-history-panel{
   line-height:1.2;
   font-weight:650;
 }
-/* Compact glass cards share existing navigation and hardware action bindings. */
+/* Compact controls share the notification center's dark palette and corner sizes. */
 #controlCenterPanel{
   width:min(380px,calc(100vw - 24px));
   max-height:calc(100dvh - 58px - env(safe-area-inset-bottom,0px));
@@ -30873,13 +30963,13 @@ html.sim-active.mode-daq body.daq-simulation-main .alarm-history-panel{
   overscroll-behavior:contain;
   scrollbar-width:thin;
   scrollbar-color:#ffffff36 transparent;
-  border:1px solid rgba(255,255,255,.23);
-  border-radius:24px;
-  background:rgba(27,29,32,.72);
+  border:1px solid var(--center-border);
+  border-radius:var(--center-radius);
+  background:var(--center-bg);
   color:#eef0f3;
-  -webkit-backdrop-filter:blur(28px) saturate(.75);
-  backdrop-filter:blur(28px) saturate(.75);
-  box-shadow:0 20px 60px #0006,inset 0 1px 0 #ffffff20 !important;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  box-shadow:var(--center-shadow) !important;
 }
 #controlCenterPanel > *{flex-shrink:0;min-width:0}
 .control-center-home{display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -30887,7 +30977,7 @@ html.sim-active.mode-daq body.daq-simulation-main .alarm-history-panel{
 #controlCenterPanel.is-detail{width:min(var(--control-center-detail-width,620px),calc(100vw - 24px))}
 #controlCenterPanel.is-detail > .alarm-history-header{
   position:sticky;top:-14px;z-index:20;min-height:38px;
-  background:rgba(27,29,32,.94);border-radius:10px;
+  background:var(--center-bg);border-radius:var(--center-card-radius);
 }
 #controlCenterPanel.is-detail > .alarm-history-header > strong{display:none}
 #controlCenterPanel .control-center-back{
@@ -30935,10 +31025,10 @@ html.sim-active.mode-daq body.daq-simulation-main .alarm-history-panel{
 body:not(.camera-view-active) .control-center-overview{grid-template-columns:minmax(0,1fr)}
 body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}
 #controlCenterPanel :is(.alarm-control-button,.control-center-display,.scene3d-controls,.alarm-control-more-toggle){
-  border:1px solid rgba(255,255,255,.17);
-  border-radius:18px;
-  background:rgba(255,255,255,.07);
-  box-shadow:inset 0 1px 0 #ffffff15 !important;
+  border:1px solid var(--center-border);
+  border-radius:var(--center-card-radius);
+  background:var(--center-surface);
+  box-shadow:none !important;
 }
 #controlCenterPanel :is(.alarm-control-button,.control-center-display){
   display:flex;min-width:0;align-items:center;gap:10px;
@@ -30949,9 +31039,9 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
 }
 #controlCenterPanel .alarm-control-button{min-height:56px}
 #controlCenterPanel :is(.alarm-control-button,.control-center-display):hover{
-  background:rgba(255,255,255,.13);border-color:#ffffff40;
+  background:var(--center-hover);border-color:var(--center-active-border);
 }
-#controlCenterPanel .alarm-control-button.is-active{background:#ffffff1f;border-color:#ffffff45}
+#controlCenterPanel .alarm-control-button.is-active{background:var(--center-active);border-color:var(--center-active-border)}
 #controlCenterPanel :is(.alarm-control-button,.control-center-display) svg{
   flex:0 0 auto;width:22px;height:22px;fill:none;stroke:currentColor;
   stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
@@ -30971,7 +31061,7 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
   padding:0;background:transparent;
 }
 #controlCenterPanel .alarm-control-grid .alarm-control-button{
-  min-height:44px;padding:8px;gap:6px;justify-content:center;border-radius:14px;
+  min-height:44px;padding:8px;gap:6px;justify-content:center;border-radius:var(--center-card-radius);
 }
 #controlCenterPanel .alarm-control-grid svg{width:16px;height:16px}
 #controlCenterPanel .alarm-control-grid span{font-size:11px;white-space:nowrap}
@@ -30979,13 +31069,13 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
 #controlCenterPanel .scene3d-heading{margin-bottom:3px}
 #controlCenterPanel .scene3d-heading strong{font-size:12px}
 #controlCenterPanel .scene3d-controls button{
-  min-height:34px;padding:0 5px;border:1px solid #ffffff12;
-  border-radius:10px;background:#00000012;color:#c4c9cf;
+  min-height:34px;padding:0 5px;border:1px solid var(--center-border);
+  border-radius:var(--center-button-radius);background:var(--center-control);color:#c4c9cf;
 }
-#controlCenterPanel .scene3d-presets{gap:3px;padding:3px;border-radius:12px;background:#00000028}
+#controlCenterPanel .scene3d-presets{gap:3px;padding:3px;border-radius:var(--center-card-radius);background:var(--center-bg)}
 #controlCenterPanel .scene3d-presets button{min-height:30px;border:0;background:transparent}
-#controlCenterPanel .scene3d-controls button:hover:not(:disabled){background:#ffffff18;color:#fff}
-#controlCenterPanel .scene3d-controls button[aria-pressed="true"]{background:#ffffff24;color:#fff;border-color:#ffffff20}
+#controlCenterPanel .scene3d-controls button:hover:not(:disabled){background:var(--center-hover);color:#fff}
+#controlCenterPanel .scene3d-controls button[aria-pressed="true"]{background:var(--center-active);color:#fff;border-color:var(--center-active-border)}
 #controlCenterPanel .scene3d-controls button:disabled{opacity:.35;cursor:default}
 #controlCenterPanel .alarm-control-more-toggle{
   display:flex;align-items:center;justify-content:space-between;
@@ -31002,7 +31092,7 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
 #controlCenterPanel .control-center-scene > summary::-webkit-details-marker{display:none}
 #controlCenterPanel .control-center-scene[open] > summary{margin-bottom:8px}
 #controlCenterPanel .control-center-scene:not([open]) > .scene3d-controls{display:none}
-#controlCenterPanel .alarm-control-more-toggle:hover{background:#ffffff13}
+#controlCenterPanel .alarm-control-more-toggle:hover{background:var(--center-hover)}
 #controlCenterPanel .alarm-control-more{padding:0 2px 2px;border:0;background:transparent}
 .alarm-control-more.hidden{display:none !important}
 .control-center-command-group + .control-center-command-group{margin-top:12px}
@@ -31010,12 +31100,12 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
 .alarm-control-more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .alarm-control-more-grid button{
   display:flex;align-items:center;min-width:0;min-height:38px;gap:8px;padding:8px 10px;
-  border:1px solid #ffffff16;border-radius:11px;background:#ffffff09;color:#d3d7dc;
+  border:1px solid var(--center-border);border-radius:var(--center-button-radius);background:var(--center-control);color:#d3d7dc;
   font-size:11px;text-align:left;cursor:pointer;transform:none !important;
 }
 .alarm-control-more-grid button svg{flex:0 0 auto;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.alarm-control-more-grid button:hover:not(:disabled){background:#ffffff18;border-color:#ffffff30;color:#fff}
-.alarm-control-more-grid button.is-active{background:#ffffff20;border-color:#ffffff38;color:#fff}
+.alarm-control-more-grid button:hover:not(:disabled){background:var(--center-hover);border-color:var(--center-active-border);color:#fff}
+.alarm-control-more-grid button.is-active{background:var(--center-active);border-color:var(--center-active-border);color:#fff}
 .alarm-control-more-grid button:disabled{opacity:.35;cursor:not-allowed}
 #controlCenterPanel :is(button,a):focus-visible{outline:2px solid #d9dde3;outline-offset:2px}
 @media(min-width:768px) and (pointer:fine){
@@ -31025,17 +31115,52 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
   .control-center-overview{grid-template-columns:minmax(0,1fr)}
   .control-center-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media(prefers-reduced-transparency:reduce){
-  #controlCenterPanel{background:#24262a;-webkit-backdrop-filter:none;backdrop-filter:none}
-}
 
-#controlCenterPanel .control-center-sim-start{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:60px;padding:12px 14px;border:1px solid #ffffff24;border-radius:18px;background:#ffffff0d;color:#edf1f4;text-align:left;cursor:pointer}
+#controlCenterPanel .control-center-sim-start{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:60px;padding:12px 14px;border:1px solid var(--center-border);border-radius:var(--center-card-radius);background:var(--center-surface);color:#edf1f4;text-align:left;cursor:pointer}
 #controlCenterPanel .control-center-sim-start[hidden]{display:none!important}
 .control-center-sim-start span{display:flex;flex-direction:column;gap:5px}
 .control-center-sim-start strong{font-size:12px;font-weight:600}
 .control-center-sim-start small{font-size:10px;color:#aeb8c2}
 .control-center-sim-start b{font-size:11px;font-weight:500;color:#d4e4df}
 .control-center-sim-start:disabled{opacity:.4;cursor:default}
+
+/* DAQ has its own operations; flight tools remain available only in flight mode. */
+.control-center-flight-controls{display:flex;flex-direction:column;gap:10px;min-width:0}
+.control-center-daq-controls{display:none}
+html.sim-active.mode-daq #controlCenterHome>.control-center-flight-controls{display:none}
+html.sim-active.mode-daq #controlCenterHome>.control-center-daq-controls{display:flex;flex-direction:column;gap:18px;min-width:0}
+html.sim-active.mode-daq body.daq-simulation-main #controlCenterPanel{width:min(440px,calc(100vw - 24px))}
+#controlCenterPanel .control-center-daq-controls{--ui-bg:var(--center-bg);--ui-surface:var(--center-surface);--ui-line:var(--center-border);--ui-text:#eef0f3;--ui-muted:#aab2bd}
+#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head,.daq-center-section-head){display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:36px;padding:0;border:0;background:transparent}
+#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head>div,.daq-center-section-head>div){display:flex;flex-direction:column;gap:5px}
+#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head strong,.daq-center-section-head h2){margin:0;color:#eef0f3;font-size:13px;font-weight:650;letter-spacing:.04em}
+#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head small,.daq-center-section-head small){color:#aab2bd;font-size:9px;font-weight:550;letter-spacing:.1em}
+#controlCenterPanel .control-center-daq-controls .daq-panel-head>em{color:#aab2bd;font-size:10px;font-style:normal}
+#controlCenterPanel .control-center-daq-controls .daq-run-panel{padding:0 0 16px;border-bottom:1px solid var(--center-border)}
+#controlCenterPanel .control-center-daq-controls .daq-sequence-actions{padding:12px 0 0;gap:7px}
+#controlCenterPanel .control-center-daq-controls :is(.daq-sequence-actions,.daq-valve-actions) button{min-height:38px;font-size:10px;font-weight:600;letter-spacing:0;border-radius:var(--center-button-radius)}
+#controlCenterPanel .control-center-daq-controls .daq-pid-tool{min-height:32px;font-size:10px;font-weight:600;letter-spacing:0}
+#controlCenterPanel .daq-center-interlock{margin:10px 0 0;color:#c9a363;font-size:10px;letter-spacing:.025em}
+#controlCenterPanel .daq-center-interlock.is-ready{color:#92b8a6}
+#controlCenterPanel .daq-valve-command-note{margin:0;padding:6px 0 12px;gap:4px;font-size:9px;line-height:1.5;font-weight:500;letter-spacing:0}
+#controlCenterPanel .daq-valve-command-note span{color:#aab2bd}
+#controlCenterPanel .daq-valve-grid{flex:none;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:max-content;gap:9px;overflow:visible;padding:0}
+#controlCenterPanel .daq-valve-group-label{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:8px 0 0;padding:10px 0 0;border-top:1px solid var(--center-border);font-size:11px;font-weight:600;line-height:1.4}
+#controlCenterPanel .daq-valve-group-label:first-child{margin:0;padding:0;border:0}
+#controlCenterPanel .daq-valve-group-label small{color:#aab2bd;font-size:9px;font-weight:450}
+#controlCenterPanel .daq-valve-group-label.is-water span{color:#9ab5ce}
+#controlCenterPanel .daq-valve-group-label.is-ethanol span{color:#91b9b1}
+#controlCenterPanel .daq-valve-group-label.is-gox span{color:#c69b9e}
+#controlCenterPanel .daq-valve-control{min-width:0;min-height:108px;border-radius:var(--center-card-radius);background:var(--center-surface)}
+#controlCenterPanel .daq-valve-control>button{display:grid;grid-template-columns:30px minmax(0,1fr);width:100%;min-height:62px;padding:10px;gap:4px 8px;border:0;border-radius:0;background:transparent;text-align:left}
+#controlCenterPanel .daq-valve-control>button>span{grid-row:1/3;width:30px;height:30px;font-size:10px}
+#controlCenterPanel .daq-valve-control>button strong{font-size:10px;line-height:1.3;font-weight:600;white-space:normal;text-overflow:clip}
+#controlCenterPanel .daq-valve-control>button em{font-size:9px;line-height:1.3;font-weight:500}
+#controlCenterPanel .daq-valve-control>button.is-open{background:#80b69710}
+#controlCenterPanel .daq-valve-opening{grid-template-columns:auto minmax(0,1fr) 32px;gap:6px;padding:0 10px 8px;font-size:10px}
+#controlCenterPanel .daq-valve-opening input{min-height:28px}
+#controlCenterPanel .daq-valve-actions{position:sticky;bottom:-14px;z-index:2;margin:12px 0 0;padding:12px 0 0;background:var(--center-bg);border-top:1px solid var(--center-border);gap:8px}
+@media(max-width:420px){#controlCenterPanel .daq-valve-grid{grid-template-columns:1fr}}
 
 
 .alarm-history-section{
@@ -31163,6 +31288,18 @@ html.sim-active.mode-daq .daq-control-event-section{ display:flex; }
   line-height:1.5;
   word-break:keep-all;
 }
+
+/* Notifications stay compact beside the independent control center. */
+#alarmHistoryPanel{width:min(380px,calc(100vw - 24px))}
+#alarmHistoryPanel .alarm-history-header{min-height:46px;padding:0 16px}
+#alarmHistoryPanel .alarm-history-header strong{font-size:14px}
+#alarmHistoryPanel .alarm-history-section-header{min-height:40px;padding:0 14px 0 16px;gap:8px}
+#alarmHistoryPanel .alarm-history-item{margin:0 8px;padding:12px 10px 13px 26px}
+#alarmHistoryPanel .alarm-history-item::before{top:17px}
+#alarmHistoryPanel .alarm-history-item-meta{align-items:baseline;gap:10px}
+#alarmHistoryPanel .alarm-history-item-meta strong{min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+#alarmHistoryPanel .alarm-history-item p{overflow-wrap:anywhere}
+#alarmHistoryPanel .alarm-history-section-header button{border-radius:var(--center-button-radius)}
 
 @media (min-width:901px){
   body.dashboard-view-active #controlsCard.controls-card,
@@ -34536,7 +34673,7 @@ html.status-map-expanded #statusMapViewport.is-expanded .status-map-card{display
 }
 
 /* Adapt docked tools to the control center after the legacy dialog layers. */
-/* One compact header and the same glass surfaces used by the control-center menu. */
+/* Docked pages use the same compact dark surfaces as both centers. */
 #controlCenterPanel.is-detail{overflow:hidden;bottom:auto}
 #controlCenterPanel.is-detail #controlCenterContent{
   max-height:calc(100dvh - 142px);overflow-y:auto;overscroll-behavior:contain;
@@ -34553,10 +34690,10 @@ html.status-map-expanded #statusMapViewport.is-expanded .status-map-card{display
   font-size:14px;font-weight:600;
 }
 #controlCenterPanel .control-center-back{
-  width:30px;height:30px;padding:0;border-radius:10px;background:#ffffff0c;
+  width:30px;height:30px;padding:0;border-radius:var(--center-button-radius);background:var(--center-control);
   font-size:26px;font-weight:300;line-height:1;text-align:center;
 }
-#controlCenterPanel .control-center-back:hover{background:#ffffff1b;color:#fff}
+#controlCenterPanel .control-center-back:hover{background:var(--center-hover);color:#fff}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.settings-header,.mobile-chart-picker-head,.flash-role-config-head){display:none !important}
 #controlCenterPanel #controlCenterContent .control-center-surface > :first-child{padding:0 !important;overflow:visible !important}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.hardware-servo-dialog-body,.pyro-control-body,.data-storage-dialog-body,.flash-link-report-body){
@@ -34564,32 +34701,32 @@ html.status-map-expanded #statusMapViewport.is-expanded .status-map-card{display
   background:transparent !important;overflow:visible !important;
 }
 #controlCenterPanel #controlCenterContent .control-center-surface :is(button,input,select){font-family:inherit}
-#controlCenterPanel #controlCenterContent .control-center-surface :is(button,input[type="number"],select){border-radius:10px !important}
+#controlCenterPanel #controlCenterContent .control-center-surface :is(button,input[type="number"],select){border-radius:var(--center-button-radius) !important}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.settings-label,.pyro-control-kicker,.pyro-control-channel-label){
   color:#b8bec6 !important;font-size:10px !important;font-weight:500 !important;letter-spacing:0 !important;text-align:left !important;
 }
 #controlCenterPanel #controlCenterContent .control-center-surface .hardware-target-selector{
   margin:0 0 12px !important;padding:10px 12px !important;
-  border:1px solid #ffffff18 !important;border-radius:14px !important;background:#ffffff06 !important;
+  border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important;
 }
 /* Compact selectors and editing cards, with no modal-sized empty regions. */
 #controlCenterPanel #controlCenterContent :is(#hardwareServoOverlay .hardware-servo-group,#pyroControlOverlay .pyro-control-selector,#pyroControlOverlay .pyro-control-panel,#dataListOverlay .data-storage-surface){
-  padding:14px !important;border:1px solid #ffffff19 !important;border-radius:18px !important;
-  background:#ffffff08 !important;box-shadow:inset 0 1px 0 #ffffff0c !important;
+  padding:14px !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;
+  background:var(--center-surface) !important;box-shadow:none !important;
 }
 #controlCenterPanel #controlCenterContent :is(.hardware-servo-quick-row,.pyro-channel-grid,.data-origin-filter,.hardware-target-tabs){
   display:grid !important;padding:3px !important;gap:3px !important;
-  border:0 !important;border-radius:12px !important;background:#00000024 !important;
+  border:0 !important;border-radius:var(--center-card-radius) !important;background:var(--center-bg) !important;
 }
 #controlCenterPanel #controlCenterContent :is(.hardware-servo-quick-row,.pyro-channel-grid,.data-origin-filter,.hardware-target-tabs) button{
   min-height:34px !important;min-width:0 !important;padding:0 4px !important;
-  border:0 !important;border-radius:9px !important;background:transparent !important;
+  border:0 !important;border-radius:var(--center-button-radius) !important;background:transparent !important;
   color:#b8bec6 !important;font-size:11px !important;font-weight:500 !important;
 }
 #controlCenterPanel #controlCenterContent :is(.hardware-servo-quick-row,.pyro-channel-grid,.data-origin-filter,.hardware-target-tabs) button:is(.is-active,[aria-selected="true"]){
-  background:#ffffff21 !important;color:#fff !important;box-shadow:0 1px 3px #0002 !important;
+  background:var(--center-active) !important;color:#fff !important;box-shadow:none !important;
 }
-#controlCenterPanel #controlCenterContent :is(.hardware-servo-quick-row,.pyro-channel-grid,.data-origin-filter,.hardware-target-tabs) button:hover:not(:disabled){background:#ffffff12 !important}
+#controlCenterPanel #controlCenterContent :is(.hardware-servo-quick-row,.pyro-channel-grid,.data-origin-filter,.hardware-target-tabs) button:hover:not(:disabled){background:var(--center-hover) !important}
 /* Servo: channel strip, current reading/slider, then a two-column preset grid. */
 #controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-group > .settings-label{margin:0 0 9px !important}
 #controlCenterPanel #controlCenterContent #hardwareServoOverlay :is(.hardware-servo-channel-picker,.hint-mini,.hardware-servo-group > .hint-mini){display:none !important}
@@ -34603,8 +34740,8 @@ html.status-map-expanded #statusMapViewport.is-expanded .status-map-card{display
 #controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-slider-line{margin:0 !important;gap:10px !important}
 #controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-presets{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important;padding:0 !important}
 #controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-preset{display:grid !important;grid-template-columns:minmax(0,1fr) 48px !important;gap:5px !important;min-width:0 !important}
-#controlCenterPanel #controlCenterContent #hardwareServoOverlay :is(.hardware-servo-preset-input,.hardware-servo-preset-btn){width:100% !important;min-width:0 !important;height:38px !important;padding:0 8px !important;border:1px solid #ffffff19 !important;background:#00000015 !important;color:#dce0e5 !important;font-size:12px !important}
-#controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-preset-btn{background:#ffffff0a !important;font-size:10px !important}
+#controlCenterPanel #controlCenterContent #hardwareServoOverlay :is(.hardware-servo-preset-input,.hardware-servo-preset-btn){width:100% !important;min-width:0 !important;height:38px !important;padding:0 8px !important;border:1px solid var(--center-border) !important;background:var(--center-bg) !important;color:#dce0e5 !important;font-size:12px !important}
+#controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-preset-btn{background:var(--center-control) !important;font-size:10px !important}
 /* Pyro: duration and presets stack naturally inside the narrower editing card. */
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-selector{margin:0 0 10px !important;display:block !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-channel-label{display:block !important;margin:0 0 9px !important}
@@ -34614,9 +34751,9 @@ html.status-map-expanded #statusMapViewport.is-expanded .status-map-card{display
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-kicker{margin:0 0 7px !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-value{position:relative !important;display:block !important;width:100% !important;height:auto !important;padding:0 !important;border:0 !important;background:transparent !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-value > span{position:absolute !important;right:12px !important;top:50% !important;transform:translateY(-50%) !important;font-size:10px !important;color:#aab2bd !important;pointer-events:none}
-#controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-value input{width:100% !important;height:50px !important;padding:0 40px 0 12px !important;border:1px solid #ffffff1b !important;background:#0000001b !important;color:#f0f2f5 !important;font-size:25px !important;font-weight:400 !important}
+#controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-value input{width:100% !important;height:50px !important;padding:0 40px 0 12px !important;border:1px solid var(--center-border) !important;background:var(--center-bg) !important;color:#f0f2f5 !important;font-size:25px !important;font-weight:400 !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-presets{display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:6px !important}
-#controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-presets button{height:34px !important;min-height:34px !important;min-width:0 !important;border:1px solid #ffffff18 !important;background:#ffffff07 !important;color:#cbd0d7 !important;font-size:11px !important}
+#controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-presets button{height:34px !important;min-height:34px !important;min-width:0 !important;border:1px solid var(--center-border) !important;background:var(--center-control) !important;color:#cbd0d7 !important;font-size:11px !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-run{width:100% !important;min-height:42px !important;margin:0 !important;background:#88404a !important;border:1px solid #c1788147 !important;font-size:12px !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-note{margin:10px 0 0 !important;font-size:9px !important;line-height:1.5 !important;color:#a9b0ba !important}
 /* Storage: summary metrics and actions stay together; records grow only as needed. */
@@ -34645,13 +34782,13 @@ html.status-map-expanded #statusMapViewport.is-expanded .status-map-card{display
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav{display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:6px !important;flex:none !important;width:100% !important;min-width:0 !important;margin:0 !important;padding:0 !important;border:0 !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav::before,
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav::after{content:none !important;display:none !important}
-#controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav-btn{display:flex !important;justify-content:center !important;min-width:0 !important;min-height:36px !important;margin:0 !important;padding:8px 4px !important;border:1px solid #ffffff16 !important;border-radius:11px !important;background:#ffffff07 !important;color:#b5bdc7 !important;font-size:11px !important}
+#controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav-btn{display:flex !important;justify-content:center !important;min-width:0 !important;min-height:36px !important;margin:0 !important;padding:8px 4px !important;border:1px solid var(--center-border) !important;border-radius:11px !important;background:var(--center-control) !important;color:#b5bdc7 !important;font-size:11px !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav-btn.active{background:#ffffff22 !important;color:#fff !important;border-color:#ffffff2b !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav-badge{display:none !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-panels{display:block !important;width:100% !important;padding:0 !important;margin:0 !important;min-width:0 !important;overflow:visible !important;border:0 !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-panel:not(.active){display:none !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-panel.active{display:block !important}
-#controlCenterPanel #controlCenterContent #settingsOverlay .settings-group{margin:0 0 10px !important;padding:12px !important;border:1px solid #ffffff16 !important;border-radius:16px !important;background:#ffffff07 !important}
+#controlCenterPanel #controlCenterContent #settingsOverlay .settings-group{margin:0 0 10px !important;padding:12px !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-control) !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-row{gap:12px !important;padding:11px 0 !important;margin:0 !important;border-color:#ffffff12 !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-label{font-size:11px !important;color:#dce1e8 !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-desc{font-size:10px !important;line-height:1.55 !important;color:#a6aeb9 !important}
@@ -34660,8 +34797,8 @@ html.status-map-expanded #statusMapViewport.is-expanded .status-map-card{display
 /* Confirmation replaces the editing cards, retaining the existing hold controls. */
 #controlCenterPanel #controlCenterContent #pyroControlDialog.is-confirming :is(.pyro-control-selector,.pyro-control-panel){display:none !important}
 #controlCenterPanel #controlCenterContent #pyroControlDialog.is-confirming .pyro-control-confirm{
-  padding:16px !important;gap:12px !important;border:1px solid #ffffff18 !important;
-  border-radius:18px !important;background:#ffffff08 !important;
+  padding:16px !important;gap:12px !important;border:1px solid var(--center-border) !important;
+  border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important;
 }
 #controlCenterPanel #controlCenterContent #pyroControlDialog .pyro-control-confirm-title{font-size:15px !important}
 #controlCenterPanel #controlCenterContent #pyroControlDialog .pyro-control-confirm-desc{font-size:12px !important;line-height:1.6 !important}
@@ -34674,45 +34811,49 @@ html.status-map-expanded #statusMapViewport.is-expanded .status-map-card{display
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-body{background:transparent !important;border:0 !important}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-config-body,.connection-sheet-body){padding:0 !important;background:transparent !important}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-config-summary,.flash-identity-reset-readout){padding:10px 0 !important;background:transparent !important;border:0 !important;border-top:1px solid #ffffff15 !important;border-radius:0 !important}
-#controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-segment,.firmware-update-target){padding:3px !important;background:#00000020 !important;border:0 !important;border-radius:12px !important}
+#controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-segment,.firmware-update-target){padding:3px !important;background:var(--center-bg) !important;border:0 !important;border-radius:var(--center-card-radius) !important}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-segment,.firmware-update-target) button{min-height:34px !important;font-size:11px !important}
-#controlCenterPanel #controlCenterContent .control-center-surface :is(.confirm-cancel,.data-reset-cancel,.loadcell-cancel,.flash-role-config-secondary){min-height:38px !important;border:1px solid #ffffff1b !important;background:#ffffff08 !important;color:#d3d9e1 !important;font-size:11px !important}
+#controlCenterPanel #controlCenterContent .control-center-surface :is(.confirm-cancel,.data-reset-cancel,.loadcell-cancel,.flash-role-config-secondary){min-height:38px !important;border:1px solid var(--center-border) !important;background:var(--center-surface) !important;color:#d3d9e1 !important;font-size:11px !important}
 /* Calibration keeps its step state and actions but no longer reserves modal-sized gaps. */
 #controlCenterPanel #controlCenterContent #loadcellOverlay :is(.loadcell-body,.loadcell-main){position:relative !important;min-height:0 !important;height:auto !important;padding:0 !important;margin:0 !important}
 #controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-kicker{display:none !important}
 #controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-steps{margin:0 0 12px !important;font-size:11px !important;line-height:1.6 !important}
-#controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-card{padding:14px !important;margin:0 !important;min-height:0 !important;border:1px solid #ffffff18 !important;border-radius:16px !important;background:#ffffff07 !important}
+#controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-card{padding:14px !important;margin:0 !important;min-height:0 !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-control) !important}
 #controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-actions{position:static !important;inset:auto !important;display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:7px !important;width:100% !important;margin:14px 0 0 !important;padding:0 !important;border:0 !important}
 #controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-actions button{min-width:0 !important;min-height:38px !important;padding:7px !important;font-size:11px !important}
 #controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .mobile-chart-picker-body{padding:0 !important}
 #controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .agent-help-intro{margin:0 0 12px !important;font-size:11px !important;line-height:1.65 !important}
-#controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .intelligent-calibration-map-card{border:1px solid #ffffff18 !important;border-radius:14px !important;background:#ffffff06 !important;overflow:hidden !important}
+#controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .intelligent-calibration-map-card{border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important;overflow:hidden !important}
 #controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .intelligent-calibration-map-head{padding:10px !important;background:transparent !important}
 #controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .intelligent-calibration-map-viewport{height:160px !important}
-#controlCenterPanel #controlCenterContent #intelligentCalibrationRunBtn{display:block !important;width:100% !important;min-height:40px !important;margin:12px 0 0 !important;padding:10px !important;border:1px solid #ffffff26 !important;border-radius:12px !important;background:#ffffff1b !important;color:#eef1f5 !important;font-size:12px !important;font-weight:600 !important;font-family:inherit !important;line-height:1.3 !important;cursor:pointer}
+#controlCenterPanel #controlCenterContent #intelligentCalibrationRunBtn{display:block !important;width:100% !important;min-height:40px !important;margin:12px 0 0 !important;padding:10px !important;border:1px solid #ffffff26 !important;border-radius:var(--center-card-radius) !important;background:var(--center-hover) !important;color:#eef1f5 !important;font-size:12px !important;font-weight:600 !important;font-family:inherit !important;line-height:1.3 !important;cursor:pointer}
 /* Small live charts use the same quiet surface instead of a black plot box. */
 #controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) .chiptemp-body{padding:0 !important;gap:12px !important}
-#controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) .chiptemp-summary{border:1px solid #ffffff16 !important;border-radius:14px !important;background:#ffffff06 !important}
+#controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) .chiptemp-summary{border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important}
 #controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) :is(.chiptemp-stat,.chiptemp-meta){background:transparent !important;border-color:#ffffff13 !important}
 #controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) :is(.chiptemp-stat-label,.chiptemp-meta-label){font-size:9px !important;color:#aeb6c1 !important}
 #controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) :is(.chiptemp-stat-value,.chiptemp-meta-value){font-size:14px !important}
-#controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) .chiptemp-chart-stage{height:240px !important;min-height:0 !important;border:1px solid #ffffff14 !important;border-radius:14px !important;background:#ffffff04 !important}
-#controlCenterPanel #controlCenterContent #flashLinkReportOverlay .flash-link-report-visual{border:1px solid #ffffff18 !important;border-radius:14px !important;background:#ffffff05 !important}
+#controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) .chiptemp-chart-stage{height:240px !important;min-height:0 !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:#ffffff04 !important}
+#controlCenterPanel #controlCenterContent #flashLinkReportOverlay .flash-link-report-visual{border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important}
 /* Keep help illustrations and steps readable inside the compact panel. */
-#controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-hero{height:200px !important;min-height:0 !important;margin:12px 0 !important;border:0 !important;border-radius:14px !important;background:transparent !important;overflow:hidden !important}
+#controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-hero{height:200px !important;min-height:0 !important;margin:12px 0 !important;border:0 !important;border-radius:var(--center-card-radius) !important;background:transparent !important;overflow:hidden !important}
 #controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-hero img{width:100% !important;height:100% !important;object-fit:contain !important}
 #controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-list{gap:8px !important;margin:12px 0 !important}
-#controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-list li{padding:10px 12px 10px 28px !important;border:1px solid #ffffff18 !important;border-radius:12px !important;background:#ffffff07 !important;color:#d3d9e1 !important;font-size:11px !important;line-height:1.6 !important}
+#controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-list li{padding:10px 12px 10px 28px !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-control) !important;color:#d3d9e1 !important;font-size:11px !important;line-height:1.6 !important}
 #controlCenterPanel #controlCenterContent #gyroZeroOverlay .confirm-text{margin-top:0 !important;font-size:13px !important;line-height:1.7 !important}
 
 #controlCenterPanel #controlCenterContent #firmwareUpdateOverlay .firmware-update-body{padding:0 !important;margin:0 !important}
 #controlCenterPanel #controlCenterContent .control-center-surface .flash-role-config-actions{padding:14px 0 0 !important;margin:0 !important;border:0 !important;gap:8px !important}
-#controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-config-panel,.flash-role-identity-section){margin:12px 0 0 !important;padding:12px !important;border:1px solid #ffffff18 !important;border-radius:16px !important;background:#ffffff06 !important}
+#controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-config-panel,.flash-role-identity-section){margin:12px 0 0 !important;padding:12px !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important}
 
 #controlCenterPanel #controlCenterContent .control-center-surface .connection-sheet-primary{min-height:40px !important;margin-top:12px !important}
-#controlCenterPanel #controlCenterContent #firmwareUpdateDropzone{border:1px dashed #ffffff26 !important;border-radius:14px !important;background:#ffffff05 !important}
+#controlCenterPanel #controlCenterContent #firmwareUpdateDropzone{border:1px dashed #ffffff26 !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important}
 
-#controlCenterPanel #controlCenterContent :is(#forceConfirmCancel,#missionForceCancel){width:100% !important;min-height:36px !important;margin:10px 0 0 !important;padding:8px !important;border:1px solid #ffffff1b !important;border-radius:10px !important;background:#ffffff07 !important;color:#d3d9e1 !important;font-size:11px !important}
+#controlCenterPanel #controlCenterContent :is(#forceConfirmCancel,#missionForceCancel){width:100% !important;min-height:36px !important;margin:10px 0 0 !important;padding:8px !important;border:1px solid var(--center-border) !important;border-radius:var(--center-button-radius) !important;background:var(--center-control) !important;color:#d3d9e1 !important;font-size:11px !important}
+/* DAQ interlock confirmation stays inside the center and returns to its controls. */
+#controlCenterPanel #daqValveUnlockOverlay .confirm-title{display:none}
+#controlCenterPanel #daqValveUnlockOverlay .confirm-text{margin:0;padding:8px 0 16px;font-size:12px;line-height:1.6;text-align:left}
+#controlCenterPanel #daqValveUnlockOverlay .confirm-actions{margin:0;gap:8px}
 
 
 /* Welcome home, with separate desktop and mobile geometry. */

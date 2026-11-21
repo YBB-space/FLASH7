@@ -9117,304 +9117,6 @@ function requestMobileMockup3dMesh(){
         setWelcomeBoardSearchBusy(false);
       }
     }
-    const daqMockState = {
-      startedAt:0,
-      valves:[false,false,false,false,false,false,false],
-      valveLocked:true,
-      valvePanelOpen:false,
-      armed:false,
-      running:false,
-      sequenceStartedAt:0,
-      sequenceStep:0,
-      lastSequenceStep:0,
-      ethanolLevel:78.4,
-      waterLevel:64.1
-    };
-    function resetDaqMockState(){
-      daqMockState.startedAt = Date.now();
-      daqMockState.valves = [false,false,false,false,false,false,false];
-      daqMockState.valveLocked = true;
-      daqMockState.valvePanelOpen = false;
-      daqMockState.armed = false;
-      daqMockState.running = false;
-      daqMockState.sequenceStartedAt = 0;
-      daqMockState.sequenceStep = 0;
-      daqMockState.lastSequenceStep = 0;
-      daqMockState.ethanolLevel = 78.4;
-      daqMockState.waterLevel = 64.1;
-      syncDaqMockControls();
-      updateDaqMockUi(true);
-    }
-    function appendDaqMockLog(message, level){
-      const log = document.getElementById("daqEventLog");
-      if(!log) return;
-      const now = new Date();
-      const time = [now.getHours(),now.getMinutes(),now.getSeconds()]
-        .map((value)=>String(value).padStart(2,"0")).join(":") + "." +
-        String(now.getMilliseconds()).padStart(3,"0");
-      const row = document.createElement("p");
-      const kind = String(level || "INFO").toUpperCase();
-      if(kind === "WARN") row.classList.add("is-warn");
-      if(kind === "ABORT" || kind === "FAULT") row.classList.add("is-danger");
-      const timeEl = document.createElement("time");
-      const messageEl = document.createElement("span");
-      const levelEl = document.createElement("em");
-      timeEl.textContent = time;
-      messageEl.textContent = String(message || "");
-      levelEl.textContent = kind;
-      row.append(timeEl,messageEl,levelEl);
-      log.prepend(row);
-      while(log.children.length > 40) log.lastElementChild.remove();
-      syncDaqControlCenterLog();
-    }
-    function syncDaqControlCenterLog(){
-      const source = document.getElementById("daqEventLog");
-      const target = document.getElementById("daqControlEventList");
-      const count = document.getElementById("daqControlEventCount");
-      if(!source || !target) return;
-      const rows = Array.from(source.children).filter((row)=>row.tagName === "P");
-      if(count) count.textContent = String(rows.length);
-      target.replaceChildren();
-      if(!rows.length){
-        const empty = document.createElement("div");
-        empty.className = "alarm-history-empty";
-        empty.textContent = "이벤트 로그가 없습니다.";
-        target.append(empty);
-        return;
-      }
-      rows.forEach((row)=>{
-        const timeText = row.querySelector("time")?.textContent || "--:--:--.---";
-        const messageText = row.querySelector("span")?.textContent || "";
-        const levelText = (row.querySelector("em")?.textContent || "INFO").toUpperCase();
-        const item = document.createElement("article");
-        item.className = "alarm-history-item daq-control-event-item";
-        if(row.classList.contains("is-danger")) item.classList.add("tone-error");
-        else if(row.classList.contains("is-warn")) item.classList.add("tone-warn");
-        else if(levelText === "OK" || levelText === "SAFE") item.classList.add("tone-success");
-        const meta = document.createElement("div");
-        meta.className = "alarm-history-item-meta";
-        const levelEl = document.createElement("strong");
-        const timeEl = document.createElement("time");
-        const messageEl = document.createElement("p");
-        levelEl.textContent = levelText;
-        timeEl.textContent = timeText;
-        messageEl.textContent = messageText;
-        meta.append(levelEl,timeEl);
-        item.append(meta,messageEl);
-        target.append(item);
-      });
-    }
-    function setDaqValvePanelVisible(visible){
-      daqMockState.valvePanelOpen = !!visible;
-      syncDaqMockControls();
-    }
-    function setDaqValveLock(locked){
-      const next = !!locked;
-      if(daqMockState.valveLocked === next) return;
-      daqMockState.valveLocked = next;
-      syncDaqMockControls();
-      appendDaqMockLog(next ? "Manual valve control interlock engaged" : "Manual valve control interlock released", next ? "SAFE" : "WARN");
-    }
-    function requestDaqMockValve(index, open, silent){
-      if(daqMockState.valveLocked){
-        showToast("LOCK을 해제해야 밸브를 제어할 수 있습니다.", "error", {key:"daq-valve-locked"});
-        return false;
-      }
-      setDaqMockValve(index,open,!!silent);
-      return true;
-    }
-    function setDaqMockValve(index, open, silent){
-      const valveIndex = Math.max(1,Math.min(7,Number(index) || 1)) - 1;
-      const next = !!open;
-      if(daqMockState.valves[valveIndex] === next) return;
-      daqMockState.valves[valveIndex] = next;
-      syncDaqMockControls();
-      if(!silent) appendDaqMockLog("Valve V" + String(valveIndex + 1) + " commanded " + (next ? "OPEN" : "CLOSED"), next ? "OK" : "SAFE");
-    }
-    function syncDaqMockControls(){
-      daqMockState.valves.forEach((open,index)=>{
-        document.querySelectorAll('[data-daq-valve="' + String(index + 1) + '"]').forEach((button)=>{
-          button.classList.toggle("is-open", open);
-          button.setAttribute("aria-pressed", open ? "true" : "false");
-          button.disabled = !!daqMockState.valveLocked;
-          const status = button.querySelector("em");
-          if(status) status.textContent = open ? "OPEN" : "CLOSED";
-        });
-        document.querySelectorAll('[data-daq-svg-valve="' + String(index + 1) + '"]').forEach((node)=>{
-          node.classList.toggle("is-open", open);
-          node.setAttribute("aria-pressed",open ? "true" : "false");
-          node.setAttribute("aria-disabled",daqMockState.valveLocked ? "true" : "false");
-        });
-        document.querySelectorAll('[data-daq-line-valve="' + String(index + 1) + '"]').forEach((line)=>{
-          line.classList.toggle("is-flowing", open);
-        });
-      });
-      const pidPanel = document.querySelector(".daq-pid-panel");
-      const valvePanel = document.getElementById("daqValvePanel");
-      const lockBtn = document.getElementById("daqValveLockBtn");
-      const controllerBtn = document.getElementById("daqValveControllerBtn");
-      const interlock = document.getElementById("daqValvePanelInterlock");
-      const purgeBtn = document.getElementById("daqPurgeBtn");
-      if(pidPanel){
-        pidPanel.classList.toggle("is-valve-locked",daqMockState.valveLocked);
-        pidPanel.classList.toggle("is-controller-open",daqMockState.valvePanelOpen);
-      }
-      if(valvePanel){
-        valvePanel.classList.toggle("is-open",daqMockState.valvePanelOpen);
-        valvePanel.setAttribute("aria-hidden",daqMockState.valvePanelOpen ? "false" : "true");
-        valvePanel.inert = !daqMockState.valvePanelOpen;
-      }
-      if(lockBtn){
-        lockBtn.classList.toggle("is-locked",daqMockState.valveLocked);
-        lockBtn.classList.toggle("is-unlocked",!daqMockState.valveLocked);
-        lockBtn.setAttribute("aria-pressed",daqMockState.valveLocked ? "true" : "false");
-        lockBtn.title = daqMockState.valveLocked ? "밸브 제어 잠금 해제" : "밸브 제어 잠금";
-        const label = lockBtn.querySelector("span");
-        if(label) label.textContent = daqMockState.valveLocked ? "LOCKED" : "UNLOCKED";
-      }
-      if(controllerBtn){
-        controllerBtn.classList.toggle("is-active",daqMockState.valvePanelOpen);
-        controllerBtn.setAttribute("aria-expanded",daqMockState.valvePanelOpen ? "true" : "false");
-      }
-      if(interlock){
-        interlock.textContent = daqMockState.valveLocked ? "INTERLOCKED" : "CONTROL READY";
-        interlock.classList.toggle("is-ready",!daqMockState.valveLocked);
-      }
-      if(purgeBtn) purgeBtn.disabled = !!daqMockState.valveLocked;
-      const armBtn = document.getElementById("daqArmBtn");
-      const runBtn = document.getElementById("daqRunBtn");
-      const stateEl = document.getElementById("daqSequenceState");
-      if(armBtn){
-        armBtn.classList.toggle("is-armed", daqMockState.armed);
-        armBtn.textContent = daqMockState.armed ? "ARMED" : "ARM TEST";
-      }
-      if(runBtn) runBtn.disabled = !daqMockState.armed || daqMockState.running;
-      if(stateEl) stateEl.textContent = daqMockState.running ? "RUNNING" : (daqMockState.armed ? "ARMED" : "STANDBY");
-    }
-    function setDaqSequenceStep(step){
-      const next = Math.max(0,Math.min(4,Number(step) || 0));
-      daqMockState.sequenceStep = next;
-      document.querySelectorAll(".daq-sequence-track > span").forEach((node,index)=>{
-        node.classList.toggle("is-active", index <= next);
-      });
-      if(next === daqMockState.lastSequenceStep) return;
-      daqMockState.lastSequenceStep = next;
-      const labels = ["SAFE","PRESSURIZATION","N₂ PURGE","IGNITION / FEED","SHUTDOWN"];
-      appendDaqMockLog("Sequence step " + String(next + 1).padStart(2,"0") + " · " + labels[next], next === 4 ? "SAFE" : "OK");
-    }
-    function startDaqMockSequence(){
-      if(!daqMockState.armed || daqMockState.running) return;
-      daqMockState.running = true;
-      daqMockState.sequenceStartedAt = Date.now();
-      daqMockState.lastSequenceStep = -1;
-      setDaqSequenceStep(0);
-      appendDaqMockLog("Automatic test sequence started", "INFO");
-      syncDaqMockControls();
-    }
-    function abortDaqMockSequence(){
-      daqMockState.running = false;
-      daqMockState.armed = false;
-      daqMockState.sequenceStartedAt = 0;
-      daqMockState.valves.fill(false);
-      setDaqSequenceStep(0);
-      syncDaqMockControls();
-      appendDaqMockLog("Sequence aborted · all valves driven safe", "ABORT");
-    }
-    function updateDaqMockSequence(now){
-      if(!daqMockState.running) return;
-      const elapsed = Math.max(0,now - daqMockState.sequenceStartedAt);
-      if(elapsed < 1600){
-        setDaqSequenceStep(1);
-        setDaqMockValve(1,true,true);
-        setDaqMockValve(4,true,true);
-      }else if(elapsed < 3200){
-        setDaqSequenceStep(2);
-        setDaqMockValve(6,true,true);
-      }else if(elapsed < 8500){
-        setDaqSequenceStep(3);
-        setDaqMockValve(6,false,true);
-        setDaqMockValve(2,true,true);
-        setDaqMockValve(3,true,true);
-        setDaqMockValve(7,true,true);
-      }else{
-        setDaqSequenceStep(4);
-        daqMockState.valves.fill(false);
-        daqMockState.running = false;
-        daqMockState.armed = false;
-        syncDaqMockControls();
-        appendDaqMockLog("Sequence complete · system returned to SAFE", "SAFE");
-      }
-    }
-    function setDaqMockText(id, value){
-      const node = document.getElementById(id);
-      if(node) node.textContent = value;
-    }
-    function setDaqOverviewGauge(id, value, maximum){
-      const fill = document.getElementById(id);
-      const numericValue = Math.max(0,Number(value) || 0);
-      const maxValue = Math.max(.001,Number(maximum) || 1);
-      if(!fill) return;
-      fill.style.width = Math.max(2,Math.min(100,(numericValue / maxValue) * 100)).toFixed(1) + "%";
-      const meter = fill.closest("[role='meter']");
-      if(meter) meter.setAttribute("aria-valuenow",numericValue.toFixed(2));
-    }
-    function syncSimulationModeLabels(mode){
-      const daq = normalizeOperationModeValue(mode) === "daq";
-      setDaqMockText("simulationModeBarTitle",daq ? "DAQ CONSOLE" : "FLIGHT CONSOLE");
-      setDaqMockText("dashboardDrawerModeLabel",daq ? "TEST OPERATIONS" : "FLIGHT CONSOLE");
-      setDaqMockText("dashboardDrawerTitle",daq ? "DAQ CONSOLE" : "DASHBOARD");
-    }
-    function updateDaqMockUi(force){
-      if(!simEnabled || getDisplayOperationModeValue() !== "daq") return;
-      const now = Date.now();
-      if(!daqMockState.startedAt) daqMockState.startedAt = now;
-      updateDaqMockSequence(now);
-      const elapsed = Math.max(0,now - daqMockState.startedAt);
-      const phase = elapsed / 1000;
-      const wave = (amount,speed,offset)=>Math.sin((phase * speed) + (offset || 0)) * amount;
-      const v = daqMockState.valves;
-      const pt1 = Math.max(0.02,(v[3] ? 4.72 : .16) + wave(v[3] ? .06 : .012,1.7,.2));
-      const pt2 = Math.max(0.02,(v[6] ? 6.36 : 6.18) + wave(.055,1.35,1.1));
-      const combustion = v[1] && v[2] && v[6];
-      const pt3 = Math.max(0.01,(combustion ? 2.43 : .04) + wave(combustion ? .08 : .008,3.2,.7));
-      const thrust = Math.max(0,(combustion ? 486 : 0) + wave(combustion ? 9 : .25,4.1,1.4));
-      const n2Pressure = 4.81 + wave(.03,1.1,.8);
-      if(combustion){
-        daqMockState.ethanolLevel = Math.max(0,daqMockState.ethanolLevel - .006);
-        daqMockState.waterLevel = Math.max(0,daqMockState.waterLevel - (v[1] ? .002 : 0));
-      }
-      const sequenceElapsedMs = daqMockState.running
-        ? Math.max(0,now - daqMockState.sequenceStartedAt)
-        : (daqMockState.lastSequenceStep === 4 ? 8500 : 0);
-      const sequenceElapsedSec = sequenceElapsedMs / 1000;
-      setDaqMockText("daqElapsedTime","T+ " + String(Math.floor(sequenceElapsedSec / 60)).padStart(2,"0") + ":" + String(Math.floor(sequenceElapsedSec % 60)).padStart(2,"0") + "." + String(Math.floor((sequenceElapsedSec % 1) * 10)));
-      const clockNow = new Date(now);
-      setDaqMockText("daqCurrentTime",String(clockNow.getHours()).padStart(2,"0") + ":" + String(clockNow.getMinutes()).padStart(2,"0") + ":" + String(clockNow.getSeconds()).padStart(2,"0"));
-      setDaqMockText("daqBoardState",daqMockState.running ? "TEST RUN" : (daqMockState.armed ? "ARMED" : (daqMockState.lastSequenceStep === 4 ? "SAFE" : "PRE FLIGHT")));
-      setDaqMockText("daqBoardLinkRate",String(Math.round(68 + wave(2,.55,.4))));
-      setDaqMockText("daqBoardTemp","--");
-      setDaqMockText("daqBoardStorage","0.0%");
-      setDaqMockText("daqBoardArm",(daqMockState.armed || daqMockState.running) ? "ON" : "OFF");
-      setDaqMockText("daqGoxPressure",pt2.toFixed(2));
-      setDaqMockText("daqN2Pressure",n2Pressure.toFixed(2));
-      setDaqMockText("daqEthanolLevel",daqMockState.ethanolLevel.toFixed(1));
-      setDaqMockText("daqWaterLevel",daqMockState.waterLevel.toFixed(1));
-      setDaqMockText("daqThrustValue",thrust.toFixed(1));
-      setDaqOverviewGauge("daqGoxGauge",pt2,7);
-      setDaqOverviewGauge("daqN2Gauge",n2Pressure,6);
-      setDaqOverviewGauge("daqEthanolGauge",daqMockState.ethanolLevel,100);
-      setDaqOverviewGauge("daqWaterGauge",daqMockState.waterLevel,100);
-      setDaqOverviewGauge("daqThrustGauge",thrust,500);
-      [["daqPt1","daqSvgPt1",pt1],["daqPt2","daqSvgPt2",pt2],["daqPt3","daqSvgPt3",pt3]].forEach((entry)=>{
-        setDaqMockText(entry[0],entry[2].toFixed(2));
-        setDaqMockText(entry[1],entry[2].toFixed(2));
-      });
-      [["daqPt1Bar",pt1,7],["daqPt2Bar",pt2,7],["daqPt3Bar",pt3,4]].forEach((entry)=>{
-        const bar = document.getElementById(entry[0]);
-        if(bar) bar.style.width = Math.max(2,Math.min(100,(entry[1] / entry[2]) * 100)).toFixed(1) + "%";
-      });
-      if(force) syncDaqMockControls();
-    }
     function switchSimulationDisplayMode(mode){
       if(!simEnabled || !uiSettings) return;
       const next = normalizeOperationModeValue(mode);
@@ -11274,6 +10976,328 @@ function requestMobileMockup3dMesh(){
         data_origin:"simulation"
       };
     }
+
+/* FLASH7 DAQ simulation. Classic-script scope; no board command transport. */
+const DAQ_VALVES = Object.freeze([
+  {id:1,label:"WATER PRESS"}, {id:2,label:"WATER SPRAY"},
+  {id:3,label:"ETH MAIN"}, {id:4,label:"ETH PRESS"},
+  {id:5,label:"ETH VENT"}, {id:6,label:"WATER N₂ VENT"},
+  {id:7,label:"GOX MAIN"}, {id:8,label:"WATER VENT"},
+  {id:9,label:"GOX VENT"}, {id:10,label:"N₂ → GOX PURGE"}
+].map(Object.freeze));
+function createDaqMockState(){
+  return {startedAt:0,lastUpdatedAt:0,valves:DAQ_VALVES.map(()=>0),
+    valveLocked:true,armed:false,running:false,
+    sequenceStartedAt:0,sequenceStep:0,lastSequenceStep:0,sequenceElapsedMs:0,
+    ethanolLevel:78.4,waterLevel:64.1,waterPressure:.15,ethanolPressure:.16,
+    chamberPressure:0,engineTemperature:20};
+}
+const daqMockState = createDaqMockState();
+function daqOpening(value){
+  if(typeof value === "boolean") return value ? 100 : 0;
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.round(Math.max(0,Math.min(100,number))) : 0;
+}
+function getDaqMockFlows(state){
+  const v = (id)=>daqOpening(state.valves[id-1])/100;
+  const water = Math.max(0,Math.min(1,state.waterPressure/4.8));
+  const ethanol = Math.max(0,Math.min(1,state.ethanolPressure/4.8));
+  // The purge check valve blocks flow against the higher-pressure GOX source.
+  const purge = v(7) === 0 ? v(10) : 0;
+  return {
+    n2Supply:Math.max(v(1),v(4),purge),waterPress:v(1),ethanolPress:v(4),
+    waterGasVent:v(6)*water,
+    waterSpray:state.waterLevel > 0 ? v(2)*water : 0,
+    waterVent:state.waterLevel > 0 ? v(8)*water : 0,
+    ethanolFeed:state.ethanolLevel > 0 ? v(3)*ethanol : 0,
+    ethanolVent:v(5)*ethanol,
+    goxSupply:v(7),goxFeed:v(7),goxVent:v(7)*v(9),
+    purgeSupply:purge,purgeFeed:purge,purgeVent:purge*v(9),
+    combustion:(state.ethanolLevel > 0 ? v(3)*ethanol : 0)*v(7)*(1-v(9))
+  };
+}
+function advanceDaqMockModel(state,seconds){
+  const dt = Math.max(0,Math.min(1,Number(seconds)||0));
+  const v = (id)=>daqOpening(state.valves[id-1])/100;
+  function pressure(current,supply,vent,demand){
+    const input = supply*1.8;
+    const loss = vent*2.8+demand*.08+.015;
+    const rate = input+loss;
+    const target = 4.8*input/rate;
+    return target+(current-target)*Math.exp(-rate*dt);
+  }
+  state.waterPressure = pressure(state.waterPressure,v(1),v(6),v(2)+v(8));
+  state.ethanolPressure = pressure(state.ethanolPressure,v(4),v(5),v(3));
+  const flow = getDaqMockFlows(state);
+  state.ethanolLevel = Math.max(0,state.ethanolLevel-flow.ethanolFeed*.035*dt);
+  state.waterLevel = Math.max(0,state.waterLevel-(flow.waterSpray+flow.waterVent)*.025*dt);
+  const chamberTarget = flow.combustion*2.43;
+  state.chamberPressure += (chamberTarget-state.chamberPressure)*(1-Math.exp(-dt*5));
+  const temperatureTarget = 20+460*flow.combustion;
+  state.engineTemperature += (temperatureTarget-state.engineTemperature)*(1-Math.exp(-dt/(flow.combustion ? 2 : 8)));
+  return flow;
+}
+function resetDaqMockState(){
+  Object.assign(daqMockState,createDaqMockState(),{startedAt:Date.now(),lastUpdatedAt:Date.now()});
+  setDaqSequenceStep(0);
+  syncDaqMockControls();
+  updateDaqMockUi(true);
+}
+    function appendDaqMockLog(message, level){
+      const log = document.getElementById("daqEventLog");
+      if(!log) return;
+      const now = new Date();
+      const time = [now.getHours(),now.getMinutes(),now.getSeconds()]
+        .map((value)=>String(value).padStart(2,"0")).join(":") + "." +
+        String(now.getMilliseconds()).padStart(3,"0");
+      const row = document.createElement("p");
+      const kind = String(level || "INFO").toUpperCase();
+      if(kind === "WARN") row.classList.add("is-warn");
+      if(kind === "ABORT" || kind === "FAULT") row.classList.add("is-danger");
+      const timeEl = document.createElement("time");
+      const messageEl = document.createElement("span");
+      const levelEl = document.createElement("em");
+      timeEl.textContent = time;
+      messageEl.textContent = String(message || "");
+      levelEl.textContent = kind;
+      row.append(timeEl,messageEl,levelEl);
+      log.prepend(row);
+      while(log.children.length > 40) log.lastElementChild.remove();
+      syncDaqControlCenterLog();
+    }
+    function syncDaqControlCenterLog(){
+      const source = document.getElementById("daqEventLog");
+      const target = document.getElementById("daqControlEventList");
+      const count = document.getElementById("daqControlEventCount");
+      if(!source || !target) return;
+      const rows = Array.from(source.children).filter((row)=>row.tagName === "P");
+      if(count) count.textContent = String(rows.length);
+      target.replaceChildren();
+      if(!rows.length){
+        const empty = document.createElement("div");
+        empty.className = "alarm-history-empty";
+        empty.textContent = "이벤트 로그가 없습니다.";
+        target.append(empty);
+        return;
+      }
+      rows.forEach((row)=>{
+        const timeText = row.querySelector("time")?.textContent || "--:--:--.---";
+        const messageText = row.querySelector("span")?.textContent || "";
+        const levelText = (row.querySelector("em")?.textContent || "INFO").toUpperCase();
+        const item = document.createElement("article");
+        item.className = "alarm-history-item daq-control-event-item";
+        if(row.classList.contains("is-danger")) item.classList.add("tone-error");
+        else if(row.classList.contains("is-warn")) item.classList.add("tone-warn");
+        else if(levelText === "OK" || levelText === "SAFE") item.classList.add("tone-success");
+        const meta = document.createElement("div");
+        meta.className = "alarm-history-item-meta";
+        const levelEl = document.createElement("strong");
+        const timeEl = document.createElement("time");
+        const messageEl = document.createElement("p");
+        levelEl.textContent = levelText;
+        timeEl.textContent = timeText;
+        messageEl.textContent = messageText;
+        meta.append(levelEl,timeEl);
+        item.append(meta,messageEl);
+        target.append(item);
+      });
+    }
+function setDaqValveLock(locked){
+  const next = !!locked;
+  if(daqMockState.valveLocked === next) return;
+  daqMockState.valveLocked = next;
+  syncDaqMockControls();
+  appendDaqMockLog(next ? "Manual valve control interlock engaged" : "Manual valve control interlock released",next ? "SAFE" : "WARN");
+}
+function requestDaqMockValve(index,opening,silent){
+  if(!simEnabled || getDisplayOperationModeValue() !== "daq") return false;
+  if(daqMockState.valveLocked || daqMockState.running){
+    showToast(daqMockState.running ? "자동 시퀀스 실행 중에는 수동 제어할 수 없습니다." : "LOCK을 해제해야 밸브를 제어할 수 있습니다.","error",{key:"daq-valve-locked"});
+    return false;
+  }
+  return setDaqMockValve(index,opening,!!silent);
+}
+function setDaqMockValve(index,opening,silent){
+  const id = Number(index);
+  if(!Number.isInteger(id) || id<1 || id>DAQ_VALVES.length) return false;
+  const next = daqOpening(opening);
+  if(daqMockState.valves[id-1] === next) return true;
+  daqMockState.valves[id-1] = next;
+  syncDaqMockControls();
+  if(!silent) appendDaqMockLog("V"+id+" · "+DAQ_VALVES[id-1].label+" · opening command "+next+"%",next ? "OK" : "SAFE");
+  return true;
+}
+function syncDaqMockFlow(flow){
+  const values = flow || getDaqMockFlows(daqMockState);
+  document.querySelectorAll("[data-daq-flow]").forEach((line)=>{
+    const rate = values[line.dataset.daqFlow] || 0;
+    line.classList.toggle("is-flowing",rate>.001);
+    line.style.setProperty("--daq-flow-duration",(1.8-1.25*Math.min(1,rate)).toFixed(2)+"s");
+  });
+  document.querySelectorAll("[data-daq-outlet]").forEach((node)=>{
+    node.classList.toggle("is-flowing",(values[node.dataset.daqOutlet]||0)>.001);
+  });
+}
+function syncDaqMockControls(){
+  const disabled = daqMockState.valveLocked || daqMockState.running;
+  daqMockState.valves.forEach((opening,index)=>{
+    const id = index+1,open = opening>0;
+    document.querySelectorAll('[data-daq-valve="'+id+'"]').forEach((button)=>{
+      button.classList.toggle("is-open",open);
+      button.setAttribute("aria-pressed",String(open));
+      button.disabled = disabled;
+      const status = button.querySelector("em");
+      if(status) status.textContent = (open ? (opening===100 ? "OPEN" : "PARTIAL") : "CLOSED")+" · "+opening+"%";
+    });
+    document.querySelectorAll('[data-daq-opening="'+id+'"]').forEach((input)=>{
+      input.disabled = disabled;
+      input.value = String(opening);
+      input.setAttribute("aria-valuetext",opening+"% 개도 명령 · 시뮬레이션");
+    });
+    document.querySelectorAll('[data-daq-opening-value="'+id+'"], [data-daq-svg-opening="'+id+'"]').forEach((node)=>{
+      node.textContent = opening+"%";
+    });
+    document.querySelectorAll('[data-daq-svg-valve="'+id+'"]').forEach((node)=>{
+      node.classList.toggle("is-open",open);
+      node.setAttribute("aria-pressed",String(open));
+      node.setAttribute("aria-disabled",String(disabled));
+    });
+  });
+  syncDaqMockFlow();
+  const pidPanel = document.querySelector(".daq-pid-panel");
+  const lockBtn = document.getElementById("daqValveLockBtn");
+  const interlock = document.getElementById("daqValvePanelInterlock");
+  const purgeBtn = document.getElementById("daqPurgeBtn");
+  if(pidPanel){
+    pidPanel.classList.toggle("is-valve-locked",disabled);
+  }
+  if(lockBtn){
+    lockBtn.classList.toggle("is-locked",daqMockState.valveLocked);
+    lockBtn.classList.toggle("is-unlocked",!daqMockState.valveLocked);
+    lockBtn.setAttribute("aria-pressed",String(daqMockState.valveLocked));
+    lockBtn.title = daqMockState.valveLocked ? "밸브 제어 잠금 해제" : "밸브 제어 잠금";
+    const label = lockBtn.querySelector("span");
+    if(label) label.textContent = daqMockState.valveLocked ? "LOCKED" : "UNLOCKED";
+  }
+  if(interlock){
+    interlock.textContent = daqMockState.running ? "AUTO SEQUENCE" : (disabled ? "INTERLOCKED" : "SIM CONTROL READY");
+    interlock.classList.toggle("is-ready",!disabled);
+  }
+  if(purgeBtn){purgeBtn.disabled=disabled;purgeBtn.setAttribute("aria-pressed",String(daqMockState.valves[9]>0));}
+  const armBtn = document.getElementById("daqArmBtn");
+  const runBtn = document.getElementById("daqRunBtn");
+
+  if(armBtn){armBtn.disabled=daqMockState.running;armBtn.classList.toggle("is-armed",daqMockState.armed);armBtn.textContent=daqMockState.armed ? "ARMED" : "ARM TEST";}
+  if(runBtn) runBtn.disabled=!daqMockState.armed || daqMockState.running;
+  const readiness=daqMockState.running ? "RUNNING" : (daqMockState.armed ? "ARMED" : (daqMockState.sequenceStep===4 ? "COMPLETE" : "READY"));
+  setDaqMockText("daqRunReadiness",readiness);
+  syncDaqSequenceReadout();
+}
+function syncDaqSequenceReadout(){
+  const step=daqMockState.sequenceStep;
+  const labels=["STANDBY","PRESS","PURGE","IGNITION","SHUTDOWN"];
+  setDaqMockText("daqSequenceState",labels[step]);
+  setDaqMockText("daqSequenceProgress",String(step+1).padStart(2,"0")+" / 05");
+  document.querySelectorAll(".daq-sequence-track > span").forEach((node,index)=>{
+    node.classList.toggle("is-active",index===step);
+    node.classList.toggle("is-complete",index<step);
+    node.setAttribute("aria-current",index===step ? "step" : "false");
+  });
+}
+function setDaqSequenceStep(step){
+  const next = Math.max(0,Math.min(4,Number(step)||0));
+  daqMockState.sequenceStep = next;
+  syncDaqSequenceReadout();
+  if(next===daqMockState.lastSequenceStep) return;
+  daqMockState.lastSequenceStep = next;
+  const labels=["SAFE","PRESSURIZATION","N₂ → GOX PURGE","IGNITION / FEED","SHUTDOWN"];
+  appendDaqMockLog("Sequence step "+String(next+1).padStart(2,"0")+" · "+labels[next],next===4 ? "SAFE" : "OK");
+}
+function stopDaqMockSequence(){
+  daqMockState.running=false;
+  daqMockState.armed=false;
+  daqMockState.sequenceStartedAt=0;
+  daqMockState.sequenceElapsedMs=0;
+  daqMockState.valves.fill(0);
+  setDaqSequenceStep(0);
+  setDaqMockText("daqElapsedTime","T+ 00:00.0");
+  syncDaqMockControls();
+}
+function startDaqMockSequence(){
+  if(!simEnabled || getDisplayOperationModeValue()!=="daq" || !daqMockState.armed || daqMockState.running) return;
+  daqMockState.valves.fill(0);
+  daqMockState.running=true;
+  daqMockState.sequenceElapsedMs=0;
+  daqMockState.sequenceStartedAt=Date.now();
+  daqMockState.lastSequenceStep=-1;
+  setDaqSequenceStep(0);
+  appendDaqMockLog("Automatic test sequence started · simulation only","INFO");
+  syncDaqMockControls();
+}
+function abortDaqMockSequence(){
+  stopDaqMockSequence();
+  appendDaqMockLog("Sequence aborted · all valve commands closed","ABORT");
+}
+function updateDaqMockSequence(now){
+  if(!daqMockState.running) return;
+  const elapsed=Math.max(0,now-daqMockState.sequenceStartedAt);
+  daqMockState.sequenceElapsedMs=Math.min(8500,elapsed);
+  const step=elapsed<1600 ? 1 : (elapsed<3200 ? 2 : (elapsed<8500 ? 3 : 4));
+  if(step===daqMockState.sequenceStep) return;
+  // Apply complete phase targets, even when a background tab skips a phase.
+  const open=step===1 ? [1,4] : (step===2 ? [1,4,10] : (step===3 ? [1,2,3,4,7] : []));
+  daqMockState.valves=DAQ_VALVES.map(({id})=>open.includes(id) ? 100 : 0);
+  setDaqSequenceStep(step);
+  if(step===4){daqMockState.running=false;daqMockState.armed=false;appendDaqMockLog("Sequence complete · system returned to SAFE","SAFE");}
+  syncDaqMockControls();
+}
+function setDaqMockText(id,value){const node=document.getElementById(id);if(node) node.textContent=value;}
+function setDaqOverviewGauge(id,value,maximum){
+  const fill=document.getElementById(id);
+  if(!fill) return;
+  const number=Math.max(0,Number(value)||0),max=Math.max(.001,Number(maximum)||1);
+  fill.style.width=Math.max(0,Math.min(100,number/max*100)).toFixed(1)+"%";
+  const meter=fill.closest("[role='meter']");
+  if(meter) meter.setAttribute("aria-valuenow",number.toFixed(2));
+}
+function syncSimulationModeLabels(mode){
+  const daq=normalizeOperationModeValue(mode)==="daq";
+  setDaqMockText("simulationModeBarTitle",daq ? "DAQ CONSOLE" : "FLIGHT CONSOLE");
+  setDaqMockText("dashboardDrawerModeLabel",daq ? "TEST OPERATIONS" : "FLIGHT CONSOLE");
+  setDaqMockText("dashboardDrawerTitle",daq ? "DAQ CONSOLE" : "DASHBOARD");
+}
+function updateDaqMockUi(force){
+  if(!simEnabled || getDisplayOperationModeValue()!=="daq") return;
+  const now=Date.now();
+  if(!daqMockState.startedAt) daqMockState.startedAt=now;
+  const seconds=daqMockState.lastUpdatedAt ? (now-daqMockState.lastUpdatedAt)/1000 : 0;
+  daqMockState.lastUpdatedAt=now;
+  updateDaqMockSequence(now);
+  const flow=advanceDaqMockModel(daqMockState,seconds);
+  const phase=(now-daqMockState.startedAt)/1000;
+  const wave=(amount,speed,offset)=>Math.sin(phase*speed+(offset||0))*amount;
+  const pt1=daqMockState.ethanolPressure*daqMockState.valves[2]/100;
+  const pt3=Math.max(0,daqMockState.chamberPressure+wave(flow.combustion*.03,3.2,.7));
+  const thrust=Math.max(0,flow.combustion*486+wave(flow.combustion*9,4.1,1.4));
+  const goxPressure=6.42+wave(.035,1.35,1.1),n2Pressure=4.81+wave(.03,1.1,.8);
+  const secondsElapsed=daqMockState.sequenceElapsedMs/1000;
+  setDaqMockText("daqElapsedTime","T+ "+String(Math.floor(secondsElapsed/60)).padStart(2,"0")+":"+String(Math.floor(secondsElapsed%60)).padStart(2,"0")+"."+String(Math.floor(secondsElapsed%1*10)));
+  setDaqMockText("daqBoardState",daqMockState.running ? "TEST RUN" : (daqMockState.armed ? "ARMED" : (daqMockState.lastSequenceStep===4 ? "SAFE" : "PRE FLIGHT")));
+  setDaqMockText("daqBoardLinkRate",String(Math.round(68+wave(2,.55,.4))));
+  setDaqMockText("daqBoardTemp","--");setDaqMockText("daqBoardStorage","0.0%");
+  setDaqMockText("daqBoardArm",daqMockState.armed || daqMockState.running ? "ON" : "OFF");
+  setDaqMockText("daqGoxPressure",goxPressure.toFixed(2));setDaqMockText("daqN2Pressure",n2Pressure.toFixed(2));
+  setDaqMockText("daqEthanolLevel",daqMockState.ethanolLevel.toFixed(1));setDaqMockText("daqWaterLevel",daqMockState.waterLevel.toFixed(1));
+  setDaqMockText("daqSvgEthanolLevel",daqMockState.ethanolLevel.toFixed(0)+"%");setDaqMockText("daqSvgWaterLevel",daqMockState.waterLevel.toFixed(0)+"%");
+  setDaqMockText("daqThrustValue",thrust.toFixed(1));
+  [["daqGoxGauge",goxPressure,7],["daqN2Gauge",n2Pressure,6],["daqEthanolGauge",daqMockState.ethanolLevel,100],["daqWaterGauge",daqMockState.waterLevel,100],["daqThrustGauge",thrust,500],
+    ["daqPt1Bar",pt1,7],["daqPt3Bar",pt3,4],["daqEngineTempBar",daqMockState.engineTemperature,600]].forEach(v=>setDaqOverviewGauge(...v));
+  [["daqPt1","daqSvgPt1",pt1],["daqPt3","daqSvgPt3",pt3],["daqEngineTemp","daqSvgEngineTemp",daqMockState.engineTemperature]].forEach(([panel,svg,value])=>{
+    const digits=panel==="daqEngineTemp" ? 1 : 2;setDaqMockText(panel,value.toFixed(digits));setDaqMockText(svg,value.toFixed(digits));
+  });
+  syncDaqMockFlow(flow);
+  if(force) syncDaqMockControls();
+}
 
 
 
@@ -15736,7 +15760,7 @@ function requestMobileMockup3dMesh(){
     function renderAlarmHistory(){
       if(!el.alarmHistoryList) return;
       if(el.alarmHistoryCount) el.alarmHistoryCount.textContent = String(alarmHistory.length);
-      [el.alarmHistoryToggle, el.cameraNotificationsBtn].forEach(button=>{
+      [el.alarmHistoryToggle, el.cameraNotificationsBtn, el.daqNotificationsBtn].forEach(button=>{
         if(button) button.classList.toggle("has-unread", alarmHistoryUnreadCount > 0);
       });
       el.alarmHistoryList.replaceChildren();
@@ -15816,9 +15840,7 @@ function requestMobileMockup3dMesh(){
         if(!button) return;
         button.classList.toggle("is-active", next);
         button.setAttribute("aria-expanded", String(next));
-        button.setAttribute("aria-label", button === el.daqControlCenterBtn
-          ? (next ? "제어 센터 닫기" : "제어 센터 열기")
-          : (next ? "Close control" : "Open control"));
+        button.setAttribute("aria-label", next ? "Close control" : "Open control");
       });
       if(next) syncAlarmControlButtons();
       else{
@@ -15836,7 +15858,7 @@ function requestMobileMockup3dMesh(){
       }
       el.alarmHistoryPanel.classList.toggle("hidden", !next);
       el.alarmHistoryPanel.setAttribute("aria-hidden", next ? "false" : "true");
-      [el.alarmHistoryToggle, el.cameraNotificationsBtn].forEach(button=>{
+      [el.alarmHistoryToggle, el.cameraNotificationsBtn, el.daqNotificationsBtn].forEach(button=>{
         if(!button) return;
         button.classList.toggle("is-open", next);
         button.setAttribute("aria-expanded", String(next));
@@ -17949,6 +17971,7 @@ function prepareLinkQualityCanvas(canvas){
 
 /* Dock existing tool surfaces without replacing their controls or command lifecycle. */
 const controlCenterSurfaceSpecs = Object.freeze({
+  daqValveUnlockOverlay:{title:"밸브 제어 잠금 해제", close:"#daqValveUnlockCancel", width:400, contextual:true},
   settingsOverlay:{title:"설정", close:"#settingsClose", width:480, dismiss:()=>hideSettings()},
   loadcellOverlay:{title:"로드셀 보정", close:"#loadcellClose", width:440},
   chipTempOverlay:{title:"칩 온도", close:"#chipTempClose", width:480},
@@ -19059,11 +19082,15 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
       hour:"numeric", minute:"2-digit", second:"2-digit", hour12:true
     });
     function updateDesktopSystemClock(now = new Date()){
-      if(!el.cameraSystemClock) return;
+      if(!el.cameraSystemClock && !el.daqCurrentTime) return;
       const parts = Object.fromEntries(desktopSystemClockFormatter.formatToParts(now).map(part=>[part.type, part.value]));
-      el.cameraSystemClock.textContent = parts.month + "월 " + parts.day + "일 (" + parts.weekday + ") " +
+      const text = parts.month + "월 " + parts.day + "일 (" + parts.weekday + ") " +
         parts.dayPeriod + " " + parts.hour + ":" + parts.minute + ":" + parts.second;
-      el.cameraSystemClock.dateTime = now.toISOString();
+      [el.cameraSystemClock, el.daqCurrentTime].forEach(clock=>{
+        if(!clock) return;
+        clock.textContent = text;
+        clock.dateTime = now.toISOString();
+      });
     }
 
     // Move the live flight HUD, retaining its data bindings and button handlers.
@@ -41819,6 +41846,8 @@ function bindPlatformLayoutEvents(scope){
       el.controlCenterToggle = document.getElementById("controlCenterToggle");
       el.controlCenterPanel = document.getElementById("controlCenterPanel");
       el.daqControlCenterBtn = document.getElementById("daqControlCenterBtn");
+      el.daqNotificationsBtn = document.getElementById("daqNotificationsBtn");
+      el.daqCurrentTime = document.getElementById("daqCurrentTime");
       el.alarmHistoryCount = document.getElementById("alarmHistoryCount");
       el.alarmHistoryClear = document.getElementById("alarmHistoryClear");
       el.alarmHistoryList = document.getElementById("alarmHistoryList");
@@ -43682,6 +43711,15 @@ function bindPlatformLayoutEvents(scope){
           requestDaqMockValve(index,!daqMockState.valves[index - 1],false);
         });
       });
+      document.querySelectorAll("[data-daq-opening]").forEach((input)=>{
+        listenApp(input,"input",()=>{
+          if(!requestDaqMockValve(Number(input.dataset.daqOpening),input.value,true)) syncDaqMockControls();
+        });
+        listenApp(input,"change",()=>{
+          const id = Number(input.dataset.daqOpening);
+          if(requestDaqMockValve(id,input.value,true)) appendDaqMockLog("V" + id + " opening command " + daqMockState.valves[id-1] + "% · simulation", "INFO");
+        });
+      });
       document.querySelectorAll("[data-daq-svg-valve]").forEach((valve)=>{
         const toggleValve = ()=>{
           const index = Number(valve.dataset.daqSvgValve) || 1;
@@ -43698,9 +43736,6 @@ function bindPlatformLayoutEvents(scope){
       const daqValveUnlockOverlay = document.getElementById("daqValveUnlockOverlay");
       const daqValveUnlockCancel = document.getElementById("daqValveUnlockCancel");
       const daqValveUnlockConfirm = document.getElementById("daqValveUnlockConfirm");
-      const daqValveControllerBtn = document.getElementById("daqValveControllerBtn");
-      const daqValvePanelClose = document.getElementById("daqValvePanelClose");
-      const daqValvePanelShade = document.getElementById("daqValvePanelShade");
       const daqSafeAllBtn = document.getElementById("daqSafeAllBtn");
       const daqPurgeBtn = document.getElementById("daqPurgeBtn");
       const daqArmBtn = document.getElementById("daqArmBtn");
@@ -43737,29 +43772,17 @@ function bindPlatformLayoutEvents(scope){
           if(event.target === daqValveUnlockOverlay) setDaqValveUnlockPromptVisible(false);
         });
       }
-      if(daqValveControllerBtn){
-        listenApp(daqValveControllerBtn,"click",()=>setDaqValvePanelVisible(!daqMockState.valvePanelOpen));
-      }
-      if(daqValvePanelClose){
-        listenApp(daqValvePanelClose,"click",()=>setDaqValvePanelVisible(false));
-      }
-      if(daqValvePanelShade){
-        listenApp(daqValvePanelShade,"click",()=>setDaqValvePanelVisible(false));
-      }
       if(daqSafeAllBtn){
         listenApp(daqSafeAllBtn,"click",()=>{
-          daqMockState.valves.fill(false);
-          daqMockState.running = false;
-          daqMockState.armed = false;
-          syncDaqMockControls();
+          stopDaqMockSequence();
           appendDaqMockLog("SAFE ALL · every valve commanded closed", "SAFE");
         });
       }
       if(daqPurgeBtn){
         listenApp(daqPurgeBtn,"click",()=>{
-          const purgeOpen = !daqMockState.valves[5];
-          if(requestDaqMockValve(6,purgeOpen,true)){
-            appendDaqMockLog(purgeOpen ? "N₂ purge path opened" : "N₂ purge path closed", purgeOpen ? "OK" : "SAFE");
+          const purgeOpen = !daqMockState.valves[9];
+          if(requestDaqMockValve(10,purgeOpen,true)){
+            appendDaqMockLog(purgeOpen ? "V10 · N₂ → GOX purge path opened" : "V10 · N₂ → GOX purge path closed", purgeOpen ? "OK" : "SAFE");
           }
         });
       }
@@ -43786,7 +43809,6 @@ function bindPlatformLayoutEvents(scope){
           if(daqValveLockBtn) daqValveLockBtn.focus();
           return;
         }
-        if(event.key === "Escape" && daqMockState.valvePanelOpen) setDaqValvePanelVisible(false);
       });
       if(el.connectMethodUsbBtn){
         el.connectMethodUsbBtn.addEventListener("click", ()=>{
@@ -47410,7 +47432,7 @@ function bindPlatformLayoutEvents(scope){
         chartLive.addEventListener("click",()=>{ autoScrollChart=true; chartView.allowSmallWindow=false; redrawCharts(); });
       }
 
-      [el.alarmHistoryToggle, el.cameraNotificationsBtn].forEach(button=>{
+      [el.alarmHistoryToggle, el.cameraNotificationsBtn, el.daqNotificationsBtn].forEach(button=>{
         if(button) button.addEventListener("click", event=>{
           event.stopPropagation();
           setAlarmHistoryOpen(!alarmHistoryIsOpen());

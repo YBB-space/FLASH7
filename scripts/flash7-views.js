@@ -4459,7 +4459,7 @@
     function renderAlarmHistory(){
       if(!el.alarmHistoryList) return;
       if(el.alarmHistoryCount) el.alarmHistoryCount.textContent = String(alarmHistory.length);
-      [el.alarmHistoryToggle, el.cameraNotificationsBtn].forEach(button=>{
+      [el.alarmHistoryToggle, el.cameraNotificationsBtn, el.daqNotificationsBtn].forEach(button=>{
         if(button) button.classList.toggle("has-unread", alarmHistoryUnreadCount > 0);
       });
       el.alarmHistoryList.replaceChildren();
@@ -4539,9 +4539,7 @@
         if(!button) return;
         button.classList.toggle("is-active", next);
         button.setAttribute("aria-expanded", String(next));
-        button.setAttribute("aria-label", button === el.daqControlCenterBtn
-          ? (next ? "제어 센터 닫기" : "제어 센터 열기")
-          : (next ? "Close control" : "Open control"));
+        button.setAttribute("aria-label", next ? "Close control" : "Open control");
       });
       if(next) syncAlarmControlButtons();
       else{
@@ -4559,7 +4557,7 @@
       }
       el.alarmHistoryPanel.classList.toggle("hidden", !next);
       el.alarmHistoryPanel.setAttribute("aria-hidden", next ? "false" : "true");
-      [el.alarmHistoryToggle, el.cameraNotificationsBtn].forEach(button=>{
+      [el.alarmHistoryToggle, el.cameraNotificationsBtn, el.daqNotificationsBtn].forEach(button=>{
         if(!button) return;
         button.classList.toggle("is-open", next);
         button.setAttribute("aria-expanded", String(next));

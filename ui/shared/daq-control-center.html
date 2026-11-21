@@ -1,0 +1,40 @@
+<div id="daqControlCenterControls" class="control-center-daq-controls">
+            <section class="daq-run-panel" aria-label="시험 실행 제어">
+              <div class="daq-panel-head"><div><small>TEST OPERATIONS</small><strong>RUN CONTROL</strong></div><em id="daqRunReadiness">STANDBY</em></div>
+              <div class="daq-sequence-actions">
+                <button id="daqArmBtn" type="button">ARM TEST</button>
+                <button id="daqRunBtn" type="button">START SEQUENCE</button>
+                <button id="daqAbortBtn" class="is-abort" type="button">ABORT</button>
+              </div>
+            </section>
+  <section class="daq-valve-section" aria-label="밸브 제어">
+    <header class="daq-center-section-head"><div><small>DIGITAL OUTPUT</small><h2>VALVE CONTROL</h2></div>
+                  <button id="daqValveLockBtn" class="daq-pid-tool is-locked" type="button" aria-pressed="true" title="밸브 제어 잠금 해제">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3M6 10h12v10H6Z"></path></svg>
+                    <span>LOCKED</span>
+                  </button>
+    </header>
+    <p id="daqValvePanelInterlock" class="daq-center-interlock">INTERLOCKED</p>
+              <p class="daq-valve-command-note">SIMULATION · 개도 명령 0–100% <span>실제 밸브 개도 피드백 아님</span></p>
+              <div class="daq-valve-grid">
+                <h3 class="daq-valve-group-label is-water"><span>WATER</span><small>가압 · 분사 · 벤트</small></h3>
+                <article class="daq-valve-control"><button type="button" data-daq-valve="1" aria-label="V1 물 탱크 질소 가압 열기 또는 닫기"><span>V1</span><strong>WATER PRESS</strong><em>CLOSED · 0%</em></button><label class="daq-valve-opening"><span>개도</span><input type="range" min="0" max="100" step="1" value="0" data-daq-opening="1" aria-label="V1 물 탱크 질소 가압 개도 명령 퍼센트"><output data-daq-opening-value="1">0%</output></label></article>
+                <article class="daq-valve-control"><button type="button" data-daq-valve="2" aria-label="V2 물 외부 분사 열기 또는 닫기"><span>V2</span><strong>WATER SPRAY</strong><em>CLOSED · 0%</em></button><label class="daq-valve-opening"><span>개도</span><input type="range" min="0" max="100" step="1" value="0" data-daq-opening="2" aria-label="V2 물 외부 분사 개도 명령 퍼센트"><output data-daq-opening-value="2">0%</output></label></article>
+                <article class="daq-valve-control"><button type="button" data-daq-valve="6" aria-label="V6 물 탱크 질소 벤트 열기 또는 닫기"><span>V6</span><strong>WATER N₂ VENT</strong><em>CLOSED · 0%</em></button><label class="daq-valve-opening"><span>개도</span><input type="range" min="0" max="100" step="1" value="0" data-daq-opening="6" aria-label="V6 물 탱크 질소 벤트 개도 명령 퍼센트"><output data-daq-opening-value="6">0%</output></label></article>
+                <article class="daq-valve-control"><button type="button" data-daq-valve="8" aria-label="V8 물 벤트 열기 또는 닫기"><span>V8</span><strong>WATER VENT</strong><em>CLOSED · 0%</em></button><label class="daq-valve-opening"><span>개도</span><input type="range" min="0" max="100" step="1" value="0" data-daq-opening="8" aria-label="V8 물 벤트 개도 명령 퍼센트"><output data-daq-opening-value="8">0%</output></label></article>
+                <h3 class="daq-valve-group-label is-ethanol"><span>ETHANOL</span><small>가압 · 공급 · 벤트</small></h3>
+                <article class="daq-valve-control"><button type="button" data-daq-valve="4" aria-label="V4 에탄올 탱크 질소 가압 열기 또는 닫기"><span>V4</span><strong>ETH PRESS</strong><em>CLOSED · 0%</em></button><label class="daq-valve-opening"><span>개도</span><input type="range" min="0" max="100" step="1" value="0" data-daq-opening="4" aria-label="V4 에탄올 탱크 질소 가압 개도 명령 퍼센트"><output data-daq-opening-value="4">0%</output></label></article>
+                <article class="daq-valve-control"><button type="button" data-daq-valve="3" aria-label="V3 에탄올 메인 공급 열기 또는 닫기"><span>V3</span><strong>ETH MAIN</strong><em>CLOSED · 0%</em></button><label class="daq-valve-opening"><span>개도</span><input type="range" min="0" max="100" step="1" value="0" data-daq-opening="3" aria-label="V3 에탄올 메인 공급 개도 명령 퍼센트"><output data-daq-opening-value="3">0%</output></label></article>
+                <article class="daq-valve-control"><button type="button" data-daq-valve="5" aria-label="V5 에탄올 벤트 열기 또는 닫기"><span>V5</span><strong>ETH VENT</strong><em>CLOSED · 0%</em></button><label class="daq-valve-opening"><span>개도</span><input type="range" min="0" max="100" step="1" value="0" data-daq-opening="5" aria-label="V5 에탄올 벤트 개도 명령 퍼센트"><output data-daq-opening-value="5">0%</output></label></article>
+                <h3 class="daq-valve-group-label is-gox"><span>GOX / N₂</span><small>산소 공급 · 벤트 · 질소 퍼지</small></h3>
+                <article class="daq-valve-control"><button type="button" data-daq-valve="7" aria-label="V7 기체 산소 메인 공급 열기 또는 닫기"><span>V7</span><strong>GOX MAIN</strong><em>CLOSED · 0%</em></button><label class="daq-valve-opening"><span>개도</span><input type="range" min="0" max="100" step="1" value="0" data-daq-opening="7" aria-label="V7 기체 산소 메인 공급 개도 명령 퍼센트"><output data-daq-opening-value="7">0%</output></label></article>
+                <article class="daq-valve-control"><button type="button" data-daq-valve="9" aria-label="V9 기체 산소 벤트 열기 또는 닫기"><span>V9</span><strong>GOX VENT</strong><em>CLOSED · 0%</em></button><label class="daq-valve-opening"><span>개도</span><input type="range" min="0" max="100" step="1" value="0" data-daq-opening="9" aria-label="V9 기체 산소 벤트 개도 명령 퍼센트"><output data-daq-opening-value="9">0%</output></label></article>
+                <article class="daq-valve-control"><button type="button" data-daq-valve="10" aria-label="V10 질소에서 기체 산소 계통으로 퍼지 열기 또는 닫기"><span>V10</span><strong>N₂ → GOX PURGE</strong><em>CLOSED · 0%</em></button><label class="daq-valve-opening"><span>개도</span><input type="range" min="0" max="100" step="1" value="0" data-daq-opening="10" aria-label="V10 질소에서 기체 산소 계통으로 퍼지 개도 명령 퍼센트"><output data-daq-opening-value="10">0%</output></label></article>
+              </div>
+              <div class="daq-valve-actions">
+                <button id="daqSafeAllBtn" type="button">SAFE ALL</button>
+                <button id="daqPurgeBtn" type="button">N₂ PURGE</button>
+              </div>
+
+  </section>
+</div>

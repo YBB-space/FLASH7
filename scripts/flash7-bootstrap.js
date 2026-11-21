@@ -30,6 +30,8 @@
       el.controlCenterToggle = document.getElementById("controlCenterToggle");
       el.controlCenterPanel = document.getElementById("controlCenterPanel");
       el.daqControlCenterBtn = document.getElementById("daqControlCenterBtn");
+      el.daqNotificationsBtn = document.getElementById("daqNotificationsBtn");
+      el.daqCurrentTime = document.getElementById("daqCurrentTime");
       el.alarmHistoryCount = document.getElementById("alarmHistoryCount");
       el.alarmHistoryClear = document.getElementById("alarmHistoryClear");
       el.alarmHistoryList = document.getElementById("alarmHistoryList");
@@ -1893,6 +1895,15 @@
           requestDaqMockValve(index,!daqMockState.valves[index - 1],false);
         });
       });
+      document.querySelectorAll("[data-daq-opening]").forEach((input)=>{
+        listenApp(input,"input",()=>{
+          if(!requestDaqMockValve(Number(input.dataset.daqOpening),input.value,true)) syncDaqMockControls();
+        });
+        listenApp(input,"change",()=>{
+          const id = Number(input.dataset.daqOpening);
+          if(requestDaqMockValve(id,input.value,true)) appendDaqMockLog("V" + id + " opening command " + daqMockState.valves[id-1] + "% · simulation", "INFO");
+        });
+      });
       document.querySelectorAll("[data-daq-svg-valve]").forEach((valve)=>{
         const toggleValve = ()=>{
           const index = Number(valve.dataset.daqSvgValve) || 1;
@@ -1909,9 +1920,6 @@
       const daqValveUnlockOverlay = document.getElementById("daqValveUnlockOverlay");
       const daqValveUnlockCancel = document.getElementById("daqValveUnlockCancel");
       const daqValveUnlockConfirm = document.getElementById("daqValveUnlockConfirm");
-      const daqValveControllerBtn = document.getElementById("daqValveControllerBtn");
-      const daqValvePanelClose = document.getElementById("daqValvePanelClose");
-      const daqValvePanelShade = document.getElementById("daqValvePanelShade");
       const daqSafeAllBtn = document.getElementById("daqSafeAllBtn");
       const daqPurgeBtn = document.getElementById("daqPurgeBtn");
       const daqArmBtn = document.getElementById("daqArmBtn");
@@ -1948,29 +1956,17 @@
           if(event.target === daqValveUnlockOverlay) setDaqValveUnlockPromptVisible(false);
         });
       }
-      if(daqValveControllerBtn){
-        listenApp(daqValveControllerBtn,"click",()=>setDaqValvePanelVisible(!daqMockState.valvePanelOpen));
-      }
-      if(daqValvePanelClose){
-        listenApp(daqValvePanelClose,"click",()=>setDaqValvePanelVisible(false));
-      }
-      if(daqValvePanelShade){
-        listenApp(daqValvePanelShade,"click",()=>setDaqValvePanelVisible(false));
-      }
       if(daqSafeAllBtn){
         listenApp(daqSafeAllBtn,"click",()=>{
-          daqMockState.valves.fill(false);
-          daqMockState.running = false;
-          daqMockState.armed = false;
-          syncDaqMockControls();
+          stopDaqMockSequence();
           appendDaqMockLog("SAFE ALL · every valve commanded closed", "SAFE");
         });
       }
       if(daqPurgeBtn){
         listenApp(daqPurgeBtn,"click",()=>{
-          const purgeOpen = !daqMockState.valves[5];
-          if(requestDaqMockValve(6,purgeOpen,true)){
-            appendDaqMockLog(purgeOpen ? "N₂ purge path opened" : "N₂ purge path closed", purgeOpen ? "OK" : "SAFE");
+          const purgeOpen = !daqMockState.valves[9];
+          if(requestDaqMockValve(10,purgeOpen,true)){
+            appendDaqMockLog(purgeOpen ? "V10 · N₂ → GOX purge path opened" : "V10 · N₂ → GOX purge path closed", purgeOpen ? "OK" : "SAFE");
           }
         });
       }
@@ -1997,7 +1993,6 @@
           if(daqValveLockBtn) daqValveLockBtn.focus();
           return;
         }
-        if(event.key === "Escape" && daqMockState.valvePanelOpen) setDaqValvePanelVisible(false);
       });
       if(el.connectMethodUsbBtn){
         el.connectMethodUsbBtn.addEventListener("click", ()=>{
@@ -5621,7 +5616,7 @@
         chartLive.addEventListener("click",()=>{ autoScrollChart=true; chartView.allowSmallWindow=false; redrawCharts(); });
       }
 
-      [el.alarmHistoryToggle, el.cameraNotificationsBtn].forEach(button=>{
+      [el.alarmHistoryToggle, el.cameraNotificationsBtn, el.daqNotificationsBtn].forEach(button=>{
         if(button) button.addEventListener("click", event=>{
           event.stopPropagation();
           setAlarmHistoryOpen(!alarmHistoryIsOpen());

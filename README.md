@@ -12,6 +12,12 @@ python3 -m http.server 4178 --bind 127.0.0.1
 
 `http://127.0.0.1:4178/` 또는 `flash7.html`을 엽니다. 빌드와 기본 검사는 Node 내장 모듈만 사용합니다. `?runtime_modules=1`은 소스 모듈 진단 모드입니다.
 
+## GitHub Pages 배포
+
+공개 주소는 `https://flash7.kro.kr/`입니다. `main`에 푸시하면 GitHub Actions가 빌드·검사를 실행한 뒤 웹 자산만 `_site/`에 모아 배포합니다. 로컬 패키징은 `npm run package:pages`로 실행하며, `_site/`는 Git에 포함하지 않습니다.
+
+사용자 도메인의 CNAME 대상은 `ybb-space.github.io`이며, 저장소의 Pages 설정에도 `flash7.kro.kr`을 등록합니다. HTML·런타임·스타일 생성물은 계속 소스에서 빌드합니다.
+
 ## 소스 구조
 
 | 영역 | 소스 |

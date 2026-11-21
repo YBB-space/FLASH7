@@ -1,4 +1,4 @@
-/* One compact header and the same glass surfaces used by the control-center menu. */
+/* Docked pages use the same compact dark surfaces as both centers. */
 #controlCenterPanel.is-detail{overflow:hidden;bottom:auto}
 #controlCenterPanel.is-detail #controlCenterContent{
   max-height:calc(100dvh - 142px);overflow-y:auto;overscroll-behavior:contain;
@@ -15,10 +15,10 @@
   font-size:14px;font-weight:600;
 }
 #controlCenterPanel .control-center-back{
-  width:30px;height:30px;padding:0;border-radius:10px;background:#ffffff0c;
+  width:30px;height:30px;padding:0;border-radius:var(--center-button-radius);background:var(--center-control);
   font-size:26px;font-weight:300;line-height:1;text-align:center;
 }
-#controlCenterPanel .control-center-back:hover{background:#ffffff1b;color:#fff}
+#controlCenterPanel .control-center-back:hover{background:var(--center-hover);color:#fff}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.settings-header,.mobile-chart-picker-head,.flash-role-config-head){display:none !important}
 #controlCenterPanel #controlCenterContent .control-center-surface > :first-child{padding:0 !important;overflow:visible !important}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.hardware-servo-dialog-body,.pyro-control-body,.data-storage-dialog-body,.flash-link-report-body){
@@ -26,32 +26,32 @@
   background:transparent !important;overflow:visible !important;
 }
 #controlCenterPanel #controlCenterContent .control-center-surface :is(button,input,select){font-family:inherit}
-#controlCenterPanel #controlCenterContent .control-center-surface :is(button,input[type="number"],select){border-radius:10px !important}
+#controlCenterPanel #controlCenterContent .control-center-surface :is(button,input[type="number"],select){border-radius:var(--center-button-radius) !important}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.settings-label,.pyro-control-kicker,.pyro-control-channel-label){
   color:#b8bec6 !important;font-size:10px !important;font-weight:500 !important;letter-spacing:0 !important;text-align:left !important;
 }
 #controlCenterPanel #controlCenterContent .control-center-surface .hardware-target-selector{
   margin:0 0 12px !important;padding:10px 12px !important;
-  border:1px solid #ffffff18 !important;border-radius:14px !important;background:#ffffff06 !important;
+  border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important;
 }
 /* Compact selectors and editing cards, with no modal-sized empty regions. */
 #controlCenterPanel #controlCenterContent :is(#hardwareServoOverlay .hardware-servo-group,#pyroControlOverlay .pyro-control-selector,#pyroControlOverlay .pyro-control-panel,#dataListOverlay .data-storage-surface){
-  padding:14px !important;border:1px solid #ffffff19 !important;border-radius:18px !important;
-  background:#ffffff08 !important;box-shadow:inset 0 1px 0 #ffffff0c !important;
+  padding:14px !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;
+  background:var(--center-surface) !important;box-shadow:none !important;
 }
 #controlCenterPanel #controlCenterContent :is(.hardware-servo-quick-row,.pyro-channel-grid,.data-origin-filter,.hardware-target-tabs){
   display:grid !important;padding:3px !important;gap:3px !important;
-  border:0 !important;border-radius:12px !important;background:#00000024 !important;
+  border:0 !important;border-radius:var(--center-card-radius) !important;background:var(--center-bg) !important;
 }
 #controlCenterPanel #controlCenterContent :is(.hardware-servo-quick-row,.pyro-channel-grid,.data-origin-filter,.hardware-target-tabs) button{
   min-height:34px !important;min-width:0 !important;padding:0 4px !important;
-  border:0 !important;border-radius:9px !important;background:transparent !important;
+  border:0 !important;border-radius:var(--center-button-radius) !important;background:transparent !important;
   color:#b8bec6 !important;font-size:11px !important;font-weight:500 !important;
 }
 #controlCenterPanel #controlCenterContent :is(.hardware-servo-quick-row,.pyro-channel-grid,.data-origin-filter,.hardware-target-tabs) button:is(.is-active,[aria-selected="true"]){
-  background:#ffffff21 !important;color:#fff !important;box-shadow:0 1px 3px #0002 !important;
+  background:var(--center-active) !important;color:#fff !important;box-shadow:none !important;
 }
-#controlCenterPanel #controlCenterContent :is(.hardware-servo-quick-row,.pyro-channel-grid,.data-origin-filter,.hardware-target-tabs) button:hover:not(:disabled){background:#ffffff12 !important}
+#controlCenterPanel #controlCenterContent :is(.hardware-servo-quick-row,.pyro-channel-grid,.data-origin-filter,.hardware-target-tabs) button:hover:not(:disabled){background:var(--center-hover) !important}
 /* Servo: channel strip, current reading/slider, then a two-column preset grid. */
 #controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-group > .settings-label{margin:0 0 9px !important}
 #controlCenterPanel #controlCenterContent #hardwareServoOverlay :is(.hardware-servo-channel-picker,.hint-mini,.hardware-servo-group > .hint-mini){display:none !important}
@@ -65,8 +65,8 @@
 #controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-slider-line{margin:0 !important;gap:10px !important}
 #controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-presets{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important;padding:0 !important}
 #controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-preset{display:grid !important;grid-template-columns:minmax(0,1fr) 48px !important;gap:5px !important;min-width:0 !important}
-#controlCenterPanel #controlCenterContent #hardwareServoOverlay :is(.hardware-servo-preset-input,.hardware-servo-preset-btn){width:100% !important;min-width:0 !important;height:38px !important;padding:0 8px !important;border:1px solid #ffffff19 !important;background:#00000015 !important;color:#dce0e5 !important;font-size:12px !important}
-#controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-preset-btn{background:#ffffff0a !important;font-size:10px !important}
+#controlCenterPanel #controlCenterContent #hardwareServoOverlay :is(.hardware-servo-preset-input,.hardware-servo-preset-btn){width:100% !important;min-width:0 !important;height:38px !important;padding:0 8px !important;border:1px solid var(--center-border) !important;background:var(--center-bg) !important;color:#dce0e5 !important;font-size:12px !important}
+#controlCenterPanel #controlCenterContent #hardwareServoOverlay .hardware-servo-preset-btn{background:var(--center-control) !important;font-size:10px !important}
 /* Pyro: duration and presets stack naturally inside the narrower editing card. */
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-selector{margin:0 0 10px !important;display:block !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-channel-label{display:block !important;margin:0 0 9px !important}
@@ -76,9 +76,9 @@
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-kicker{margin:0 0 7px !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-value{position:relative !important;display:block !important;width:100% !important;height:auto !important;padding:0 !important;border:0 !important;background:transparent !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-value > span{position:absolute !important;right:12px !important;top:50% !important;transform:translateY(-50%) !important;font-size:10px !important;color:#aab2bd !important;pointer-events:none}
-#controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-value input{width:100% !important;height:50px !important;padding:0 40px 0 12px !important;border:1px solid #ffffff1b !important;background:#0000001b !important;color:#f0f2f5 !important;font-size:25px !important;font-weight:400 !important}
+#controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-value input{width:100% !important;height:50px !important;padding:0 40px 0 12px !important;border:1px solid var(--center-border) !important;background:var(--center-bg) !important;color:#f0f2f5 !important;font-size:25px !important;font-weight:400 !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-presets{display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:6px !important}
-#controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-presets button{height:34px !important;min-height:34px !important;min-width:0 !important;border:1px solid #ffffff18 !important;background:#ffffff07 !important;color:#cbd0d7 !important;font-size:11px !important}
+#controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-presets button{height:34px !important;min-height:34px !important;min-width:0 !important;border:1px solid var(--center-border) !important;background:var(--center-control) !important;color:#cbd0d7 !important;font-size:11px !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-run{width:100% !important;min-height:42px !important;margin:0 !important;background:#88404a !important;border:1px solid #c1788147 !important;font-size:12px !important}
 #controlCenterPanel #controlCenterContent #pyroControlOverlay .pyro-control-note{margin:10px 0 0 !important;font-size:9px !important;line-height:1.5 !important;color:#a9b0ba !important}
 /* Storage: summary metrics and actions stay together; records grow only as needed. */
@@ -107,13 +107,13 @@
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav{display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:6px !important;flex:none !important;width:100% !important;min-width:0 !important;margin:0 !important;padding:0 !important;border:0 !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav::before,
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav::after{content:none !important;display:none !important}
-#controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav-btn{display:flex !important;justify-content:center !important;min-width:0 !important;min-height:36px !important;margin:0 !important;padding:8px 4px !important;border:1px solid #ffffff16 !important;border-radius:11px !important;background:#ffffff07 !important;color:#b5bdc7 !important;font-size:11px !important}
+#controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav-btn{display:flex !important;justify-content:center !important;min-width:0 !important;min-height:36px !important;margin:0 !important;padding:8px 4px !important;border:1px solid var(--center-border) !important;border-radius:11px !important;background:var(--center-control) !important;color:#b5bdc7 !important;font-size:11px !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav-btn.active{background:#ffffff22 !important;color:#fff !important;border-color:#ffffff2b !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-nav-badge{display:none !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-panels{display:block !important;width:100% !important;padding:0 !important;margin:0 !important;min-width:0 !important;overflow:visible !important;border:0 !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-panel:not(.active){display:none !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-panel.active{display:block !important}
-#controlCenterPanel #controlCenterContent #settingsOverlay .settings-group{margin:0 0 10px !important;padding:12px !important;border:1px solid #ffffff16 !important;border-radius:16px !important;background:#ffffff07 !important}
+#controlCenterPanel #controlCenterContent #settingsOverlay .settings-group{margin:0 0 10px !important;padding:12px !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-control) !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-row{gap:12px !important;padding:11px 0 !important;margin:0 !important;border-color:#ffffff12 !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-label{font-size:11px !important;color:#dce1e8 !important}
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-desc{font-size:10px !important;line-height:1.55 !important;color:#a6aeb9 !important}
@@ -122,8 +122,8 @@
 /* Confirmation replaces the editing cards, retaining the existing hold controls. */
 #controlCenterPanel #controlCenterContent #pyroControlDialog.is-confirming :is(.pyro-control-selector,.pyro-control-panel){display:none !important}
 #controlCenterPanel #controlCenterContent #pyroControlDialog.is-confirming .pyro-control-confirm{
-  padding:16px !important;gap:12px !important;border:1px solid #ffffff18 !important;
-  border-radius:18px !important;background:#ffffff08 !important;
+  padding:16px !important;gap:12px !important;border:1px solid var(--center-border) !important;
+  border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important;
 }
 #controlCenterPanel #controlCenterContent #pyroControlDialog .pyro-control-confirm-title{font-size:15px !important}
 #controlCenterPanel #controlCenterContent #pyroControlDialog .pyro-control-confirm-desc{font-size:12px !important;line-height:1.6 !important}
@@ -136,42 +136,46 @@
 #controlCenterPanel #controlCenterContent #settingsOverlay .settings-body{background:transparent !important;border:0 !important}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-config-body,.connection-sheet-body){padding:0 !important;background:transparent !important}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-config-summary,.flash-identity-reset-readout){padding:10px 0 !important;background:transparent !important;border:0 !important;border-top:1px solid #ffffff15 !important;border-radius:0 !important}
-#controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-segment,.firmware-update-target){padding:3px !important;background:#00000020 !important;border:0 !important;border-radius:12px !important}
+#controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-segment,.firmware-update-target){padding:3px !important;background:var(--center-bg) !important;border:0 !important;border-radius:var(--center-card-radius) !important}
 #controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-segment,.firmware-update-target) button{min-height:34px !important;font-size:11px !important}
-#controlCenterPanel #controlCenterContent .control-center-surface :is(.confirm-cancel,.data-reset-cancel,.loadcell-cancel,.flash-role-config-secondary){min-height:38px !important;border:1px solid #ffffff1b !important;background:#ffffff08 !important;color:#d3d9e1 !important;font-size:11px !important}
+#controlCenterPanel #controlCenterContent .control-center-surface :is(.confirm-cancel,.data-reset-cancel,.loadcell-cancel,.flash-role-config-secondary){min-height:38px !important;border:1px solid var(--center-border) !important;background:var(--center-surface) !important;color:#d3d9e1 !important;font-size:11px !important}
 /* Calibration keeps its step state and actions but no longer reserves modal-sized gaps. */
 #controlCenterPanel #controlCenterContent #loadcellOverlay :is(.loadcell-body,.loadcell-main){position:relative !important;min-height:0 !important;height:auto !important;padding:0 !important;margin:0 !important}
 #controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-kicker{display:none !important}
 #controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-steps{margin:0 0 12px !important;font-size:11px !important;line-height:1.6 !important}
-#controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-card{padding:14px !important;margin:0 !important;min-height:0 !important;border:1px solid #ffffff18 !important;border-radius:16px !important;background:#ffffff07 !important}
+#controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-card{padding:14px !important;margin:0 !important;min-height:0 !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-control) !important}
 #controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-actions{position:static !important;inset:auto !important;display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:7px !important;width:100% !important;margin:14px 0 0 !important;padding:0 !important;border:0 !important}
 #controlCenterPanel #controlCenterContent #loadcellOverlay .loadcell-actions button{min-width:0 !important;min-height:38px !important;padding:7px !important;font-size:11px !important}
 #controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .mobile-chart-picker-body{padding:0 !important}
 #controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .agent-help-intro{margin:0 0 12px !important;font-size:11px !important;line-height:1.65 !important}
-#controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .intelligent-calibration-map-card{border:1px solid #ffffff18 !important;border-radius:14px !important;background:#ffffff06 !important;overflow:hidden !important}
+#controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .intelligent-calibration-map-card{border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important;overflow:hidden !important}
 #controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .intelligent-calibration-map-head{padding:10px !important;background:transparent !important}
 #controlCenterPanel #controlCenterContent #intelligentCalibrationOverlay .intelligent-calibration-map-viewport{height:160px !important}
-#controlCenterPanel #controlCenterContent #intelligentCalibrationRunBtn{display:block !important;width:100% !important;min-height:40px !important;margin:12px 0 0 !important;padding:10px !important;border:1px solid #ffffff26 !important;border-radius:12px !important;background:#ffffff1b !important;color:#eef1f5 !important;font-size:12px !important;font-weight:600 !important;font-family:inherit !important;line-height:1.3 !important;cursor:pointer}
+#controlCenterPanel #controlCenterContent #intelligentCalibrationRunBtn{display:block !important;width:100% !important;min-height:40px !important;margin:12px 0 0 !important;padding:10px !important;border:1px solid #ffffff26 !important;border-radius:var(--center-card-radius) !important;background:var(--center-hover) !important;color:#eef1f5 !important;font-size:12px !important;font-weight:600 !important;font-family:inherit !important;line-height:1.3 !important;cursor:pointer}
 /* Small live charts use the same quiet surface instead of a black plot box. */
 #controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) .chiptemp-body{padding:0 !important;gap:12px !important}
-#controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) .chiptemp-summary{border:1px solid #ffffff16 !important;border-radius:14px !important;background:#ffffff06 !important}
+#controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) .chiptemp-summary{border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important}
 #controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) :is(.chiptemp-stat,.chiptemp-meta){background:transparent !important;border-color:#ffffff13 !important}
 #controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) :is(.chiptemp-stat-label,.chiptemp-meta-label){font-size:9px !important;color:#aeb6c1 !important}
 #controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) :is(.chiptemp-stat-value,.chiptemp-meta-value){font-size:14px !important}
-#controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) .chiptemp-chart-stage{height:240px !important;min-height:0 !important;border:1px solid #ffffff14 !important;border-radius:14px !important;background:#ffffff04 !important}
-#controlCenterPanel #controlCenterContent #flashLinkReportOverlay .flash-link-report-visual{border:1px solid #ffffff18 !important;border-radius:14px !important;background:#ffffff05 !important}
+#controlCenterPanel #controlCenterContent :is(#chipTempOverlay,#perfOverlay) .chiptemp-chart-stage{height:240px !important;min-height:0 !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:#ffffff04 !important}
+#controlCenterPanel #controlCenterContent #flashLinkReportOverlay .flash-link-report-visual{border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important}
 /* Keep help illustrations and steps readable inside the compact panel. */
-#controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-hero{height:200px !important;min-height:0 !important;margin:12px 0 !important;border:0 !important;border-radius:14px !important;background:transparent !important;overflow:hidden !important}
+#controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-hero{height:200px !important;min-height:0 !important;margin:12px 0 !important;border:0 !important;border-radius:var(--center-card-radius) !important;background:transparent !important;overflow:hidden !important}
 #controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-hero img{width:100% !important;height:100% !important;object-fit:contain !important}
 #controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-list{gap:8px !important;margin:12px 0 !important}
-#controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-list li{padding:10px 12px 10px 28px !important;border:1px solid #ffffff18 !important;border-radius:12px !important;background:#ffffff07 !important;color:#d3d9e1 !important;font-size:11px !important;line-height:1.6 !important}
+#controlCenterPanel #controlCenterContent #gpsHelpOverlay .gps-help-list li{padding:10px 12px 10px 28px !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-control) !important;color:#d3d9e1 !important;font-size:11px !important;line-height:1.6 !important}
 #controlCenterPanel #controlCenterContent #gyroZeroOverlay .confirm-text{margin-top:0 !important;font-size:13px !important;line-height:1.7 !important}
 
 #controlCenterPanel #controlCenterContent #firmwareUpdateOverlay .firmware-update-body{padding:0 !important;margin:0 !important}
 #controlCenterPanel #controlCenterContent .control-center-surface .flash-role-config-actions{padding:14px 0 0 !important;margin:0 !important;border:0 !important;gap:8px !important}
-#controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-config-panel,.flash-role-identity-section){margin:12px 0 0 !important;padding:12px !important;border:1px solid #ffffff18 !important;border-radius:16px !important;background:#ffffff06 !important}
+#controlCenterPanel #controlCenterContent .control-center-surface :is(.flash-role-config-panel,.flash-role-identity-section){margin:12px 0 0 !important;padding:12px !important;border:1px solid var(--center-border) !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important}
 
 #controlCenterPanel #controlCenterContent .control-center-surface .connection-sheet-primary{min-height:40px !important;margin-top:12px !important}
-#controlCenterPanel #controlCenterContent #firmwareUpdateDropzone{border:1px dashed #ffffff26 !important;border-radius:14px !important;background:#ffffff05 !important}
+#controlCenterPanel #controlCenterContent #firmwareUpdateDropzone{border:1px dashed #ffffff26 !important;border-radius:var(--center-card-radius) !important;background:var(--center-surface) !important}
 
-#controlCenterPanel #controlCenterContent :is(#forceConfirmCancel,#missionForceCancel){width:100% !important;min-height:36px !important;margin:10px 0 0 !important;padding:8px !important;border:1px solid #ffffff1b !important;border-radius:10px !important;background:#ffffff07 !important;color:#d3d9e1 !important;font-size:11px !important}
+#controlCenterPanel #controlCenterContent :is(#forceConfirmCancel,#missionForceCancel){width:100% !important;min-height:36px !important;margin:10px 0 0 !important;padding:8px !important;border:1px solid var(--center-border) !important;border-radius:var(--center-button-radius) !important;background:var(--center-control) !important;color:#d3d9e1 !important;font-size:11px !important}
+/* DAQ interlock confirmation stays inside the center and returns to its controls. */
+#controlCenterPanel #daqValveUnlockOverlay .confirm-title{display:none}
+#controlCenterPanel #daqValveUnlockOverlay .confirm-text{margin:0;padding:8px 0 16px;font-size:12px;line-height:1.6;text-align:left}
+#controlCenterPanel #daqValveUnlockOverlay .confirm-actions{margin:0;gap:8px}

@@ -1,5 +1,6 @@
 /* Dock existing tool surfaces without replacing their controls or command lifecycle. */
 const controlCenterSurfaceSpecs = Object.freeze({
+  daqValveUnlockOverlay:{title:"밸브 제어 잠금 해제", close:"#daqValveUnlockCancel", width:400, contextual:true},
   settingsOverlay:{title:"설정", close:"#settingsClose", width:480, dismiss:()=>hideSettings()},
   loadcellOverlay:{title:"로드셀 보정", close:"#loadcellClose", width:440},
   chipTempOverlay:{title:"칩 온도", close:"#chipTempClose", width:480},

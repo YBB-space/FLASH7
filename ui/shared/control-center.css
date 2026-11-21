@@ -1,4 +1,4 @@
-/* Compact glass cards share existing navigation and hardware action bindings. */
+/* Compact controls share the notification center's dark palette and corner sizes. */
 #controlCenterPanel{
   width:min(380px,calc(100vw - 24px));
   max-height:calc(100dvh - 58px - env(safe-area-inset-bottom,0px));
@@ -8,13 +8,13 @@
   overscroll-behavior:contain;
   scrollbar-width:thin;
   scrollbar-color:#ffffff36 transparent;
-  border:1px solid rgba(255,255,255,.23);
-  border-radius:24px;
-  background:rgba(27,29,32,.72);
+  border:1px solid var(--center-border);
+  border-radius:var(--center-radius);
+  background:var(--center-bg);
   color:#eef0f3;
-  -webkit-backdrop-filter:blur(28px) saturate(.75);
-  backdrop-filter:blur(28px) saturate(.75);
-  box-shadow:0 20px 60px #0006,inset 0 1px 0 #ffffff20 !important;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  box-shadow:var(--center-shadow) !important;
 }
 #controlCenterPanel > *{flex-shrink:0;min-width:0}
 .control-center-home{display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -22,7 +22,7 @@
 #controlCenterPanel.is-detail{width:min(var(--control-center-detail-width,620px),calc(100vw - 24px))}
 #controlCenterPanel.is-detail > .alarm-history-header{
   position:sticky;top:-14px;z-index:20;min-height:38px;
-  background:rgba(27,29,32,.94);border-radius:10px;
+  background:var(--center-bg);border-radius:var(--center-card-radius);
 }
 #controlCenterPanel.is-detail > .alarm-history-header > strong{display:none}
 #controlCenterPanel .control-center-back{
@@ -70,10 +70,10 @@
 body:not(.camera-view-active) .control-center-overview{grid-template-columns:minmax(0,1fr)}
 body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}
 #controlCenterPanel :is(.alarm-control-button,.control-center-display,.scene3d-controls,.alarm-control-more-toggle){
-  border:1px solid rgba(255,255,255,.17);
-  border-radius:18px;
-  background:rgba(255,255,255,.07);
-  box-shadow:inset 0 1px 0 #ffffff15 !important;
+  border:1px solid var(--center-border);
+  border-radius:var(--center-card-radius);
+  background:var(--center-surface);
+  box-shadow:none !important;
 }
 #controlCenterPanel :is(.alarm-control-button,.control-center-display){
   display:flex;min-width:0;align-items:center;gap:10px;
@@ -84,9 +84,9 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
 }
 #controlCenterPanel .alarm-control-button{min-height:56px}
 #controlCenterPanel :is(.alarm-control-button,.control-center-display):hover{
-  background:rgba(255,255,255,.13);border-color:#ffffff40;
+  background:var(--center-hover);border-color:var(--center-active-border);
 }
-#controlCenterPanel .alarm-control-button.is-active{background:#ffffff1f;border-color:#ffffff45}
+#controlCenterPanel .alarm-control-button.is-active{background:var(--center-active);border-color:var(--center-active-border)}
 #controlCenterPanel :is(.alarm-control-button,.control-center-display) svg{
   flex:0 0 auto;width:22px;height:22px;fill:none;stroke:currentColor;
   stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
@@ -106,7 +106,7 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
   padding:0;background:transparent;
 }
 #controlCenterPanel .alarm-control-grid .alarm-control-button{
-  min-height:44px;padding:8px;gap:6px;justify-content:center;border-radius:14px;
+  min-height:44px;padding:8px;gap:6px;justify-content:center;border-radius:var(--center-card-radius);
 }
 #controlCenterPanel .alarm-control-grid svg{width:16px;height:16px}
 #controlCenterPanel .alarm-control-grid span{font-size:11px;white-space:nowrap}
@@ -114,13 +114,13 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
 #controlCenterPanel .scene3d-heading{margin-bottom:3px}
 #controlCenterPanel .scene3d-heading strong{font-size:12px}
 #controlCenterPanel .scene3d-controls button{
-  min-height:34px;padding:0 5px;border:1px solid #ffffff12;
-  border-radius:10px;background:#00000012;color:#c4c9cf;
+  min-height:34px;padding:0 5px;border:1px solid var(--center-border);
+  border-radius:var(--center-button-radius);background:var(--center-control);color:#c4c9cf;
 }
-#controlCenterPanel .scene3d-presets{gap:3px;padding:3px;border-radius:12px;background:#00000028}
+#controlCenterPanel .scene3d-presets{gap:3px;padding:3px;border-radius:var(--center-card-radius);background:var(--center-bg)}
 #controlCenterPanel .scene3d-presets button{min-height:30px;border:0;background:transparent}
-#controlCenterPanel .scene3d-controls button:hover:not(:disabled){background:#ffffff18;color:#fff}
-#controlCenterPanel .scene3d-controls button[aria-pressed="true"]{background:#ffffff24;color:#fff;border-color:#ffffff20}
+#controlCenterPanel .scene3d-controls button:hover:not(:disabled){background:var(--center-hover);color:#fff}
+#controlCenterPanel .scene3d-controls button[aria-pressed="true"]{background:var(--center-active);color:#fff;border-color:var(--center-active-border)}
 #controlCenterPanel .scene3d-controls button:disabled{opacity:.35;cursor:default}
 #controlCenterPanel .alarm-control-more-toggle{
   display:flex;align-items:center;justify-content:space-between;
@@ -137,7 +137,7 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
 #controlCenterPanel .control-center-scene > summary::-webkit-details-marker{display:none}
 #controlCenterPanel .control-center-scene[open] > summary{margin-bottom:8px}
 #controlCenterPanel .control-center-scene:not([open]) > .scene3d-controls{display:none}
-#controlCenterPanel .alarm-control-more-toggle:hover{background:#ffffff13}
+#controlCenterPanel .alarm-control-more-toggle:hover{background:var(--center-hover)}
 #controlCenterPanel .alarm-control-more{padding:0 2px 2px;border:0;background:transparent}
 .alarm-control-more.hidden{display:none !important}
 .control-center-command-group + .control-center-command-group{margin-top:12px}
@@ -145,12 +145,12 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
 .alarm-control-more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .alarm-control-more-grid button{
   display:flex;align-items:center;min-width:0;min-height:38px;gap:8px;padding:8px 10px;
-  border:1px solid #ffffff16;border-radius:11px;background:#ffffff09;color:#d3d7dc;
+  border:1px solid var(--center-border);border-radius:var(--center-button-radius);background:var(--center-control);color:#d3d7dc;
   font-size:11px;text-align:left;cursor:pointer;transform:none !important;
 }
 .alarm-control-more-grid button svg{flex:0 0 auto;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.alarm-control-more-grid button:hover:not(:disabled){background:#ffffff18;border-color:#ffffff30;color:#fff}
-.alarm-control-more-grid button.is-active{background:#ffffff20;border-color:#ffffff38;color:#fff}
+.alarm-control-more-grid button:hover:not(:disabled){background:var(--center-hover);border-color:var(--center-active-border);color:#fff}
+.alarm-control-more-grid button.is-active{background:var(--center-active);border-color:var(--center-active-border);color:#fff}
 .alarm-control-more-grid button:disabled{opacity:.35;cursor:not-allowed}
 #controlCenterPanel :is(button,a):focus-visible{outline:2px solid #d9dde3;outline-offset:2px}
 @media(min-width:768px) and (pointer:fine){
@@ -160,14 +160,49 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
   .control-center-overview{grid-template-columns:minmax(0,1fr)}
   .control-center-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media(prefers-reduced-transparency:reduce){
-  #controlCenterPanel{background:#24262a;-webkit-backdrop-filter:none;backdrop-filter:none}
-}
 
-#controlCenterPanel .control-center-sim-start{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:60px;padding:12px 14px;border:1px solid #ffffff24;border-radius:18px;background:#ffffff0d;color:#edf1f4;text-align:left;cursor:pointer}
+#controlCenterPanel .control-center-sim-start{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:60px;padding:12px 14px;border:1px solid var(--center-border);border-radius:var(--center-card-radius);background:var(--center-surface);color:#edf1f4;text-align:left;cursor:pointer}
 #controlCenterPanel .control-center-sim-start[hidden]{display:none!important}
 .control-center-sim-start span{display:flex;flex-direction:column;gap:5px}
 .control-center-sim-start strong{font-size:12px;font-weight:600}
 .control-center-sim-start small{font-size:10px;color:#aeb8c2}
 .control-center-sim-start b{font-size:11px;font-weight:500;color:#d4e4df}
 .control-center-sim-start:disabled{opacity:.4;cursor:default}
+
+/* DAQ has its own operations; flight tools remain available only in flight mode. */
+.control-center-flight-controls{display:flex;flex-direction:column;gap:10px;min-width:0}
+.control-center-daq-controls{display:none}
+html.sim-active.mode-daq #controlCenterHome>.control-center-flight-controls{display:none}
+html.sim-active.mode-daq #controlCenterHome>.control-center-daq-controls{display:flex;flex-direction:column;gap:18px;min-width:0}
+html.sim-active.mode-daq body.daq-simulation-main #controlCenterPanel{width:min(440px,calc(100vw - 24px))}
+#controlCenterPanel .control-center-daq-controls{--ui-bg:var(--center-bg);--ui-surface:var(--center-surface);--ui-line:var(--center-border);--ui-text:#eef0f3;--ui-muted:#aab2bd}
+#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head,.daq-center-section-head){display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:36px;padding:0;border:0;background:transparent}
+#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head>div,.daq-center-section-head>div){display:flex;flex-direction:column;gap:5px}
+#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head strong,.daq-center-section-head h2){margin:0;color:#eef0f3;font-size:13px;font-weight:650;letter-spacing:.04em}
+#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head small,.daq-center-section-head small){color:#aab2bd;font-size:9px;font-weight:550;letter-spacing:.1em}
+#controlCenterPanel .control-center-daq-controls .daq-panel-head>em{color:#aab2bd;font-size:10px;font-style:normal}
+#controlCenterPanel .control-center-daq-controls .daq-run-panel{padding:0 0 16px;border-bottom:1px solid var(--center-border)}
+#controlCenterPanel .control-center-daq-controls .daq-sequence-actions{padding:12px 0 0;gap:7px}
+#controlCenterPanel .control-center-daq-controls :is(.daq-sequence-actions,.daq-valve-actions) button{min-height:38px;font-size:10px;font-weight:600;letter-spacing:0;border-radius:var(--center-button-radius)}
+#controlCenterPanel .control-center-daq-controls .daq-pid-tool{min-height:32px;font-size:10px;font-weight:600;letter-spacing:0}
+#controlCenterPanel .daq-center-interlock{margin:10px 0 0;color:#c9a363;font-size:10px;letter-spacing:.025em}
+#controlCenterPanel .daq-center-interlock.is-ready{color:#92b8a6}
+#controlCenterPanel .daq-valve-command-note{margin:0;padding:6px 0 12px;gap:4px;font-size:9px;line-height:1.5;font-weight:500;letter-spacing:0}
+#controlCenterPanel .daq-valve-command-note span{color:#aab2bd}
+#controlCenterPanel .daq-valve-grid{flex:none;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:max-content;gap:9px;overflow:visible;padding:0}
+#controlCenterPanel .daq-valve-group-label{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:8px 0 0;padding:10px 0 0;border-top:1px solid var(--center-border);font-size:11px;font-weight:600;line-height:1.4}
+#controlCenterPanel .daq-valve-group-label:first-child{margin:0;padding:0;border:0}
+#controlCenterPanel .daq-valve-group-label small{color:#aab2bd;font-size:9px;font-weight:450}
+#controlCenterPanel .daq-valve-group-label.is-water span{color:#9ab5ce}
+#controlCenterPanel .daq-valve-group-label.is-ethanol span{color:#91b9b1}
+#controlCenterPanel .daq-valve-group-label.is-gox span{color:#c69b9e}
+#controlCenterPanel .daq-valve-control{min-width:0;min-height:108px;border-radius:var(--center-card-radius);background:var(--center-surface)}
+#controlCenterPanel .daq-valve-control>button{display:grid;grid-template-columns:30px minmax(0,1fr);width:100%;min-height:62px;padding:10px;gap:4px 8px;border:0;border-radius:0;background:transparent;text-align:left}
+#controlCenterPanel .daq-valve-control>button>span{grid-row:1/3;width:30px;height:30px;font-size:10px}
+#controlCenterPanel .daq-valve-control>button strong{font-size:10px;line-height:1.3;font-weight:600;white-space:normal;text-overflow:clip}
+#controlCenterPanel .daq-valve-control>button em{font-size:9px;line-height:1.3;font-weight:500}
+#controlCenterPanel .daq-valve-control>button.is-open{background:#80b69710}
+#controlCenterPanel .daq-valve-opening{grid-template-columns:auto minmax(0,1fr) 32px;gap:6px;padding:0 10px 8px;font-size:10px}
+#controlCenterPanel .daq-valve-opening input{min-height:28px}
+#controlCenterPanel .daq-valve-actions{position:sticky;bottom:-14px;z-index:2;margin:12px 0 0;padding:12px 0 0;background:var(--center-bg);border-top:1px solid var(--center-border);gap:8px}
+@media(max-width:420px){#controlCenterPanel .daq-valve-grid{grid-template-columns:1fr}}

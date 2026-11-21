@@ -4,11 +4,15 @@
       hour:"numeric", minute:"2-digit", second:"2-digit", hour12:true
     });
     function updateDesktopSystemClock(now = new Date()){
-      if(!el.cameraSystemClock) return;
+      if(!el.cameraSystemClock && !el.daqCurrentTime) return;
       const parts = Object.fromEntries(desktopSystemClockFormatter.formatToParts(now).map(part=>[part.type, part.value]));
-      el.cameraSystemClock.textContent = parts.month + "월 " + parts.day + "일 (" + parts.weekday + ") " +
+      const text = parts.month + "월 " + parts.day + "일 (" + parts.weekday + ") " +
         parts.dayPeriod + " " + parts.hour + ":" + parts.minute + ":" + parts.second;
-      el.cameraSystemClock.dateTime = now.toISOString();
+      [el.cameraSystemClock, el.daqCurrentTime].forEach(clock=>{
+        if(!clock) return;
+        clock.textContent = text;
+        clock.dateTime = now.toISOString();
+      });
     }
 
     // Move the live flight HUD, retaining its data bindings and button handlers.

@@ -1,6 +1,8 @@
     <aside id="controlCenterPanel" class="alarm-history-panel control-center-panel hidden" aria-label="제어 센터" aria-hidden="true">
       <header class="alarm-history-header"><button class="control-center-back" type="button" data-control-center-action="back" aria-label="제어 센터 메뉴로" hidden>‹</button><strong id="controlCenterPageTitle">제어 센터</strong><button class="control-center-close" type="button" data-control-center-action="close" aria-label="제어 센터 닫기">닫기</button></header>
       <div id="controlCenterHome" class="control-center-home">
+<!-- @include ui/shared/daq-control-center.html -->
+      <div class="control-center-flight-controls">
       <div class="control-center-overview">
         <nav class="control-center-shortcuts" aria-label="비행 화면">
           <button class="alarm-control-button" type="button" data-control-center-action="dashboard">
@@ -69,6 +71,7 @@
         </summary>
 <!-- @include ui/shared/scene3d-controls.html -->
       </details>
+      </div>
       </div>
       <div id="controlCenterContent" class="control-center-content" hidden></div>
     </aside>

@@ -11,6 +11,7 @@
     runtimeModules: Object.freeze([
       "flash7-core.js",
       "flash7-shell.js",
+      "flash7-daq.js",
       "flash7-views.js",
       "ui/shared/link-quality.js",
       "ui/shared/layout.js",

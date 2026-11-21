@@ -684,6 +684,17 @@ html:not(.phone-landscape-layout) body #hardwareServoDialog .hardware-servo-pres
 :is(.alarm-history-toggle,.control-center-toggle):focus-visible{outline:1px solid rgba(255,255,255,.7);outline-offset:2px}
 .alarm-history-toggle.has-unread{color:#fff}
 .alarm-history-panel{
+  --center-bg:#151618;
+  --center-surface:#1b1d20;
+  --center-control:#202226;
+  --center-hover:#25272b;
+  --center-active:#2c3035;
+  --center-border:#35383d;
+  --center-active-border:#4a4f56;
+  --center-radius:16px;
+  --center-card-radius:10px;
+  --center-button-radius:8px;
+  --center-shadow:none;
   position:fixed;
   top:38px;
   left:50%;
@@ -693,11 +704,11 @@ html:not(.phone-landscape-layout) body #hardwareServoDialog .hardware-servo-pres
   display:flex;
   flex-direction:column;
   overflow:hidden;
-  border:1px solid #35383d;
-  border-radius:8px;
-  background:#151618;
+  border:1px solid var(--center-border);
+  border-radius:var(--center-radius);
+  background:var(--center-bg);
   color:#eef0f3;
-  box-shadow:0 24px 70px rgba(0,0,0,.48);
+  box-shadow:var(--center-shadow);
   transform:translateX(-50%) !important;
 }
 .alarm-history-panel.hidden{ display:none !important; }
@@ -857,6 +868,18 @@ html.sim-active.mode-daq .daq-control-event-section{ display:flex; }
   line-height:1.5;
   word-break:keep-all;
 }
+
+/* Notifications stay compact beside the independent control center. */
+#alarmHistoryPanel{width:min(380px,calc(100vw - 24px))}
+#alarmHistoryPanel .alarm-history-header{min-height:46px;padding:0 16px}
+#alarmHistoryPanel .alarm-history-header strong{font-size:14px}
+#alarmHistoryPanel .alarm-history-section-header{min-height:40px;padding:0 14px 0 16px;gap:8px}
+#alarmHistoryPanel .alarm-history-item{margin:0 8px;padding:12px 10px 13px 26px}
+#alarmHistoryPanel .alarm-history-item::before{top:17px}
+#alarmHistoryPanel .alarm-history-item-meta{align-items:baseline;gap:10px}
+#alarmHistoryPanel .alarm-history-item-meta strong{min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+#alarmHistoryPanel .alarm-history-item p{overflow-wrap:anywhere}
+#alarmHistoryPanel .alarm-history-section-header button{border-radius:var(--center-button-radius)}
 
 @media (min-width:901px){
   body.dashboard-view-active #controlsCard.controls-card,
