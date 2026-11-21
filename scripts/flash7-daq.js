@@ -244,7 +244,7 @@ function stopDaqMockSequence(){
   daqMockState.sequenceElapsedMs=0;
   daqMockState.valves.fill(0);
   setDaqSequenceStep(0);
-  setDaqMockText("daqElapsedTime","T+ 00:00.0");
+  setDaqElapsedTime(0);
   syncDaqMockControls();
 }
 function startDaqMockSequence(){
@@ -275,6 +275,15 @@ function updateDaqMockSequence(now){
   if(step===4){daqMockState.running=false;daqMockState.armed=false;appendDaqMockLog("Sequence complete · system returned to SAFE","SAFE");}
   syncDaqMockControls();
 }
+function setDaqElapsedTime(milliseconds){
+  const seconds=Math.max(0,Number(milliseconds)||0)/1000;
+  const value=String(Math.floor(seconds/60)).padStart(2,"0")+":"+String(Math.floor(seconds%60)).padStart(2,"0")+"."+String(Math.floor(seconds%1*10));
+  const clock=document.getElementById("daqElapsedTime");
+  if(!clock) return;
+  const digits=clock.querySelector(".daq-timer-digits");
+  if(digits) digits.textContent=value;
+  else clock.textContent="T+ "+value;
+}
 function setDaqMockText(id,value){const node=document.getElementById(id);if(node) node.textContent=value;}
 function setDaqOverviewGauge(id,value,maximum){
   const fill=document.getElementById(id);
@@ -304,8 +313,7 @@ function updateDaqMockUi(force){
   const pt3=Math.max(0,daqMockState.chamberPressure+wave(flow.combustion*.03,3.2,.7));
   const thrust=Math.max(0,flow.combustion*486+wave(flow.combustion*9,4.1,1.4));
   const goxPressure=6.42+wave(.035,1.35,1.1),n2Pressure=4.81+wave(.03,1.1,.8);
-  const secondsElapsed=daqMockState.sequenceElapsedMs/1000;
-  setDaqMockText("daqElapsedTime","T+ "+String(Math.floor(secondsElapsed/60)).padStart(2,"0")+":"+String(Math.floor(secondsElapsed%60)).padStart(2,"0")+"."+String(Math.floor(secondsElapsed%1*10)));
+  setDaqElapsedTime(daqMockState.sequenceElapsedMs);
   setDaqMockText("daqGoxPressure",goxPressure.toFixed(2));setDaqMockText("daqN2Pressure",n2Pressure.toFixed(2));
   setDaqMockText("daqEthanolLevel",daqMockState.ethanolLevel.toFixed(1));setDaqMockText("daqWaterLevel",daqMockState.waterLevel.toFixed(1));
   setDaqMockText("daqSvgEthanolLevel",daqMockState.ethanolLevel.toFixed(0)+"%");setDaqMockText("daqSvgWaterLevel",daqMockState.waterLevel.toFixed(0)+"%");

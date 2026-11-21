@@ -127,7 +127,7 @@
   <!-- Preload 축소: AP 모드/저메모리 환경에서 동시 요청 버스트를 줄임 -->
   <script>
     (function(){
-    var ASSET_VER = "20261121-daq-center-scrollbars";
+    var ASSET_VER = "20261121-daq-sequence-inline";
       window.__flashBoot = window.__flashBoot || {jsReady:false,lastError:"",phase:"static_loader",version:ASSET_VER};
       var isLocalPreview = !!window.__flashBoot.localPreview;
       var beaconEnabled = (window.__flashBoot.beaconEnabled !== false);
@@ -365,7 +365,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="styles/flash7-app.css?v=20261121-daq-center-scrollbars">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261121-daq-sequence-inline">
 </head>
 <body>
   <!-- ✅ LOCKOUT 배경 오버레이 -->
@@ -1326,7 +1326,7 @@
         <div class="daq-sequence-row">
           <section class="daq-sequence-time-panel" aria-label="시퀀스 경과 시간">
             <h2>SEQUENCE TIME</h2>
-            <strong id="daqElapsedTime" class="daq-console-elapsed" aria-label="시험 경과 시간">T+ 00:00.0</strong>
+            <div id="daqElapsedTime" class="daq-console-elapsed" aria-label="시험 경과 시간"><span class="daq-time-prefix">T+</span> <strong class="daq-timer-digits">00:00.0</strong></div>
           </section>
         <section class="daq-sequence-panel" aria-label="시험 시퀀스">
           <header><h2>TEST SEQUENCE</h2><div><strong id="daqSequenceState">STANDBY</strong><span id="daqSequenceProgress">01 / 05</span></div></header>
@@ -4988,6 +4988,6 @@
     <button id="controlsOverlayClose" class="controls-overlay-close" type="button" aria-label="close">×</button>
     </div>
 
-  <script src="scripts/flash7-watchdog.js?v=20261121-daq-center-scrollbars"></script>
+  <script src="scripts/flash7-watchdog.js?v=20261121-daq-sequence-inline"></script>
 </body>
 </html> 
