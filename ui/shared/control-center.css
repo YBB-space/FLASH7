@@ -175,6 +175,10 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
 html.sim-active.mode-daq #controlCenterHome>.control-center-flight-controls{display:none}
 html.sim-active.mode-daq #controlCenterHome>.control-center-daq-controls{display:flex;flex-direction:column;gap:10px;min-width:0}
 html.sim-active.mode-daq body.daq-simulation-main #controlCenterPanel{width:min(380px,calc(100vw - 24px));height:auto;bottom:auto;max-height:calc(100dvh - 58px - env(safe-area-inset-bottom,0px))}
+html.sim-active.mode-daq #controlCenterPanel,
+html.sim-active.mode-daq #controlCenterContent{scrollbar-width:none}
+html.sim-active.mode-daq #controlCenterPanel::-webkit-scrollbar,
+html.sim-active.mode-daq #controlCenterContent::-webkit-scrollbar{display:none;width:0;height:0}
 #controlCenterPanel .control-center-daq-controls{--ui-bg:var(--center-bg);--ui-surface:var(--center-surface);--ui-line:var(--center-border);--ui-text:#eef0f3;--ui-muted:#aab2bd}
 #controlCenterPanel .control-center-daq-controls .daq-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:20px;padding:0;border:0;background:transparent}
 #controlCenterPanel .control-center-daq-controls .daq-panel-head>div{display:flex;flex-direction:column;gap:5px}
