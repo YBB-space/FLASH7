@@ -436,21 +436,25 @@
       <header class="alarm-history-header"><button class="control-center-back" type="button" data-control-center-action="back" aria-label="제어 센터 메뉴로" hidden>‹</button><strong id="controlCenterPageTitle">제어 센터</strong><button class="control-center-close" type="button" data-control-center-action="close" aria-label="제어 센터 닫기">닫기</button></header>
       <div id="controlCenterHome" class="control-center-home">
 <div id="daqControlCenterControls" class="control-center-daq-controls">
-            <section class="daq-run-panel" aria-label="시험 실행 제어">
-              <div class="daq-panel-head"><div><small>TEST OPERATIONS</small><strong>RUN CONTROL</strong></div><em id="daqRunReadiness">STANDBY</em></div>
+            <section class="daq-run-panel control-center-daq-card" aria-label="시험 실행 제어">
+              <div class="daq-panel-head"><strong>RUN CONTROL</strong><em id="daqRunReadiness">READY</em></div>
               <div class="daq-sequence-actions">
                 <button id="daqArmBtn" type="button">ARM TEST</button>
                 <button id="daqRunBtn" type="button">START SEQUENCE</button>
                 <button id="daqAbortBtn" class="is-abort" type="button">ABORT</button>
               </div>
             </section>
-  <section class="daq-valve-section" aria-label="밸브 제어">
-    <header class="daq-center-section-head"><div><small>DIGITAL OUTPUT</small><h2>VALVE CONTROL</h2></div>
-                  <button id="daqValveLockBtn" class="daq-pid-tool is-locked" type="button" aria-pressed="true" title="밸브 제어 잠금 해제">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3M6 10h12v10H6Z"></path></svg>
-                    <span>LOCKED</span>
-                  </button>
-    </header>
+  <details class="daq-valve-section control-center-scene">
+    <summary class="alarm-control-more-toggle">
+      <span class="alarm-control-more-toggle-label"><strong>VALVE CONTROL</strong><small>물 · 에탄올 · 산소 · 질소 퍼지</small></span>
+      <svg class="alarm-control-more-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5"/></svg>
+    </summary>
+    <div class="daq-valve-section-body">
+      <div class="daq-center-valve-toolbar"><strong>MANUAL CONTROL</strong>
+        <button id="daqValveLockBtn" class="daq-pid-tool is-locked" type="button" aria-pressed="true" title="밸브 제어 잠금 해제">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3M6 10h12v10H6Z"></path></svg><span>LOCKED</span>
+        </button>
+      </div>
     <p id="daqValvePanelInterlock" class="daq-center-interlock">INTERLOCKED</p>
               <p class="daq-valve-command-note">SIMULATION · 개도 명령 0–100% <span>실제 밸브 개도 피드백 아님</span></p>
               <div class="daq-valve-grid">
@@ -473,7 +477,8 @@
                 <button id="daqPurgeBtn" type="button">N₂ PURGE</button>
               </div>
 
-  </section>
+    </div>
+  </details>
 </div>
 
       <div class="control-center-flight-controls">
@@ -1067,13 +1072,11 @@
       <div class="top-right">
         <div class="daq-board-status" aria-label="DAQ 보드 상태">
           <section class="daq-board-stage">
-            <div class="daq-board-online"><i aria-hidden="true"></i><strong>STAGE 2</strong><b>ONLINE</b></div>
+            <div class="daq-board-identity"><strong>DAQ</strong><span>SIMULATION</span></div>
             <div class="daq-board-metrics">
+              <span>STATE <b id="daqBoardState">STANDBY</b></span>
               <span>ARM <b id="daqBoardArm">OFF</b></span>
-              <span>STORAGE <b id="daqBoardStorage">0.0%</b></span>
-              <span>TEMP <b id="daqBoardTemp">--</b></span>
-              <span>LINK <b id="daqBoardLinkRate">68</b>Hz</span>
-              <span>STATE <b id="daqBoardState">PRE FLIGHT</b></span>
+              <span>VALVES <b id="daqBoardValveLock">LOCKED</b></span>
             </div>
           </section>
           <div class="daq-board-tools">
@@ -1420,7 +1423,7 @@
 
           <aside class="daq-side-stack">
             <section class="daq-panel daq-sensor-panel">
-              <div class="daq-panel-head"><div><small>PROPULSION</small><strong>INSTRUMENTS</strong></div><em>100 SPS</em></div>
+              <div class="daq-panel-head"><div><small>PROPULSION</small><strong>INSTRUMENTS</strong></div><em>SIMULATION</em></div>
               <div class="daq-overview-grid" aria-label="주요 계측값">
                 <article class="daq-overview-card is-primary is-gox">
                   <div><small>GOX SUPPLY</small><strong id="daqGoxPressure">6.42</strong></div>

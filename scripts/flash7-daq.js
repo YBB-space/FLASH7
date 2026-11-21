@@ -218,6 +218,9 @@ function syncDaqSequenceReadout(){
   const step=daqMockState.sequenceStep;
   const labels=["STANDBY","PRESS","PURGE","IGNITION","SHUTDOWN"];
   setDaqMockText("daqSequenceState",labels[step]);
+  setDaqMockText("daqBoardState",daqMockState.running ? labels[step] : (daqMockState.armed ? "ARMED" : (step===4 ? "COMPLETE" : "STANDBY")));
+  setDaqMockText("daqBoardArm",daqMockState.armed || daqMockState.running ? "ON" : "OFF");
+  setDaqMockText("daqBoardValveLock",daqMockState.valveLocked ? "LOCKED" : "UNLOCKED");
   setDaqMockText("daqSequenceProgress",String(step+1).padStart(2,"0")+" / 05");
   document.querySelectorAll(".daq-sequence-track > span").forEach((node,index)=>{
     node.classList.toggle("is-active",index===step);
@@ -303,10 +306,6 @@ function updateDaqMockUi(force){
   const goxPressure=6.42+wave(.035,1.35,1.1),n2Pressure=4.81+wave(.03,1.1,.8);
   const secondsElapsed=daqMockState.sequenceElapsedMs/1000;
   setDaqMockText("daqElapsedTime","T+ "+String(Math.floor(secondsElapsed/60)).padStart(2,"0")+":"+String(Math.floor(secondsElapsed%60)).padStart(2,"0")+"."+String(Math.floor(secondsElapsed%1*10)));
-  setDaqMockText("daqBoardState",daqMockState.running ? "TEST RUN" : (daqMockState.armed ? "ARMED" : (daqMockState.lastSequenceStep===4 ? "SAFE" : "PRE FLIGHT")));
-  setDaqMockText("daqBoardLinkRate",String(Math.round(68+wave(2,.55,.4))));
-  setDaqMockText("daqBoardTemp","--");setDaqMockText("daqBoardStorage","0.0%");
-  setDaqMockText("daqBoardArm",daqMockState.armed || daqMockState.running ? "ON" : "OFF");
   setDaqMockText("daqGoxPressure",goxPressure.toFixed(2));setDaqMockText("daqN2Pressure",n2Pressure.toFixed(2));
   setDaqMockText("daqEthanolLevel",daqMockState.ethanolLevel.toFixed(1));setDaqMockText("daqWaterLevel",daqMockState.waterLevel.toFixed(1));
   setDaqMockText("daqSvgEthanolLevel",daqMockState.ethanolLevel.toFixed(0)+"%");setDaqMockText("daqSvgWaterLevel",daqMockState.waterLevel.toFixed(0)+"%");

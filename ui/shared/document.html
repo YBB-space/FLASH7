@@ -468,13 +468,11 @@
       <div class="top-right">
         <div class="daq-board-status" aria-label="DAQ 보드 상태">
           <section class="daq-board-stage">
-            <div class="daq-board-online"><i aria-hidden="true"></i><strong>STAGE 2</strong><b>ONLINE</b></div>
+            <div class="daq-board-identity"><strong>DAQ</strong><span>SIMULATION</span></div>
             <div class="daq-board-metrics">
+              <span>STATE <b id="daqBoardState">STANDBY</b></span>
               <span>ARM <b id="daqBoardArm">OFF</b></span>
-              <span>STORAGE <b id="daqBoardStorage">0.0%</b></span>
-              <span>TEMP <b id="daqBoardTemp">--</b></span>
-              <span>LINK <b id="daqBoardLinkRate">68</b>Hz</span>
-              <span>STATE <b id="daqBoardState">PRE FLIGHT</b></span>
+              <span>VALVES <b id="daqBoardValveLock">LOCKED</b></span>
             </div>
           </section>
           <div class="daq-board-tools">
@@ -816,7 +814,7 @@
 
           <aside class="daq-side-stack">
             <section class="daq-panel daq-sensor-panel">
-              <div class="daq-panel-head"><div><small>PROPULSION</small><strong>INSTRUMENTS</strong></div><em>100 SPS</em></div>
+              <div class="daq-panel-head"><div><small>PROPULSION</small><strong>INSTRUMENTS</strong></div><em>SIMULATION</em></div>
               <div class="daq-overview-grid" aria-label="주요 계측값">
                 <article class="daq-overview-card is-primary is-gox">
                   <div><small>GOX SUPPLY</small><strong id="daqGoxPressure">6.42</strong></div>

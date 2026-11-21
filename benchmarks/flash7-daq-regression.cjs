@@ -39,9 +39,13 @@ assert.ok(Number(feedTap[1])>Number(fuelValve[1])&&Number(feedTap[1])<engineX,'P
 assert.equal(feedTap[2],fuelValve[2],'PT1 taps the same ethanol feed segment as V3');
 for(const name of [...html.matchAll(/data-daq-flow="([^"]+)"/g)].map(m=>m[1])) assert.ok(name in snapshot('getDaqMockFlows(createDaqMockState())'),'unknown flow segment '+name);
 run('resetDaqMockState()');
+assert.equal(nodes.get('daqBoardState').textContent,'STANDBY');
+assert.equal(nodes.get('daqBoardArm').textContent,'OFF');
+assert.equal(nodes.get('daqBoardValveLock').textContent,'LOCKED');
 assert.equal(run('daqMockState.valves.length'),10);
 assert.equal(run('requestDaqMockValve(3,37)'),false,'locked commands are rejected');
 run('setDaqValveLock(false)');
+assert.equal(nodes.get('daqBoardValveLock').textContent,'UNLOCKED');
 assert.equal(run('requestDaqMockValve(3,37)'),true);
 assert.equal(run('daqMockState.valves[2]'),37,'partial opening is retained');
 assert.equal(run('setDaqMockValve(0,100)'),false,'invalid indexes cannot command another valve');
@@ -76,6 +80,8 @@ assert.equal(run('requestDaqMockValve(5,100)'),false,'automatic sequence owns va
 now+=2000;run('updateDaqMockSequence(Date.now())');assert.equal(run('daqMockState.valves[9]'),100,'purge phase uses V10');assert.equal(run('daqMockState.valves[5]'),0,'purge must not use the water gas vent');
 assert.equal(nodes.get('daqSequenceProgress').textContent,'03 / 05');
 assert.equal(nodes.get('daqSequenceState').textContent,'PURGE');
+assert.equal(nodes.get('daqBoardState').textContent,'PURGE');
+assert.equal(nodes.get('daqBoardArm').textContent,'ON');
 now+=2000;run('updateDaqMockSequence(Date.now())');assert.equal(run('daqMockState.valves[9]'),0);assert.equal(run('daqMockState.valves[6]'),100);
 now+=5000;run('updateDaqMockSequence(Date.now())');assert.ok(run('daqMockState.valves.every(v=>v===0)'));assert.equal(run('daqMockState.running'),false);
 assert.equal(nodes.get('daqRunReadiness').textContent,'COMPLETE');
@@ -86,5 +92,7 @@ run('abortDaqMockSequence()');assert.ok(run('daqMockState.valves.every(v=>v===0)
 assert.equal(nodes.get('daqRunReadiness').textContent,'READY');
 assert.equal(nodes.get('daqSequenceProgress').textContent,'01 / 05');
 assert.equal(nodes.get('daqSequenceState').textContent,'STANDBY');
+assert.equal(nodes.get('daqBoardState').textContent,'STANDBY');
+assert.equal(nodes.get('daqBoardArm').textContent,'OFF');
 run('updateDaqMockUi(true)');assert.equal(nodes.get('daqSvgPt1').textContent,'0.00');assert.ok(Number.isFinite(Number(nodes.get('daqEngineTemp').textContent)));
 console.log('FLASH7 DAQ: PASS (10-valve mapping, percent commands, interlocks, water outlets, vents, purge isolation, time-based pressures/temperature, phase skipping and abort)');

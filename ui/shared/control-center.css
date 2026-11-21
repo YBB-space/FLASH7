@@ -173,15 +173,15 @@ body:not(.camera-view-active) .control-center-shortcuts{grid-template-columns:re
 .control-center-flight-controls{display:flex;flex-direction:column;gap:10px;min-width:0}
 .control-center-daq-controls{display:none}
 html.sim-active.mode-daq #controlCenterHome>.control-center-flight-controls{display:none}
-html.sim-active.mode-daq #controlCenterHome>.control-center-daq-controls{display:flex;flex-direction:column;gap:18px;min-width:0}
-html.sim-active.mode-daq body.daq-simulation-main #controlCenterPanel{width:min(440px,calc(100vw - 24px))}
+html.sim-active.mode-daq #controlCenterHome>.control-center-daq-controls{display:flex;flex-direction:column;gap:10px;min-width:0}
+html.sim-active.mode-daq body.daq-simulation-main #controlCenterPanel{width:min(380px,calc(100vw - 24px));height:auto;bottom:auto;max-height:calc(100dvh - 58px - env(safe-area-inset-bottom,0px))}
 #controlCenterPanel .control-center-daq-controls{--ui-bg:var(--center-bg);--ui-surface:var(--center-surface);--ui-line:var(--center-border);--ui-text:#eef0f3;--ui-muted:#aab2bd}
-#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head,.daq-center-section-head){display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:36px;padding:0;border:0;background:transparent}
-#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head>div,.daq-center-section-head>div){display:flex;flex-direction:column;gap:5px}
-#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head strong,.daq-center-section-head h2){margin:0;color:#eef0f3;font-size:13px;font-weight:650;letter-spacing:.04em}
-#controlCenterPanel .control-center-daq-controls :is(.daq-panel-head small,.daq-center-section-head small){color:#aab2bd;font-size:9px;font-weight:550;letter-spacing:.1em}
+#controlCenterPanel .control-center-daq-controls .daq-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:20px;padding:0;border:0;background:transparent}
+#controlCenterPanel .control-center-daq-controls .daq-panel-head>div{display:flex;flex-direction:column;gap:5px}
+#controlCenterPanel .control-center-daq-controls .daq-panel-head strong{margin:0;color:#eef0f3;font-size:13px;font-weight:650;letter-spacing:.04em}
+#controlCenterPanel .control-center-daq-controls .daq-panel-head small{color:#aab2bd;font-size:9px;font-weight:550;letter-spacing:.1em}
 #controlCenterPanel .control-center-daq-controls .daq-panel-head>em{color:#aab2bd;font-size:10px;font-style:normal}
-#controlCenterPanel .control-center-daq-controls .daq-run-panel{padding:0 0 16px;border-bottom:1px solid var(--center-border)}
+#controlCenterPanel .control-center-daq-controls .daq-run-panel{padding:12px 14px;border:1px solid var(--center-border);border-radius:var(--center-card-radius);background:var(--center-surface)}
 #controlCenterPanel .control-center-daq-controls .daq-sequence-actions{padding:12px 0 0;gap:7px}
 #controlCenterPanel .control-center-daq-controls :is(.daq-sequence-actions,.daq-valve-actions) button{min-height:38px;font-size:10px;font-weight:600;letter-spacing:0;border-radius:var(--center-button-radius)}
 #controlCenterPanel .control-center-daq-controls .daq-pid-tool{min-height:32px;font-size:10px;font-weight:600;letter-spacing:0}
@@ -206,3 +206,14 @@ html.sim-active.mode-daq body.daq-simulation-main #controlCenterPanel{width:min(
 #controlCenterPanel .daq-valve-opening input{min-height:28px}
 #controlCenterPanel .daq-valve-actions{position:sticky;bottom:-14px;z-index:2;margin:12px 0 0;padding:12px 0 0;background:var(--center-bg);border-top:1px solid var(--center-border);gap:8px}
 @media(max-width:420px){#controlCenterPanel .daq-valve-grid{grid-template-columns:1fr}}
+
+/* DAQ uses the same cards, expandable group and muted buttons as flight controls. */
+#controlCenterPanel .daq-valve-section-body{padding:12px 2px 2px}
+#controlCenterPanel .daq-valve-section:not([open])>.daq-valve-section-body{display:none}
+#controlCenterPanel .daq-center-valve-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 8px}
+#controlCenterPanel .daq-center-valve-toolbar>strong{font-size:10px;font-weight:500;color:#acb2ba}
+#controlCenterPanel .daq-run-panel .daq-panel-head strong{font-size:12px;font-weight:600;letter-spacing:0}
+#controlCenterPanel .control-center-daq-controls .daq-sequence-actions button{background:var(--center-control);border-color:var(--center-border);color:#d3d7dc;font-size:10px;font-weight:500}
+#controlCenterPanel .control-center-daq-controls .daq-sequence-actions button:hover:not(:disabled){background:var(--center-hover);border-color:var(--center-active-border);color:#fff}
+#controlCenterPanel #daqRunBtn:not(:disabled),#controlCenterPanel #daqArmBtn.is-armed{background:var(--center-active);border-color:var(--center-active-border);color:#fff}
+#controlCenterPanel #daqAbortBtn.is-abort{color:#dfb8be;border-color:#bb788134;background:#8b465116}

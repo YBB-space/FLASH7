@@ -4544,8 +4544,7 @@
       if(next) syncAlarmControlButtons();
       else{
         setAlarmControlMoreOpen(false);
-        const scene = el.controlCenterPanel.querySelector(".control-center-scene");
-        if(scene) scene.open = false;
+        el.controlCenterPanel.querySelectorAll(".control-center-scene").forEach(scene=>{ scene.open = false; });
       }
     }
     function setAlarmHistoryOpen(open){
