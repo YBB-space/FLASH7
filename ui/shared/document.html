@@ -127,7 +127,7 @@
   <!-- Preload 축소: AP 모드/저메모리 환경에서 동시 요청 버스트를 줄임 -->
   <script>
     (function(){
-    var ASSET_VER = "20261121-daq-sequence-inline";
+    var ASSET_VER = "20261123-daq-pid-bar";
       window.__flashBoot = window.__flashBoot || {jsReady:false,lastError:"",phase:"static_loader",version:ASSET_VER};
       var isLocalPreview = !!window.__flashBoot.localPreview;
       var beaconEnabled = (window.__flashBoot.beaconEnabled !== false);
@@ -365,7 +365,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="styles/flash7-app.css?v=20261121-daq-sequence-inline">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261123-daq-pid-bar">
 </head>
 <body>
   <!-- ✅ LOCKOUT 배경 오버레이 -->
@@ -740,11 +740,11 @@
             <div class="daq-pid-stage">
               <svg class="daq-pid-svg" viewBox="0 0 1220 675" role="img" aria-labelledby="daqPidTitle daqPidDescription">
                 <title id="daqPidTitle">DAQ 유체 공급·벤트·퍼지 계통</title>
-                <desc id="daqPidDescription">V1 물 가압, V2 외부 물 분사, V3 에탄올 공급, V4 에탄올 가압, V5 에탄올 벤트, V6 물 탱크 질소 벤트, V7 산소 공급, V8 물 벤트, V9 산소 벤트, V10 질소 산소 계통 퍼지. PT1은 V3 후단, PT3과 TT1은 엔진 계측입니다. 퍼센트는 시뮬레이션 개도 명령입니다.</desc>
+                <desc id="daqPidDescription">V1 물 가압, V2 외부 물 분사, V3 에탄올 공급, V4 에탄올 가압, V5 에탄올 벤트, V6 물 탱크 질소 벤트, V7 산소 공급, V8 물 벤트, V9 산소 벤트, V10 질소 산소 계통 퍼지. V9는 DR75 레귤레이터와 V7 사이의 공급측 벤트입니다. PT1은 V3 후단, PT2는 엔진 직전 GOX 라인, PT3과 TT1은 엔진 계측입니다. 압력 단위는 bar입니다. 퍼센트는 시뮬레이션 개도 명령입니다.</desc>
                 <defs>
                   <marker id="daqArrowGox" markerWidth="6" markerHeight="6" refX="5.5" refY="3" orient="auto"><path d="M0 0 6 3 0 6Z" fill="#d95c67"/></marker>
                   <marker id="daqArrowN2" markerWidth="6" markerHeight="6" refX="5.5" refY="3" orient="auto"><path d="M0 0 6 3 0 6Z" fill="#378d6b"/></marker>
-                  <marker id="daqArrowEth" markerWidth="6" markerHeight="6" refX="5.5" refY="3" orient="auto"><path d="M0 0 6 3 0 6Z" fill="#2d9992"/></marker>
+                  <marker id="daqArrowEth" markerWidth="6" markerHeight="6" refX="5.5" refY="3" orient="auto"><path d="M0 0 6 3 0 6Z" fill="#c7a36b"/></marker>
                   <marker id="daqArrowWater" markerWidth="6" markerHeight="6" refX="5.5" refY="3" orient="auto"><path d="M0 0 6 3 0 6Z" fill="#4779c6"/></marker>
                 </defs>
                 <g class="daq-pid-lanes" aria-hidden="true">
@@ -760,21 +760,21 @@
                 <path class="daq-line n2" data-daq-flow="waterPress" d="M287 180 H410" marker-end="url(#daqArrowN2)"></path>
                 <path class="daq-line n2" data-daq-flow="ethanolPress" d="M287 180 V385 H410" marker-end="url(#daqArrowN2)"></path>
                 <path class="daq-line n2 is-vent" data-daq-flow="waterGasVent" d="M470 140 V120 H948" marker-end="url(#daqArrowN2)"></path>
-                <path class="daq-line water" data-daq-flow="waterSpray" d="M470 220 V260 H1120 V290" marker-end="url(#daqArrowWater)"></path>
+                <path class="daq-line water" data-daq-flow="waterSpray" d="M470 220 V260 H1193 V410" marker-end="url(#daqArrowWater)"></path>
                 <path class="daq-line water is-vent" data-daq-flow="waterVent" d="M530 190 H948" marker-end="url(#daqArrowWater)"></path>
-                <path class="daq-line ethanol" data-daq-flow="ethanolFeed" d="M530 400 H1030 V490 H1070" marker-end="url(#daqArrowEth)"></path>
+                <path class="daq-line ethanol" data-daq-flow="ethanolFeed" d="M530 400 H1070" marker-end="url(#daqArrowEth)"></path>
                 <path class="daq-line ethanol is-vent" data-daq-flow="ethanolVent" d="M470 340 V330 H948" marker-end="url(#daqArrowEth)"></path>
-                <path class="daq-line gox" data-daq-flow="goxSupply" d="M124 530 H665"></path>
-                <path class="daq-line gox" data-daq-flow="goxFeed" d="M665 530 H1070" marker-end="url(#daqArrowGox)"></path>
-                <path class="daq-line gox is-vent" data-daq-flow="goxVent" d="M800 530 V590 H948" marker-end="url(#daqArrowGox)"></path>
+                <path class="daq-line gox" data-daq-flow="goxSupply" d="M124 530 H360"></path>
+                <path class="daq-line gox" data-daq-flow="goxMain" d="M360 530 H530"></path>
+                <path class="daq-line gox" data-daq-flow="goxFeed" d="M530 530 H994 V440 H1070" marker-end="url(#daqArrowGox)"></path>
+                <path class="daq-line gox is-vent" data-daq-flow="goxVent" d="M360 530 V590 H470" marker-end="url(#daqArrowGox)"></path>
                 <path class="daq-pipe-crossing" d="M287 520 Q308 530 287 540" aria-hidden="true"></path>
                 <path class="daq-line n2" data-daq-flow="purgeSupply" d="M287 180 V520 Q308 530 287 540 V610 H665 V530" marker-end="url(#daqArrowN2)"></path>
-                <path class="daq-line n2 is-purge-overlay" data-daq-flow="purgeFeed" d="M665 530 H1070" marker-end="url(#daqArrowN2)"></path>
-                <path class="daq-line n2 is-vent is-purge-overlay" data-daq-flow="purgeVent" d="M800 530 V590 H948" marker-end="url(#daqArrowN2)"></path>
+                <path class="daq-line n2 is-purge-overlay" data-daq-flow="purgeFeed" d="M665 530 H994 V440 H1070" marker-end="url(#daqArrowN2)"></path>
                 <circle class="daq-junction" cx="287" cy="180" r="4"></circle>
                 <circle class="daq-junction" cx="287" cy="385" r="4"></circle>
                 <circle class="daq-junction" cx="665" cy="530" r="4"></circle>
-                <circle class="daq-junction" cx="800" cy="530" r="4"></circle>
+                <circle class="daq-junction" cx="360" cy="530" r="4"></circle>
                 <g class="daq-check-valve" transform="translate(665 570)" aria-label="퍼지 역류 방지"><path d="M-7 6 0-6 7 6ZM-8-8H8"></path></g>
                 <g class="daq-equipment daq-cylinder" transform="translate(60 45)"><rect width="64" height="54" rx="14"></rect><text x="32" y="33">N₂</text></g>
                 <g class="daq-equipment daq-regulator" transform="translate(185 72)"><circle r="25"></circle><text y="-3">DR80</text><text y="12">REG</text></g>
@@ -782,8 +782,8 @@
                 <g class="daq-equipment daq-tank is-ethanol" transform="translate(410 340)"><rect width="120" height="100" rx="12"></rect><path d="M12 58h96"></path><text x="60" y="33">ETHANOL</text><text x="60" y="85" id="daqSvgEthanolLevel">78%</text></g>
                 <g class="daq-equipment daq-cylinder is-gox" transform="translate(60 490)"><rect width="64" height="80" rx="14"></rect><path d="M14 8h36M14 72h36"></path><text x="32" y="45">GOX</text></g>
                 <g class="daq-equipment daq-regulator is-gox" transform="translate(185 530)"><circle r="25"></circle><text y="-3">DR75</text><text y="12">REG</text></g>
-                <g class="daq-equipment daq-engine" transform="translate(1070 470)"><path class="daq-engine-outline" d="M0 8H46V21H60L102 2V104L60 85H46V98H0Z"></path><text class="daq-engine-label" x="51" y="-15">ENGINE</text></g>
-                <g class="daq-outlet water" data-daq-outlet="waterSpray" transform="translate(1120 294) rotate(90)"><path d="M0-5V5M5-9 22-16M6 0H28M5 9 22 16"></path></g>
+                <g class="daq-equipment daq-engine" transform="translate(1070 380)"><path class="daq-engine-outline" d="M0 8H46V21H60L102 2V104L60 85H46V98H0Z"></path><text class="daq-engine-label" x="51" y="-15">ENGINE</text></g>
+                <g class="daq-outlet water" data-daq-outlet="waterSpray" transform="translate(1193 414) rotate(90)"><path d="M0-5V5M5-9 22-16M6 0H28M5 9 22 16"></path></g>
                 <g class="daq-svg-valve" data-daq-svg-valve="1" transform="translate(348 180)" role="button" tabindex="0" aria-label="V1 물 탱크 질소 가압"><rect class="daq-valve-hit-target" x="-28" y="-34" width="56" height="66" rx="5"></rect><title>V1 물 탱크 질소 가압</title><path d="M-18-15 0 0-18 15ZM18-15 0 0 18 15Z"></path><text class="daq-svg-valve-id" y="-21">V1</text><text class="daq-svg-opening" y="26" data-daq-svg-opening="1">0%</text></g>
                 <g class="daq-svg-valve" data-daq-svg-valve="2" transform="translate(746 260)" role="button" tabindex="0" aria-label="V2 물 외부 분사"><rect class="daq-valve-hit-target" x="-28" y="-34" width="56" height="66" rx="5"></rect><title>V2 물 외부 분사</title><path d="M-18-15 0 0-18 15ZM18-15 0 0 18 15Z"></path><text class="daq-svg-valve-id" y="-21">V2</text><text class="daq-svg-opening" y="26" data-daq-svg-opening="2">0%</text></g>
                 <g class="daq-svg-valve" data-daq-svg-valve="3" transform="translate(746 400)" role="button" tabindex="0" aria-label="V3 에탄올 메인 공급"><rect class="daq-valve-hit-target" x="-28" y="-34" width="56" height="66" rx="5"></rect><title>V3 에탄올 메인 공급</title><path d="M-18-15 0 0-18 15ZM18-15 0 0 18 15Z"></path><text class="daq-svg-valve-id" y="-21">V3</text><text class="daq-svg-opening" y="26" data-daq-svg-opening="3">0%</text></g>
@@ -792,21 +792,23 @@
                 <g class="daq-svg-valve" data-daq-svg-valve="6" transform="translate(746 120)" role="button" tabindex="0" aria-label="V6 물 탱크 질소 벤트"><rect class="daq-valve-hit-target" x="-28" y="-34" width="56" height="66" rx="5"></rect><title>V6 물 탱크 질소 벤트</title><path d="M-18-15 0 0-18 15ZM18-15 0 0 18 15Z"></path><text class="daq-svg-valve-id" y="-21">V6</text><text class="daq-svg-opening" y="26" data-daq-svg-opening="6">0%</text></g>
                 <g class="daq-svg-valve" data-daq-svg-valve="7" transform="translate(530 530)" role="button" tabindex="0" aria-label="V7 기체 산소 메인 공급"><rect class="daq-valve-hit-target" x="-28" y="-34" width="56" height="66" rx="5"></rect><title>V7 기체 산소 메인 공급</title><path d="M-18-15 0 0-18 15ZM18-15 0 0 18 15Z"></path><text class="daq-svg-valve-id" y="-21">V7</text><text class="daq-svg-opening" y="26" data-daq-svg-opening="7">0%</text></g>
                 <g class="daq-svg-valve" data-daq-svg-valve="8" transform="translate(746 190)" role="button" tabindex="0" aria-label="V8 물 벤트"><rect class="daq-valve-hit-target" x="-28" y="-34" width="56" height="66" rx="5"></rect><title>V8 물 벤트</title><path d="M-18-15 0 0-18 15ZM18-15 0 0 18 15Z"></path><text class="daq-svg-valve-id" y="-21">V8</text><text class="daq-svg-opening" y="26" data-daq-svg-opening="8">0%</text></g>
-                <g class="daq-svg-valve" data-daq-svg-valve="9" transform="translate(881 590)" role="button" tabindex="0" aria-label="V9 기체 산소 벤트"><rect class="daq-valve-hit-target" x="-28" y="-34" width="56" height="66" rx="5"></rect><title>V9 기체 산소 벤트</title><path d="M-18-15 0 0-18 15ZM18-15 0 0 18 15Z"></path><text class="daq-svg-valve-id" y="-21">V9</text><text class="daq-svg-opening" y="26" data-daq-svg-opening="9">0%</text></g>
+                <g class="daq-svg-valve" data-daq-svg-valve="9" transform="translate(415 590)" role="button" tabindex="0" aria-label="V9 기체 산소 벤트"><rect class="daq-valve-hit-target" x="-28" y="-34" width="56" height="66" rx="5"></rect><title>V9 기체 산소 벤트</title><path d="M-18-15 0 0-18 15ZM18-15 0 0 18 15Z"></path><text class="daq-svg-valve-id" y="-21">V9</text><text class="daq-svg-opening" y="26" data-daq-svg-opening="9">0%</text></g>
                 <g class="daq-svg-valve" data-daq-svg-valve="10" transform="translate(530 610)" role="button" tabindex="0" aria-label="V10 질소에서 기체 산소 계통으로 퍼지"><rect class="daq-valve-hit-target" x="-28" y="-34" width="56" height="66" rx="5"></rect><title>V10 질소에서 기체 산소 계통으로 퍼지</title><path d="M-18-15 0 0-18 15ZM18-15 0 0 18 15Z"></path><text class="daq-svg-valve-id" y="-21">V10</text><text class="daq-svg-opening" y="26" data-daq-svg-opening="10">0%</text></g>
                 <path class="daq-instrument-tap ethanol" d="M894 400 V419"></path>
-                <g class="daq-pt" transform="translate(894 440)"><rect x="-38" y="-21" width="76" height="42" rx="7"></rect><text y="-5">PT1 · MPa</text><text y="14" id="daqSvgPt1">0.00</text></g>
-                <path class="daq-instrument-tap" d="M1084 568 V594 H1063 V619"></path>
-                <g class="daq-pt" transform="translate(1063 640)"><rect x="-38" y="-21" width="76" height="42" rx="7"></rect><text y="-5">PT3 · MPa</text><text y="14" id="daqSvgPt3">0.00</text></g>
-                <path class="daq-instrument-tap" d="M1100 568 V594 H1165 V619"></path>
-                <g class="daq-pt daq-temperature" transform="translate(1165 640)"><rect x="-38" y="-21" width="76" height="42" rx="7"></rect><text y="-5">TT1 · °C</text><text y="14" id="daqSvgEngineTemp">20.0</text></g>
+                <g class="daq-pt" transform="translate(894 440)"><rect x="-38" y="-21" width="76" height="42" rx="7"></rect><text y="-5">PT1 · bar</text><text y="14" id="daqSvgPt1">0.00</text></g>
+                <path class="daq-instrument-tap gox" d="M963 530 V575"></path>
+                <g class="daq-pt" transform="translate(963 596)"><rect x="-38" y="-21" width="76" height="42" rx="7"></rect><text y="-5">PT2 · bar</text><text y="14" id="daqSvgPt2">0.00</text></g>
+                <path class="daq-instrument-tap" d="M1084 478 V548 H1063 V575"></path>
+                <g class="daq-pt" transform="translate(1063 596)"><rect x="-38" y="-21" width="76" height="42" rx="7"></rect><text y="-5">PT3 · bar</text><text y="14" id="daqSvgPt3">0.00</text></g>
+                <path class="daq-instrument-tap" d="M1100 478 V548 H1165 V575"></path>
+                <g class="daq-pt daq-temperature" transform="translate(1165 596)"><rect x="-38" y="-21" width="76" height="42" rx="7"></rect><text y="-5">TT1 · °C</text><text y="14" id="daqSvgEngineTemp">20.0</text></g>
                 <text class="daq-vent-label" x="976" y="124">N₂ VENT</text>
-                <text class="daq-line-label" x="1144" y="308">SPRAY</text>
+                <text class="daq-line-label" x="1193" y="475" text-anchor="middle">SPRAY</text>
                 <text class="daq-vent-label" x="976" y="194">LIQUID VENT</text>
                 <text class="daq-vent-label" x="976" y="334">ETH VENT</text>
-                <text class="daq-vent-label" x="976" y="594">GOX VENT</text>
-                <text class="daq-line-label" x="847" y="513">GOX / PURGE</text>
-                <text class="daq-line-label" x="322" y="644">N₂ PURGE</text>
+                <text class="daq-vent-label" x="360" y="644">GOX VENT</text>
+                <text class="daq-line-label" x="792" y="513">GOX / PURGE</text>
+                <text class="daq-line-label" x="590" y="644">N₂ PURGE</text>
               </svg>
             </div>
 
@@ -817,14 +819,14 @@
               <div class="daq-panel-head"><div><small>PROPULSION</small><strong>INSTRUMENTS</strong></div><em>SIMULATION</em></div>
               <div class="daq-overview-grid" aria-label="주요 계측값">
                 <article class="daq-overview-card is-primary is-gox">
-                  <div><small>GOX SUPPLY</small><strong id="daqGoxPressure">6.42</strong></div>
-                  <em>MPa</em>
-                  <i class="daq-overview-meter" role="meter" aria-label="GOX 공급 압력" aria-valuemin="0" aria-valuemax="7" aria-valuenow="6.42"><b id="daqGoxGauge" style="width:91.7%"></b></i>
+                  <div><small>GOX SUPPLY</small><strong id="daqGoxPressure">64.2</strong></div>
+                  <em>bar</em>
+                  <i class="daq-overview-meter" role="meter" aria-label="GOX 공급 압력" aria-valuemin="0" aria-valuemax="70" aria-valuenow="64.2"><b id="daqGoxGauge" style="width:91.7%"></b></i>
                 </article>
                 <article class="daq-overview-card is-primary is-n2">
-                  <div><small>N₂ PRESSURANT</small><strong id="daqN2Pressure">4.81</strong></div>
-                  <em>MPa</em>
-                  <i class="daq-overview-meter" role="meter" aria-label="질소 가압 압력" aria-valuemin="0" aria-valuemax="6" aria-valuenow="4.81"><b id="daqN2Gauge" style="width:80.2%"></b></i>
+                  <div><small>N₂ PRESSURANT</small><strong id="daqN2Pressure">48.1</strong></div>
+                  <em>bar</em>
+                  <i class="daq-overview-meter" role="meter" aria-label="질소 가압 압력" aria-valuemin="0" aria-valuemax="60" aria-valuenow="48.1"><b id="daqN2Gauge" style="width:80.2%"></b></i>
                 </article>
                 <article class="daq-overview-card is-ethanol">
                   <div><small>ETHANOL TANK</small><strong id="daqEthanolLevel">78.4</strong></div>
@@ -841,8 +843,9 @@
                   <em>N</em>
                   <i class="daq-overview-meter" role="meter" aria-label="로드셀 추력" aria-valuemin="0" aria-valuemax="500" aria-valuenow="0"><b id="daqThrustGauge" style="width:2%"></b></i>
                 </article>
-                <article class="daq-overview-card"><div><small title="ETH FEED · AFTER V3">PT1 · ETH FEED</small><strong id="daqPt1">0.00</strong></div><em>MPa</em><i class="daq-overview-meter"><b id="daqPt1Bar"></b></i></article>
-                <article class="daq-overview-card"><div><small title="ENGINE CHAMBER">PT3 · CHAMBER</small><strong id="daqPt3">0.00</strong></div><em>MPa</em><i class="daq-overview-meter"><b id="daqPt3Bar"></b></i></article>
+                <article class="daq-overview-card"><div><small title="ETH FEED · AFTER V3">PT1 · ETH FEED</small><strong id="daqPt1">0.00</strong></div><em>bar</em><i class="daq-overview-meter"><b id="daqPt1Bar"></b></i></article>
+                <article class="daq-overview-card"><div><small title="GOX FEED · BEFORE ENGINE">PT2 · GOX FEED</small><strong id="daqPt2">0.00</strong></div><em>bar</em><i class="daq-overview-meter"><b id="daqPt2Bar"></b></i></article>
+                <article class="daq-overview-card"><div><small title="ENGINE CHAMBER">PT3 · CHAMBER</small><strong id="daqPt3">0.00</strong></div><em>bar</em><i class="daq-overview-meter"><b id="daqPt3Bar"></b></i></article>
                 <article class="daq-overview-card daq-temperature"><div><small title="ENGINE TEMPERATURE">TT1 · ENGINE TEMP</small><strong id="daqEngineTemp">20.0</strong></div><em>°C</em><i class="daq-overview-meter"><b id="daqEngineTempBar"></b></i></article>
               </div>
             </section>
@@ -851,7 +854,7 @@
         </div>
         <div id="daqEventLog" hidden aria-hidden="true">
           <p><time>00:00:00.000</time><span>DAQ simulation initialized</span><em>INFO</em></p>
-          <p><time>00:00:00.018</time><span>PT1 / PT3 / TT1 simulation online · 100 SPS</span><em>OK</em></p>
+          <p><time>00:00:00.018</time><span>PT1 / PT2 / PT3 / TT1 simulation online · 100 SPS</span><em>OK</em></p>
           <p><time>00:00:00.041</time><span>All commanded valves confirmed closed</span><em>SAFE</em></p>
         </div>
       </section>
@@ -4379,6 +4382,6 @@
     <button id="controlsOverlayClose" class="controls-overlay-close" type="button" aria-label="close">×</button>
     </div>
 
-  <script src="scripts/flash7-watchdog.js?v=20261121-daq-sequence-inline"></script>
+  <script src="scripts/flash7-watchdog.js?v=20261123-daq-pid-bar"></script>
 </body>
 </html> 

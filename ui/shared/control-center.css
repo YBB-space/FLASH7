@@ -198,7 +198,7 @@ html.sim-active.mode-daq #controlCenterContent::-webkit-scrollbar{display:none;w
 #controlCenterPanel .daq-valve-group-label:first-child{margin:0;padding:0;border:0}
 #controlCenterPanel .daq-valve-group-label small{color:#aab2bd;font-size:9px;font-weight:450}
 #controlCenterPanel .daq-valve-group-label.is-water span{color:#9ab5ce}
-#controlCenterPanel .daq-valve-group-label.is-ethanol span{color:#91b9b1}
+#controlCenterPanel .daq-valve-group-label.is-ethanol span{color:#d5ba91}
 #controlCenterPanel .daq-valve-group-label.is-gox span{color:#c69b9e}
 #controlCenterPanel .daq-valve-control{min-width:0;min-height:108px;border-radius:var(--center-card-radius);background:var(--center-surface)}
 #controlCenterPanel .daq-valve-control>button{display:grid;grid-template-columns:30px minmax(0,1fr);width:100%;min-height:62px;padding:10px;gap:4px 8px;border:0;border-radius:0;background:transparent;text-align:left}

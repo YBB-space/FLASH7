@@ -32,9 +32,10 @@ function getDaqMockFlows(state){
     waterVent:state.waterLevel > 0 ? v(8)*water : 0,
     ethanolFeed:state.ethanolLevel > 0 ? v(3)*ethanol : 0,
     ethanolVent:v(5)*ethanol,
-    goxSupply:v(7),goxFeed:v(7),goxVent:v(7)*v(9),
-    purgeSupply:purge,purgeFeed:purge,purgeVent:purge*v(9),
-    combustion:(state.ethanolLevel > 0 ? v(3)*ethanol : 0)*v(7)*(1-v(9))
+    // V9 vents the regulated supply before V7. Closed V7 isolates the purge line.
+    goxSupply:Math.max(v(7),v(9)),goxMain:v(7),goxFeed:v(7),goxVent:v(9),
+    purgeSupply:purge,purgeFeed:purge,
+    combustion:(state.ethanolLevel > 0 ? v(3)*ethanol : 0)*v(7)
   };
 }
 function advanceDaqMockModel(state,seconds){
@@ -285,6 +286,8 @@ function setDaqElapsedTime(milliseconds){
   else clock.textContent="T+ "+value;
 }
 function setDaqMockText(id,value){const node=document.getElementById(id);if(node) node.textContent=value;}
+// Simulation pressures remain in MPa internally; DAQ readouts and gauges use bar.
+function daqPressureBar(megapascals){return megapascals*10;}
 function setDaqOverviewGauge(id,value,maximum){
   const fill=document.getElementById(id);
   if(!fill) return;
@@ -313,14 +316,15 @@ function updateDaqMockUi(force){
   const pt3=Math.max(0,daqMockState.chamberPressure+wave(flow.combustion*.03,3.2,.7));
   const thrust=Math.max(0,flow.combustion*486+wave(flow.combustion*9,4.1,1.4));
   const goxPressure=6.42+wave(.035,1.35,1.1),n2Pressure=4.81+wave(.03,1.1,.8);
+  const pt2=goxPressure*flow.goxFeed+n2Pressure*flow.purgeFeed;
   setDaqElapsedTime(daqMockState.sequenceElapsedMs);
-  setDaqMockText("daqGoxPressure",goxPressure.toFixed(2));setDaqMockText("daqN2Pressure",n2Pressure.toFixed(2));
+  setDaqMockText("daqGoxPressure",daqPressureBar(goxPressure).toFixed(1));setDaqMockText("daqN2Pressure",daqPressureBar(n2Pressure).toFixed(1));
   setDaqMockText("daqEthanolLevel",daqMockState.ethanolLevel.toFixed(1));setDaqMockText("daqWaterLevel",daqMockState.waterLevel.toFixed(1));
   setDaqMockText("daqSvgEthanolLevel",daqMockState.ethanolLevel.toFixed(0)+"%");setDaqMockText("daqSvgWaterLevel",daqMockState.waterLevel.toFixed(0)+"%");
   setDaqMockText("daqThrustValue",thrust.toFixed(1));
-  [["daqGoxGauge",goxPressure,7],["daqN2Gauge",n2Pressure,6],["daqEthanolGauge",daqMockState.ethanolLevel,100],["daqWaterGauge",daqMockState.waterLevel,100],["daqThrustGauge",thrust,500],
-    ["daqPt1Bar",pt1,7],["daqPt3Bar",pt3,4],["daqEngineTempBar",daqMockState.engineTemperature,600]].forEach(v=>setDaqOverviewGauge(...v));
-  [["daqPt1","daqSvgPt1",pt1],["daqPt3","daqSvgPt3",pt3],["daqEngineTemp","daqSvgEngineTemp",daqMockState.engineTemperature]].forEach(([panel,svg,value])=>{
+  [["daqGoxGauge",daqPressureBar(goxPressure),70],["daqN2Gauge",daqPressureBar(n2Pressure),60],["daqEthanolGauge",daqMockState.ethanolLevel,100],["daqWaterGauge",daqMockState.waterLevel,100],["daqThrustGauge",thrust,500],
+    ["daqPt1Bar",daqPressureBar(pt1),70],["daqPt2Bar",daqPressureBar(pt2),70],["daqPt3Bar",daqPressureBar(pt3),40],["daqEngineTempBar",daqMockState.engineTemperature,600]].forEach(v=>setDaqOverviewGauge(...v));
+  [["daqPt1","daqSvgPt1",daqPressureBar(pt1)],["daqPt2","daqSvgPt2",daqPressureBar(pt2)],["daqPt3","daqSvgPt3",daqPressureBar(pt3)],["daqEngineTemp","daqSvgEngineTemp",daqMockState.engineTemperature]].forEach(([panel,svg,value])=>{
     const digits=panel==="daqEngineTemp" ? 1 : 2;setDaqMockText(panel,value.toFixed(digits));setDaqMockText(svg,value.toFixed(digits));
   });
   syncDaqMockFlow(flow);
