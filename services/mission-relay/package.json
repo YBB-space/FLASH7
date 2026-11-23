@@ -1,0 +1,16 @@
+{
+  "name": "flash7-mission-relay",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --env local --local --port 8787",
+    "deploy": "wrangler deploy",
+    "check": "node --check src/worker.js",
+    "test:integration": "node ../../benchmarks/flash7-mission-relay-integration.cjs"
+  },
+  "devDependencies": {
+    "wrangler": "4.166.0",
+    "ws": "8.21.0"
+  }
+}

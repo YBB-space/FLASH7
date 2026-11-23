@@ -127,7 +127,7 @@
   <!-- Preload 축소: AP 모드/저메모리 환경에서 동시 요청 버스트를 줄임 -->
   <script>
     (function(){
-    var ASSET_VER = "20261123-daq-pid-bar";
+    var ASSET_VER = "20261123-online-recovery";
       window.__flashBoot = window.__flashBoot || {jsReady:false,lastError:"",phase:"static_loader",version:ASSET_VER};
       var isLocalPreview = !!window.__flashBoot.localPreview;
       var beaconEnabled = (window.__flashBoot.beaconEnabled !== false);
@@ -365,7 +365,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="styles/flash7-app.css?v=20261123-daq-pid-bar">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261123-online-recovery">
 </head>
 <body>
   <!-- ✅ LOCKOUT 배경 오버레이 -->
@@ -498,6 +498,51 @@
             <strong>화면 스플릿</strong><span id="desktopSplitConnection">화면 연결</span>
           </button>
       </div>
+<details class="control-center-scene mission-publish-section">
+  <summary><span><strong>온라인 미션 공유</strong><small data-mission-host-status>조회 전용 텔레메트리 공유</small></span><span aria-hidden="true">⌄</span></summary>
+  <form class="mission-publish-form" data-mission-publish-form>
+    <label>중계 서버<input type="url" data-mission-endpoint placeholder="https://flash7-mission-relay.….workers.dev" autocomplete="url" required></label>
+    <label>송신 키<input type="password" data-mission-publish-key autocomplete="off" minlength="32" placeholder="중계 서버에 설정한 송신 키" required></label>
+    <button type="submit" data-mission-start>미션 공유 시작</button>
+  </form>
+  <div class="mission-share-result" data-mission-share-result hidden>
+    <small>ACCESS CODE</small><strong data-mission-code>--</strong><p data-mission-expiry></p>
+    <p data-mission-presence>조회 연결 대기</p><button type="button" data-mission-copy>폰 접속 링크 복사</button><a data-mission-open target="_blank" rel="noopener">조회 화면 열기</a><button type="button" data-mission-end>공유 종료</button>
+  </div>
+  <p class="mission-status" data-mission-message role="status">공유를 켜면 선택한 스테이지의 위치·텔레메트리가 코드 소지자에게 전달됩니다.</p>
+</details>
+<details class="control-center-scene mission-recovery-section"><summary><span><strong>추적·회수 예측</strong><small>실제 GPS 위치 · 착지 영역 · 안테나 안내</small></span><span aria-hidden="true">⌄</span></summary>
+<section class="recovery-panel" aria-label="위치 추적 및 회수 예측">
+  <header class="recovery-header"><div><small>TRACKING / RECOVERY</small><h2>추적·회수</h2></div><span data-recovery="status" role="status">수신 대기</span></header>
+  <div class="recovery-map" data-recovery-map aria-label="실측 위치와 예상 착지 영역 지도"></div>
+  <div class="recovery-readouts">
+    <article><small>TIME TO LAND</small><strong data-recovery="eta">--</strong><span data-recovery="landingState">하강 데이터 대기</span></article>
+    <article><small>PARACHUTE</small><strong class="recovery-state" data-recovery="chute">미확인</strong><span>전개 명령과 실제 전개를 구분합니다.</span></article>
+    <article class="recovery-coordinates"><small>ESTIMATED LANDING</small><strong data-recovery="landing">--</strong><span data-recovery="radius">예상 영역 대기</span></article>
+    <article><small>VERTICAL SPEED</small><strong data-recovery="vertical">--</strong><span>GPS·기압고도 수신 기준</span></article>
+  </div>
+  <p class="recovery-reference" data-recovery="reference">착지 지면: 발사점과 같은 높이 가정</p>
+  <section class="antenna-guide" aria-label="안테나 방향 안내">
+    <header><h3>ANTENNA ASSIST</h3><span data-recovery="sensorState">폰 센서 연결 필요</span></header>
+    <div class="antenna-aim" data-recovery-aim><div class="antenna-reticle" aria-hidden="true"><i></i><b data-recovery-arrow>↑</b></div><strong data-recovery="instruction">위치·방향을 연결하세요.</strong></div>
+    <div class="antenna-metrics"><span>방위 <b data-recovery="bearing">--</b></span><span>고각 <b data-recovery="elevation">--</b></span><span>거리 <b data-recovery="distance">--</b></span></div>
+    <p data-recovery="aimQuality">휴대폰 화면 상단을 안테나 방향에 맞추세요.</p>
+    <button type="button" data-recovery-sensors>위치·방향 센서 연결</button>
+    <div class="recovery-calibration"><button type="button" data-recovery-north>상단을 북쪽으로 맞춘 뒤 보정</button><button type="button" data-recovery-stop-sensors>센서 끄기</button></div>
+  </section>
+  <details class="recovery-settings"><summary>기준 위치·높이 설정</summary>
+    <p>높이차는 모두 발사점 기준입니다. 지형 높이를 모르면 평지 가정으로 표시합니다.</p>
+    <label>착지 지면 높이차 (m)<input type="number" min="-2000" max="10000" step="1" value="0" data-recovery-ground></label>
+    <label>관측 지면 높이차 (m)<input type="number" min="-2000" max="10000" step="1" value="0" data-recovery-observer-height></label>
+    <label>안테나 방위 보정 (°)<input type="number" min="-180" max="180" step="1" value="0" data-recovery-yaw-offset></label>
+    <label>안테나 고각 보정 (°)<input type="number" min="-90" max="90" step="1" value="0" data-recovery-pitch-offset></label>
+    <form data-recovery-station-form><p>PC에서는 관측 위치를 직접 입력할 수 있습니다.</p><label>관측 위도<input type="number" min="-90" max="90" step="any" data-recovery-lat required></label><label>관측 경도<input type="number" min="-180" max="180" step="any" data-recovery-lon required></label><button type="submit">관측 위치 적용</button></form>
+    <button type="button" data-recovery-reset>현재 미션 추정 초기화</button>
+  </details>
+</section>
+
+</details>
+
       <button id="araeaSimLaunchBtn" class="control-center-sim-start" type="button" hidden><span><strong>ARAEA-I 비행 시뮬레이션</strong><small>목표 10,000 ft · 자동 에어브레이크</small></span><b>시작</b></button>
       <nav class="alarm-control-grid" aria-label="도구">
         <button class="alarm-control-button" type="button" data-control-center-action="storage">
@@ -623,6 +668,17 @@
           <header class="welcome-home-pane-header"><h2 id="welcomeMissionTitle">미션 설정</h2></header>
           <div id="welcomeMissionMount"></div>
         </section>
+        <section id="welcomeOnlinePane" class="welcome-home-pane welcome-online-pane" aria-labelledby="welcomeOnlineTitle" hidden>
+          <header class="welcome-home-pane-header"><h2 id="welcomeOnlineTitle">온라인 미션</h2></header><p>접근 코드로 같은 미션의 실시간 텔레메트리를 확인하세요.</p>
+<form class="mission-join-form" data-mission-join-form>
+  <label>ACCESS CODE<input type="text" data-mission-join-code inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z2-9 -]{8,11}" maxlength="11" placeholder="접근 코드 8자리" required></label>
+  <button type="submit" data-mission-join>미션 연결</button>
+  <button type="button" data-mission-demo>하강 시뮬 미리보기</button>
+  <p class="mission-join-error" data-mission-join-status role="status" aria-live="polite"></p>
+  <details data-mission-relay-settings><summary>중계 서버 설정</summary><label>중계 서버<input type="url" data-mission-join-endpoint placeholder="https://flash7-mission-relay.….workers.dev" required></label><p>처음 연결할 때 송신 PC와 같은 중계 주소를 입력하세요.</p></details>
+</form>
+
+        </section>
         <section id="welcomeSimulationChoices" class="welcome-home-simulation" aria-labelledby="welcomeSimulationTitle" hidden>
           <header><h2 id="welcomeSimulationTitle">시뮬레이션</h2><p>기체 연결 없이 시작하세요.</p></header>
           <div class="welcome-home-modes">
@@ -648,6 +704,7 @@
           <button id="welcomeSimConnectBtn" class="welcome-home-shortcut" type="button" aria-controls="welcomeSimulationChoices" aria-expanded="false" aria-pressed="false">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg><span>시뮬레이션</span>
           </button>
+          <button id="welcomeOnlineBtn" class="welcome-home-shortcut" type="button" aria-pressed="false" aria-controls="welcomeOnlinePane" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c5 5 5 12 0 17-5-5-5-12 0-17Z"/></svg><span>온라인 미션</span></button>
         </nav>
         <div class="welcome-home-connect">
           <span>Wi-Fi · USB</span>
@@ -4991,6 +5048,6 @@
     <button id="controlsOverlayClose" class="controls-overlay-close" type="button" aria-label="close">×</button>
     </div>
 
-  <script src="scripts/flash7-watchdog.js?v=20261123-daq-pid-bar"></script>
+  <script src="scripts/flash7-watchdog.js?v=20261123-online-recovery"></script>
 </body>
 </html> 

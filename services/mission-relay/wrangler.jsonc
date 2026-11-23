@@ -1,0 +1,10 @@
+{
+  "name": "flash7-mission-relay",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-23",
+  "workers_dev": true,
+  "durable_objects": {"bindings": [{"name": "MISSIONS", "class_name": "MissionRoom"}]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["MissionRoom"]}],
+  "vars": {"ALLOWED_ORIGINS": "https://flash7.kro.kr,https://ybb-space.github.io", "MISSION_TTL_SECONDS": "7200"},
+  "env": {"local": {"vars": {"ALLOWED_ORIGINS": "http://127.0.0.1:8099,http://localhost:8099", "MISSION_TTL_SECONDS": "7200"}, "durable_objects": {"bindings": [{"name": "MISSIONS", "class_name": "MissionRoom"}]}}}
+}

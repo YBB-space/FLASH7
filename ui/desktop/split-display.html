@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#000000">
   <title>FLASH7 · 보조 화면</title>
   <link rel="icon" href="img/Flash_logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles/flash7-app.css?v=20261123-daq-pid-bar">
-  <script defer src="scripts/ui/shared/split-link.js?v=20261123-daq-pid-bar"></script>
-  <script defer src="scripts/ui/shared/flight-charts.js?v=20261123-daq-pid-bar"></script>
-  <script defer src="scripts/ui/shared/link-quality.js?v=20261123-daq-pid-bar"></script>
-  <script defer src="scripts/ui/desktop/split-display.js?v=20261123-daq-pid-bar"></script>
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261123-online-recovery">
+  <script defer src="scripts/ui/shared/split-link.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/flight-charts.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/link-quality.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/desktop/split-display.js?v=20261123-online-recovery"></script>
 </head>
 <body class="split-monitor">
   <section id="splitDisplayWait" class="split-entry" aria-labelledby="splitDisplayWaitTitle">
@@ -22,76 +22,6 @@
       <span class="split-entry-footnote">이 화면을 열어두면 자동으로 연결됩니다.</span>
     </div>
   </section>
-  <header class="split-monitor-header"><strong>FLASH7 / TELEMETRY</strong><span id="splitDisplayConnection" role="status">연결 대기</span></header>
-  <main class="split-monitor-main">
-    <div class="split-monitor-heading"><div><small id="splitDisplayStage">DISPLAY 02</small><h1 id="splitDisplayMission">FLASH7 MISSION</h1><p id="splitDisplayState">--</p></div><div class="camera-chart-settings" role="group" aria-label="텔레메트리 눈금 범위">
-        <strong>차트 범위</strong>
-        <div class="camera-chart-tools">
-          <button type="button" data-camera-chart-range="detail" aria-pressed="true" title="작은 변화 자세히 보기 · 범위 밖 피크는 화살표와 PEAK 값으로 표시">DETAIL</button>
-          <button type="button" data-camera-chart-range="full" aria-pressed="false" title="모든 피크를 포함한 전체 범위">FULL</button>
-        </div>
-      </div><strong id="splitDisplayCountdown" class="split-monitor-time">T- 00:00</strong></div>
-    <section id="splitDisplaySequence" class="split-sequence is-waiting" aria-label="미션 비행 단계">
-      <header><h2>MISSION SEQUENCE</h2><div><strong id="splitSequenceCurrent">수신 대기</strong><span id="splitSequenceStep">-- / 09</span></div></header>
-      <div class="split-sequence-rail">
-        <div class="split-sequence-line" aria-hidden="true"><i></i></div>
-        <ol>
-          <li data-sequence-step="standby"><i aria-hidden="true"></i><span>STANDBY</span></li>
-          <li data-sequence-step="count"><i aria-hidden="true"></i><span>COUNT</span></li>
-          <li data-sequence-step="ignition"><i aria-hidden="true"></i><span>IGNITION</span></li>
-          <li data-sequence-step="powered"><i aria-hidden="true"></i><span>POWERED</span></li>
-          <li data-sequence-step="coasting"><i aria-hidden="true"></i><span>COASTING</span></li>
-          <li data-sequence-step="separation"><i aria-hidden="true"></i><span>SEPARATION</span></li>
-          <li data-sequence-step="ejection"><i aria-hidden="true"></i><span>EJECTION</span></li>
-          <li data-sequence-step="descent"><i aria-hidden="true"></i><span>DESCENT</span></li>
-          <li data-sequence-step="landed"><i aria-hidden="true"></i><span>LANDED</span></li>
-        </ol>
-      </div>
-    </section>
-    <section class="split-quick-data" aria-label="실시간 퀵 데이터">
-      <header class="split-quick-header">
-        <h2>QUICK DATA</h2>
-        <div class="split-quick-chips">
-          <span id="splitQuickConnection"><i aria-hidden="true"></i><b id="splitQuickConnectionText">DISCONNECTED</b></span>
-          <span>CHIP <b id="splitQuickChip">--°C</b></span>
-          <span>PERF <b id="splitQuickPerf">--%</b></span>
-          <span aria-label="배터리"><svg viewBox="0 0 30 18" aria-hidden="true"><rect x="1" y="2" width="24" height="14" rx="3"/><path d="M28 6v6"/></svg><b id="splitQuickPower">N</b></span>
-        </div>
-      </header>
-      <div class="split-quick-body">
-        <div class="split-quick-primary">
-          <div><small>ALTITUDE</small><strong><span id="splitDisplayAltitude">--</span><em>m</em></strong></div>
-          <div><small>SPEED</small><strong><span id="splitDisplaySpeed">--</span><em>m/s</em></strong></div>
-        </div>
-        <div class="split-quick-details">
-          <div><small>STATE</small><strong id="splitQuickState">--</strong></div>
-          <div><small>SD CARD</small><strong id="splitQuickStorage">--</strong></div>
-          <div><small>점화 지연</small><strong><span id="splitQuickDelay">--</span><em>s</em></strong></div>
-          <div><small>ARM</small><strong><span id="splitQuickArm">--</span><em id="splitQuickArmLock" hidden>(LOCK ON)</em></strong></div>
-          <div><small>PYRO</small><strong id="splitQuickPyro">--</strong></div>
-          <div><small>GYRO X</small><strong><span id="splitQuickAttitudeX">--</span><em>deg</em></strong></div>
-          <div><small>GYRO Y</small><strong><span id="splitQuickAttitudeY">--</span><em>deg</em></strong></div>
-          <div><small>GYRO Z</small><strong><span id="splitQuickAttitudeZ">--</span><em>deg</em></strong></div>
-          <div><small>ACCELERATION</small><strong><span id="splitDisplayGforce">--</span><em>g</em></strong></div>
-        </div>
-      </div>
-    </section>
-    <div class="split-monitor-charts">
-      <section class="camera-telemetry-chart" aria-label="고도 및 속도 차트"><div class="camera-chart-header"><strong class="camera-chart-heading">ALTITUDE / SPEED</strong><div class="camera-chart-legend"><span class="camera-chart-legend-item camera-chart-legend-item--alt"><i></i>ALT</span><span class="camera-chart-legend-item camera-chart-legend-item--speed"><i></i>SPEED</span></div></div><div class="camera-chart-plot"><canvas id="splitDisplayAltitudeChart"></canvas></div></section>
-      <section class="camera-telemetry-chart" aria-label="가속도 및 자이로 차트"><div class="camera-chart-header"><strong class="camera-chart-heading">TELEMETRY</strong><div class="camera-chart-legend"><span class="camera-chart-legend-item camera-chart-legend-item--g"><i></i>G</span><span class="camera-chart-legend-item camera-chart-legend-item--gyro-x"><i></i>X <b id="splitDisplayGyroX">--</b></span><span class="camera-chart-legend-item camera-chart-legend-item--gyro-y"><i></i>Y <b id="splitDisplayGyroY">--</b></span><span class="camera-chart-legend-item camera-chart-legend-item--gyro-z"><i></i>Z <b id="splitDisplayGyroZ">--</b></span></div></div><div class="camera-chart-plot"><canvas id="splitDisplayDynamicsChart"></canvas></div></section>
-    </div>
-    <div class="split-monitor-systems" aria-label="링크 품질 및 에어브레이크">
-      <section class="comm-v3-quality-stage" data-split-quality-stage="1" aria-label="1단 링크 품질">
-        <header class="comm-v3-panel-head"><div><span>STAGE 1</span><strong>링크 품질</strong></div><em>최근 30초</em></header>
-        <div class="comm-v3-metrics" role="group" aria-label="1단 링크 지표 선택">
-          <button class="is-active" type="button" data-split-link-metric="rssi" aria-pressed="true"><small>RSSI</small><strong id="splitLink1Rssi">--</strong><i>dBm</i></button>
-          <button type="button" data-split-link-metric="loss" aria-pressed="false"><small>LOSS</small><strong id="splitLink1Loss">--</strong><i>%</i></button>
-          <button type="button" data-split-link-metric="hz" aria-pressed="false"><small>RX RATE</small><strong id="splitLink1Rate">--</strong><i>Hz</i></button>
-        </div>
-        <div class="comm-v3-chart"><span id="splitLink1Value" class="comm-v3-chart-value">-- dBm</span><canvas id="splitLink1Chart" aria-label="1단 최근 30초 링크 품질"></canvas></div>
-      </section>
-<!-- @include ui/desktop/airbrake-preview.html -->
-    </div>
-  </main>
+<!-- @include ui/shared/telemetry-display.html -->
 </body>
 </html>

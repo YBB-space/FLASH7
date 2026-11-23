@@ -287,13 +287,14 @@ function createSplitAirbrakePreview(root){
     window.removeEventListener("pageshow",restored);
   }
   function suspend(event){
+    if(document.body.classList.contains("online-mission-viewer")){if(!event.persisted)dispose();return;}
     if(!event.persisted){dispose();return;}
     clearInterval(heartbeat);heartbeat=null;
     discovery?.close();discovery=null;
     if(link){link.send("closed");link.close();link=null;}
     offers.clear();disconnected();
   }
-  function restored(event){if(event.persisted) resume();}
+  function restored(event){if(event.persisted&&!document.body.classList.contains("online-mission-viewer")) resume();}
   window.addEventListener("resize",draw);
   window.addEventListener("pagehide",suspend);
   window.addEventListener("pageshow",restored);
@@ -316,5 +317,12 @@ function createSplitAirbrakePreview(root){
       write("splitDisplayWaitCopy", "같은 브라우저의 메인 화면에서 보조 화면 열기를 눌러주세요.");
     }
   }
-  resume();
+  if(document.body.classList.contains("online-mission-viewer")){
+    window.Flash7=window.Flash7||{};
+    window.Flash7.remoteTelemetry={apply,clear(){Object.values(history).forEach(values=>{values.length=0;});linkQuality.samples=[];linkQuality.current={};activeStage=0;lastSample=0;draw();},seed(points){
+      Object.values(history).forEach(values=>{values.length=0;});
+      const stage=points.at(-1)?.telemetry?.stageId;
+      points.filter(point=>point.telemetry?.stageId===stage).slice(-SPLIT_DISPLAY_HISTORY_LIMIT).forEach(point=>{const s=point.telemetry,values=[s.altitude,s.speed,s.gforce,...s.gyro];Object.keys(history).forEach((key,index)=>history[key].push(values[index]));});activeStage=stage||0;lastSample=points.at(-1)?.telemetry?.receivedAt||0;draw();
+    },stale(){write("splitDisplayConnection","수신 끊김 · 마지막 수신값");write("splitQuickConnectionText","DISCONNECTED");document.getElementById("splitQuickConnection").classList.remove("is-connected");},dispose};
+  }else resume();
 })();

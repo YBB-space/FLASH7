@@ -18155,16 +18155,17 @@ function releaseWelcomeConnectionSurface(node){
 function setWelcomeStartView(view){
   const root=el.welcomeConnectScreen;
   if(!root) return;
-  const next=["flight","simulation","replay","mission","fc"].includes(view) ? view : "flight";
+  const next=["flight","simulation","replay","mission","fc","online"].includes(view) ? view : "flight";
   root.dataset.welcomeView=next;
   if(next!=="mission" && welcomeMissionSettingsState) finishWelcomeMissionSettings();
   if(next!=="replay" && welcomeReplayPickerState) setReplayDataPickerVisible(false);
-  for(const [id,name] of [["welcomeSimulationChoices","simulation"],["welcomeReplayPane","replay"],["welcomeMissionPane","mission"],["welcomeFcGuide","fc"]]){
+  for(const [id,name] of [["welcomeSimulationChoices","simulation"],["welcomeReplayPane","replay"],["welcomeMissionPane","mission"],["welcomeFcGuide","fc"],["welcomeOnlinePane","online"]]){
     const node=document.getElementById(id);if(node) node.hidden=next!==name;
   }
-  for(const [id,name] of [["welcomeFlightBtn","flight"],["welcomeReplayBtn","replay"],["welcomeSimConnectBtn","simulation"]]){
+  for(const [id,name] of [["welcomeFlightBtn","flight"],["welcomeReplayBtn","replay"],["welcomeSimConnectBtn","simulation"],["welcomeOnlineBtn","online"]]){
     const node=document.getElementById(id);if(node) node.setAttribute("aria-pressed",String(next===name));
   }
+  document.getElementById("welcomeOnlineBtn")?.setAttribute("aria-expanded",String(next==="online"));
   const simulation=document.getElementById("welcomeSimConnectBtn");
   if(simulation) simulation.setAttribute("aria-expanded",String(next==="simulation"));
   const mission=document.getElementById("welcomeMissionBtn");
@@ -19085,6 +19086,321 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
     };
   };
 })();
+
+/* Geographic recovery estimates only. Never use the display's relative 3D path. */
+(function(root){
+  "use strict";
+  const R=6371008.8,rad=Math.PI/180;
+  const finite=v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v));
+  const number=v=>finite(v)?Number(v):null;
+  const wrap=v=>((v+540)%360)-180;
+  function coordinates(lat,lon){return finite(lat)&&finite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180;}
+  function offset(a,b){const latitude=(a.lat+b.lat)*rad/2;return {east:R*wrap(b.lon-a.lon)*rad*Math.cos(latitude),north:R*(b.lat-a.lat)*rad};}
+  function moved(p,east,north){return {lat:Math.max(-89.9999,Math.min(89.9999,p.lat+north/R/rad)),lon:wrap(p.lon+east/(R*Math.max(.00001,Math.cos(p.lat*rad)))/rad)};}
+  function bearingDistance(a,b){
+    const p=a.lat*rad,q=b.lat*rad,d=(b.lat-a.lat)*rad,l=wrap(b.lon-a.lon)*rad;
+    const hav=Math.sin(d/2)**2+Math.cos(p)*Math.cos(q)*Math.sin(l/2)**2;
+    return {distanceM:2*R*Math.asin(Math.sqrt(Math.min(1,hav))),bearingDeg:(Math.atan2(Math.sin(l)*Math.cos(q),Math.cos(p)*Math.sin(q)-Math.sin(p)*Math.cos(q)*Math.cos(l))/rad+360)%360};
+  }
+  function orientationAxis(alpha,beta,gamma,screenAngle){
+    if(![alpha,beta,gamma].every(finite))return null;
+    const a=alpha*rad,b=beta*rad,g=gamma*rad,s=(screenAngle||0)*rad;
+    // Screen-top antenna axis: Rz(alpha) Rx(beta) Ry(gamma), corrected for screen rotation.
+    const x=-Math.sin(s),y=Math.cos(s);
+    const X=Math.cos(a)*Math.cos(g)*x-Math.sin(a)*Math.sin(b)*Math.sin(g)*x-Math.sin(a)*Math.cos(b)*y;
+    const Y=Math.sin(a)*Math.cos(g)*x+Math.cos(a)*Math.sin(b)*Math.sin(g)*x+Math.cos(a)*Math.cos(b)*y;
+    const Z=-Math.cos(b)*Math.sin(g)*x+Math.sin(b)*y;
+    return {headingDeg:(Math.atan2(X,Y)/rad+360)%360,pitchDeg:Math.asin(Math.max(-1,Math.min(1,Z)))/rad,horizontalStrength:Math.hypot(X,Y)};
+  }
+  function guidance(target,observer,orientation,config={}){
+    if(!target||target.ageMs>5000||!observer||!coordinates(observer.lat,observer.lon)||!coordinates(target.lat,target.lon))return null;
+    const geo=bearingDistance(observer,target),height=number(target.heightM),ground=number(config.observerHeightM)??0;
+    const elevation=height===null?null:Math.atan2(height-ground,Math.max(.01,geo.distanceM))/rad;
+    const heading=number(orientation?.headingDeg),pitch=number(orientation?.pitchDeg),yawOffset=number(config.yawOffsetDeg)||0,pitchOffset=number(config.pitchOffsetDeg)||0;
+    return {...geo,elevationDeg:elevation,slantDistanceM:height===null?null:Math.hypot(geo.distanceM,height-ground),
+      yawErrorDeg:heading===null?null:wrap(geo.bearingDeg-heading-yawOffset),pitchErrorDeg:pitch===null||elevation===null?null:elevation-pitch-pitchOffset,
+      bearingUncertaintyDeg:Math.atan2((number(target.uncertaintyM)||30)+(number(observer.accuracyM)||30),Math.max(1,geo.distanceM))/rad};
+  }
+  function createEstimator(settings={}){
+    let options={groundOffsetM:0,terrainUncertaintyM:20,...settings},epoch=null,last=null,fix=null,velocity={east:0,north:0},velocityKnown=false,altitudes=[],vertical=null,airborne=false,groundSince=0,commanded=false,confirmed=false,rejected=false;
+    function reset(key){epoch=key;last=fix=null;velocity={east:0,north:0};velocityKnown=false;altitudes=[];vertical=null;airborne=false;groundSince=0;commanded=confirmed=rejected=false;}
+    function update(sample,now=Date.now()){
+      if(!sample||!finite(sample.timestamp))return snapshot(now);
+      const key=String(sample.epochId||'live')+':'+String(sample.stageId||1);
+      if(epoch!==key)reset(key);
+      const time=Number(sample.timestamp);
+      if(last&&time<=last.timestamp)return snapshot(now);
+      if(last&&time-last.timestamp>15000){altitudes=[];vertical=null;velocityKnown=false;groundSince=0;}
+      last={...sample,timestamp:time,altitudeM:number(sample.altitudeM)};
+      commanded=commanded||sample.chuteCommanded===true;confirmed=confirmed||sample.chuteConfirmed===true;
+      const h=last.altitudeM;
+      if(h!==null&&h>=-1000&&h<=1000000){
+        if(h-options.groundOffsetM>20)airborne=true;
+        if(!altitudes.length||time-altitudes.at(-1).t>=100)altitudes.push({t:time,h});
+        altitudes=altitudes.filter(p=>time-p.t<=8000).slice(-90);
+        const points=altitudes.filter(p=>time-p.t<=3000),span=points.length?points.at(-1).t-points[0].t:0;
+        if(points.length>=4&&span>=1000){
+          const meanT=points.reduce((s,p)=>s+(p.t-time)/1000,0)/points.length,meanH=points.reduce((s,p)=>s+p.h,0)/points.length;
+          let numerator=0,denominator=0;for(const p of points){const dt=(p.t-time)/1000-meanT;numerator+=dt*(p.h-meanH);denominator+=dt*dt;}
+          const slope=numerator/Math.max(.001,denominator);
+          if(Math.abs(slope)<=1500)vertical=vertical===null?slope:vertical*.6+slope*.4;
+        }else if(finite(sample.verticalSpeedMps)&&Math.abs(sample.verticalSpeedMps)<=1500)vertical=Number(sample.verticalSpeedMps);
+      }else{last.altitudeM=null;vertical=null;altitudes=[];}
+      rejected=false;
+      const gps=sample.gps;
+      if(gps&&gps.fix===true&&coordinates(gps.lat,gps.lon)&&finite(gps.ageMs)&&gps.ageMs>=0&&gps.ageMs<=5000){
+        const measuredAt=time-gps.ageMs,point={lat:Number(gps.lat),lon:Number(gps.lon)},accuracy=Math.max(3,Math.min(1000,number(gps.accuracyM)??30));
+        if(!fix||measuredAt>fix.measuredAt+50){
+          let accept=true;
+          if(fix){
+            const dt=(measuredAt-fix.measuredAt)/1000,delta=offset(fix,point),distance=Math.hypot(delta.east,delta.north);
+            if(dt>0&&dt<=10&&distance>Math.max(100,(accuracy+fix.accuracyM)*3+1200*dt)){accept=false;rejected=true;}
+            if(accept&&dt>=.2&&dt<=5){const gain=velocityKnown?.35:1;velocity.east+=(delta.east/dt-velocity.east)*gain;velocity.north+=(delta.north/dt-velocity.north)*gain;velocityKnown=true;}
+            else if(dt>5)velocityKnown=false;
+          }
+          if(accept)fix={...point,measuredAt,accuracyM:accuracy};
+        }
+      }
+      const phase=String(sample.phase||'').toUpperCase();
+      const stationary=airborne&&last.altitudeM!==null&&Math.abs(last.altitudeM-options.groundOffsetM)<5&&vertical!==null&&Math.abs(vertical)<1&&velocityKnown&&Math.hypot(velocity.east,velocity.north)<2&&fix&&time-fix.measuredAt<3000;
+      if(stationary){if(!groundSince)groundSince=time;}else groundSince=0;
+      last.landed=phase==='LANDED'?'reported':groundSince&&time-groundSince>=8000?'inferred':null;
+      return snapshot(now);
+    }
+    function snapshot(now=Date.now()){
+      if(!last)return {status:'waiting',target:null,landing:null,chute:'unknown',verticalSpeedMps:null};
+      const age=Math.max(0,now-last.timestamp),gpsAge=fix?Math.max(0,now-fix.measuredAt):Infinity;
+      const extrapolation=Math.min(5,gpsAge/1000),point=fix?moved(fix,velocityKnown?velocity.east*extrapolation:0,velocityKnown?velocity.north*extrapolation:0):null;
+      const recent=altitudes.length>=4&&altitudes.at(-1).t-altitudes[0].t>=3000;
+      const phase=String(last.phase||'').toUpperCase(),descending=vertical!==null&&vertical<-.5&&(airborne||/DESCENT|EJECTION/.test(phase));
+      const stable=recent&&vertical!==null&&vertical<=-2&&vertical>=-20&&altitudes.slice(-20).every((p,i,a)=>!i||p.h<=a[i-1].h+1.5);
+      const chute=confirmed?'confirmed':commanded&&stable?'inferred':commanded?'commanded':'unknown';
+      const height=last.altitudeM===null?null:last.altitudeM-options.groundOffsetM;
+      const currentAltitude=age<=5000&&last.altitudeM!==null&&vertical!==null?last.altitudeM+vertical*Math.min(age/1000,5):last.altitudeM;
+      const currentHeight=currentAltitude===null?null:currentAltitude-options.groundOffsetM;
+      const uncertainty=fix?fix.accuracyM+(velocityKnown?3:15)*gpsAge/1000:null;
+      const target=point?{...point,ageMs:gpsAge,heightM:currentAltitude,uncertaintyM:uncertainty,extrapolated:gpsAge>1500}:null;
+      let landing=null;
+      if(age<=5000&&gpsAge<=5000&&currentHeight!==null&&last.landed){landing={...point,etaSec:0,radiusM:Math.max(10,uncertainty),state:last.landed};}
+      else if(age<=5000&&gpsAge<=5000&&descending&&recent&&currentHeight>0){
+        const eta=currentHeight/-vertical;
+        if(eta<=1800){const destination=moved(point,velocityKnown?velocity.east*eta:0,velocityKnown?velocity.north*eta:0);
+          landing={...destination,etaSec:eta,radiusM:Math.max(30,uncertainty+eta*(stable?2:6)+options.terrainUncertaintyM/Math.max(.5,-vertical)*(Math.hypot(velocity.east,velocity.north)+2)),state:stable&&velocityKnown?'descent':'provisional'};}
+      }
+      return {status:age>5000?'stale':gpsAge>5000?'gps-stale':rejected?'gps-rejected':'tracking',sampleAgeMs:age,target,landing,chute,verticalSpeedMps:age<=5000?vertical:null,groundOffsetM:options.groundOffsetM,landed:last.landed,phase,velocityKnown,groundAssumption:'manual-relative-to-launch'};
+    }
+    return {update,snapshot,reset:()=>reset(null),configure(next){options={...options,...next};groundSince=0;}};
+  }
+  const api={createEstimator,guidance,orientationAxis,bearingDistance,offset,moved,coordinates,wrap};
+  (root.Flash7=root.Flash7||{}).recovery=api;if(typeof module==='object'&&module.exports)module.exports=api;
+})(typeof globalThis!=='undefined'?globalThis:window);
+
+/* Versioned read-only transport schema shared by GCS, viewer and relay. */
+(function(root){
+  'use strict';
+  const value=(v,min=-1e9,max=1e9)=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))&&Number(v)>=min&&Number(v)<=max?Number(v):null;
+  const text=(v,n=80)=>typeof v==='string'?v.slice(0,n):'';
+  const vec=v=>[0,1,2].map(i=>value(Array.isArray(v)?v[i]:null));
+  function normalize(input){
+    if(!input||typeof input!=='object'||Array.isArray(input)||input.version!==1)return null;
+    const s=input.telemetry,r=input.recovery;if(!s||!r||![1,2].includes(s.stageId))return null;
+    const quick=s.quick||{},gps=r.gps||{};
+    const timeline=s.timeline||{},steps=Array.isArray(timeline.steps)?timeline.steps.slice(0,12).filter(p=>typeof p==='string').map(p=>text(p,20)):[];
+    const link=s.linkQuality||{};
+    return {version:1,runId:text(input.runId,64),sentAt:value(input.sentAt,0),sampleAgeMs:value(input.sampleAgeMs,0,86400000)??86400000,
+      telemetry:{receivedAt:value(s.receivedAt,0),source:text(s.source,12),connected:s.connected===true,simulation:s.simulation===true,stageId:s.stageId,mission:text(s.mission),state:text(s.state,40),countdown:text(s.countdown,24),altitude:value(s.altitude),speed:value(s.speed),gforce:value(s.gforce),gyro:vec(s.gyro),
+        quick:{connection:text(quick.connection),chip:text(quick.chip,20),perf:text(quick.perf,20),power:text(quick.power,20),storage:text(quick.storage,24),delaySeconds:value(quick.delaySeconds,0,3600),arm:text(quick.arm,24),armLocked:quick.armLocked===true,pyro:text(quick.pyro,40),attitude:vec(quick.attitude)},
+        timeline:{steps,active:text(timeline.active,20),progress:value(timeline.progress,0,1)},
+        airbrake:s.simulation===true&&s.airbrake?{deploymentPercent:value(s.airbrake.deploymentPercent,0,100),servoAngleDeg:value(s.airbrake.servoAngleDeg,0,180),predictedApogeeM:value(s.airbrake.predictedApogeeM,0),mode:text(s.airbrake.mode,20)}:null,
+        linkQuality:{now:value(link.now,0),stages:Array.isArray(link.stages)?link.stages.slice(0,2).map(p=>({stageId:p.stageId===2?2:1,time:value(p.time,0),available:p.available===true,rssi:value(p.rssi,-150,0),loss:value(p.loss,0,100),hz:value(p.hz,0,1000)})):[]}},
+      recovery:{phase:text(r.phase,30),altitudeM:value(r.altitudeM,-1000,1000000),verticalSpeedMps:value(r.verticalSpeedMps,-1500,1500),chuteCommanded:r.chuteCommanded===true,chuteConfirmed:r.chuteConfirmed===true,
+        gps:{lat:value(gps.lat,-90,90),lon:value(gps.lon,-180,180),alt:value(gps.alt,-1000,1000000),fix:gps.fix===true,ageMs:value(gps.ageMs,0,86400000),accuracyM:value(gps.accuracyM,0,10000)}}};
+  }
+  (root.Flash7=root.Flash7||{}).missionSchema={normalize};if(typeof module==='object'&&module.exports)module.exports=root.Flash7.missionSchema;
+})(typeof globalThis!=='undefined'?globalThis:window);
+
+/* Connection transport only; no board connection, command or navigation privileges. */
+(function(root){
+ 'use strict';
+ function endpoint(raw){
+   const url=new URL(raw);
+   if(url.username||url.password||url.search||url.hash||url.pathname!=='/'&&url.pathname!=='')throw new Error('중계 주소는 경로 없는 HTTPS 주소를 입력하세요.');
+   if(url.protocol!=='https:'&&!(url.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(url.hostname)))throw new Error('HTTPS 중계 주소가 필요합니다.');
+   return url.origin;
+ }
+ function createClient(options){
+   const base=endpoint(options.endpoint),code=String(options.code||'').replace(/[\s-]/g,'').toUpperCase();
+   if(!/^[A-Z2-9]{8}$/.test(code))throw new Error('접근 코드 8자리를 확인하세요.');
+   let socket=null,disposed=false,retry=null,attempt=0,heartbeat=null,generation=0,lastMessage=0,sequence=0,inflight=null;
+   const state=(name,detail)=>options.onState?.(name,detail);
+   async function connect(){
+     if(disposed)return;const current=++generation;state('connecting');
+     try{
+       inflight=new AbortController();
+       const response=await fetch(base+'/api/missions/'+code+'/join',{method:'POST',headers:{'Content-Type':'application/json',...(options.role==='host'?{Authorization:'Bearer '+options.hostToken}:{})},body:JSON.stringify({role:options.role==='host'?'host':'viewer'}),signal:inflight.signal});
+       const auth=await response.json();if(disposed||current!==generation)return;
+       if(!response.ok){if([401,403,404,410,429].includes(response.status)){state('rejected',auth.error||'코드 또는 미션 상태를 확인하세요.');return;}throw new Error(auth.error||'중계 연결 오류');}
+       const url=new URL(base+'/api/missions/'+code+'/socket');url.protocol=url.protocol==='https:'?'wss:':'ws:';
+       const ws=socket=new WebSocket(url,['flash7',auth.ticket]);
+       ws.onopen=()=>{if(disposed||current!==generation){ws.close();return;}attempt=0;lastMessage=Date.now();state('connected');clearInterval(heartbeat);heartbeat=setInterval(()=>{if(ws.readyState!==1)return;if(Date.now()-lastMessage>25000){ws.close();return;}ws.send(JSON.stringify({type:'ping'}));},10000);};
+       ws.onmessage=event=>{if(disposed||current!==generation)return;lastMessage=Date.now();try{const message=JSON.parse(event.data);if(message.type!=='pong')options.onMessage?.(message);}catch(_error){state('invalid','잘못된 중계 메시지를 무시했습니다.');}};
+       ws.onerror=()=>{};
+       ws.onclose=event=>{if(disposed||current!==generation)return;clearInterval(heartbeat);heartbeat=null;socket=null;if([4001,4003,4004,4009].includes(event.code)){state('rejected',event.reason||'미션이 종료되었습니다.');return;}reconnect();};
+     }catch(error){if(!disposed&&current===generation){state('offline',error.message);reconnect();}}
+   }
+   function reconnect(){if(disposed||retry)return;state('reconnecting');retry=setTimeout(()=>{retry=null;connect();},Math.min(15000,800*2**Math.min(attempt++,4))+Math.random()*300);}
+   return {connect,send(snapshot){if(socket?.readyState!==1)return false;socket.send(JSON.stringify({type:'snapshot',sequence:++sequence,payload:snapshot}));return true;},close(){disposed=true;generation++;inflight?.abort();clearTimeout(retry);clearInterval(heartbeat);if(socket){socket.onclose=null;socket.close(1000,'Client left');}socket=null;}};
+ }
+ (root.Flash7=root.Flash7||{}).missionClient={endpoint,createClient};
+ if(typeof module==='object'&&module.exports)module.exports=root.Flash7.missionClient;
+})(typeof globalThis!=='undefined'?globalThis:window);
+
+/* Shared read-only recovery presentation. Phone sensor data stays on this device. */
+(function(root){
+ 'use strict';
+ function createPanel(element,options={}){
+  const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
+  const config={observerHeightM:0,yawOffsetDeg:0,pitchOffsetDeg:0},listeners=[];
+  const write=(key,value)=>{const node=element.querySelector('[data-recovery="'+key+'"]');if(node&&node.textContent!==value)node.textContent=value;};
+  const on=(node,type,fn)=>{node?.addEventListener(type,fn);listeners.push(()=>node?.removeEventListener(type,fn));};
+  const fmt=(n,d=0)=>typeof n==='number'&&Number.isFinite(n)?n.toFixed(d):'--';
+  function mapUpdate(){
+   if(Date.now()-lastMapAt<1000)return;lastMapAt=Date.now();
+   if(!root.L)return;const external=options.map?.();
+   if(external&&map!==external){targetLayer?.remove();landingLayer?.remove();observerLayer?.remove();map=external;centered=true;}
+   if(!map&&!options.map&&element.querySelector('[data-recovery-map]')?.getBoundingClientRect().height>0){map=root.L.map(element.querySelector('[data-recovery-map]'),{zoomControl:true}).setView([35.15,128.1],8);ownedMap=true;root.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);}
+   if(!map)return;
+   const target=current.target,landing=current.landing;
+   if(target&&target.ageMs<=5000){if(!targetLayer)targetLayer=root.L.circleMarker([target.lat,target.lon],{radius:5,color:'#e5e8eb',weight:2,fillColor:'#6f8392',fillOpacity:1}).addTo(map).bindTooltip('기체 위치 추정');else targetLayer.setLatLng([target.lat,target.lon]);if(!centered&&ownedMap){map.setView([target.lat,target.lon],12);centered=true;}}
+   else if(targetLayer){targetLayer.remove();targetLayer=null;}
+   if(landing){if(!landingLayer)landingLayer=root.L.circle([landing.lat,landing.lon],{radius:landing.radiusM,color:'#a8bdaa',weight:1,fillOpacity:.12,dashArray:'4 5'}).addTo(map).bindTooltip('예상 착지 영역 · 통계적 신뢰구간 아님');else landingLayer.setLatLng([landing.lat,landing.lon]).setRadius(landing.radiusM);}
+   else if(landingLayer){landingLayer.remove();landingLayer=null;}
+   if(observer&&(observer.manual||Date.now()-observer.timestamp<15000)){if(!observerLayer)observerLayer=root.L.circleMarker([observer.lat,observer.lon],{radius:4,color:'#91b2cc',fillOpacity:1}).addTo(map).bindTooltip('관측 위치');else observerLayer.setLatLng([observer.lat,observer.lon]);}else if(observerLayer){observerLayer.remove();observerLayer=null;}
+  }
+  function render(){
+   if(disposed)return;current=estimator.snapshot();
+   write('status',({waiting:'수신 대기',tracking:current.target?.extrapolated?'위치 보간 중':'위치 추적 중',stale:'텔레메트리 수신 끊김','gps-stale':'GPS 수신 대기','gps-rejected':'GPS 이상값 제외'})[current.status]||'수신 대기');
+   const land=current.landing;
+   write('eta',land?land.etaSec===0?'00:00':Math.floor(land.etaSec/60).toString().padStart(2,'0')+':'+Math.floor(land.etaSec%60).toString().padStart(2,'0'):'--');
+   write('landing',land?fmt(land.lat,5)+', '+fmt(land.lon,5):'--');write('radius',land?'추정 반경 약 '+fmt(land.radiusM)+' m · 신뢰구간 미보정':'예상 영역 대기');
+   write('landingState',land?({reported:'FC 착지 보고',inferred:'착지 추정',descent:'안정 하강 기반 추정',provisional:'초기 하강 기반 · 오차 큼'})[land.state]:current.status==='stale'?'수신 복구 후 다시 계산':/POWERED|COAST/.test(current.phase||'')?'하강 시작 후 계산':'하강 데이터 대기');
+   write('chute',({unknown:'미확인',commanded:'전개 명령',inferred:'전개 추정',confirmed:'센서 확인'})[current.chute]);write('vertical',fmt(current.verticalSpeedMps,1)+' m/s');
+   write('reference',current.groundOffsetM===0?'착지 지면: 발사점과 같은 높이 가정':'착지 지면: 발사점 대비 '+fmt(current.groundOffsetM)+' m');
+   const gpsFresh=observer&&(observer.manual||Date.now()-observer.timestamp<15000),attitudeFresh=orientation&&Date.now()-orientationAt<3000;
+   const attitude=attitudeFresh&&(orientation.absolute||manualNorth)?{headingDeg:(orientation.headingDeg+northBias+360)%360,pitchDeg:orientation.pitchDeg}:null;
+   const aim=api.guidance(current.target,gpsFresh?observer:null,attitude,config);
+   write('bearing',aim?fmt(aim.bearingDeg)+'°':'--');write('elevation',aim?fmt(aim.elevationDeg,1)+'°':'--');write('distance',aim?(aim.distanceM>=1000?fmt(aim.distanceM/1000,2)+' km':fmt(aim.distanceM)+' m'):'--');
+   let instruction='위치·방향을 연결하세요.';
+   if(current.status==='stale'||current.target?.ageMs>5000)instruction='수신 복구 대기';
+   else if(aim&&aim.yawErrorDeg===null)instruction='방위각을 기준으로 조준하세요.';
+   else if(aim){const yaw=aim.yawErrorDeg,pitch=aim.pitchErrorDeg;instruction=[Math.abs(yaw)<5?'좌우 정렬':(yaw>0?'오른쪽 ':'왼쪽 ')+fmt(Math.abs(yaw))+'°',pitch===null?'':Math.abs(pitch)<5?'높이 정렬':(pitch>0?'위로 ':'아래로 ')+fmt(Math.abs(pitch))+'°'].filter(Boolean).join(' · ');}
+   write('instruction',instruction);
+   const arrow=element.querySelector('[data-recovery-arrow]');if(arrow)arrow.style.transform=aim&&aim.yawErrorDeg!==null?'rotate('+aim.yawErrorDeg+'deg)':'none';
+   write('aimQuality',aim?'방위 불확실성 약 ±'+fmt(Math.min(180,aim.bearingUncertaintyDeg))+'° · 관측지 높이차 '+fmt(config.observerHeightM)+' m 기준':'휴대폰 화면 상단을 안테나 방향에 맞추세요.');
+   if(watch!==null||orientation)write('sensorState',!gpsFresh?'위치 수신 대기':!attitudeFresh?'방향 수신 대기':orientation.absolute?'절대 방위 사용':manualNorth?'수동 북쪽 기준 · 주기적 재보정':'북쪽 보정 필요');
+   mapUpdate();
+  }
+  function orientationEvent(event){
+   if(disposed)return;
+   const axis=api.orientationAxis(event.alpha,event.beta,event.gamma,root.screen?.orientation?.angle||root.orientation||0);if(!axis||axis.horizontalStrength<.15){orientation=null;return;}
+   const compass=typeof event.webkitCompassHeading==='number'&&event.webkitCompassHeading>=0&&(event.webkitCompassAccuracy==null||event.webkitCompassAccuracy>=0);
+   if(compass)axis.headingDeg=(axis.headingDeg+api.wrap(event.webkitCompassHeading-((360-event.alpha)%360))+360)%360;
+   orientation={...axis,absolute:compass||event.absolute===true};orientationAt=Date.now();
+  }
+  function stopSensors(){sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
+  async function sensors(){
+   stopSensors();const generation=sensorGeneration;
+   if(!root.isSecureContext){write('sensorState','HTTPS 또는 네이티브 앱에서 연결하세요.');return;}
+   let direction=typeof root.DeviceOrientationEvent!=='undefined';
+   try{if(typeof root.DeviceOrientationEvent?.requestPermission==='function')direction=await root.DeviceOrientationEvent.requestPermission(true)==='granted';}catch{direction=false;}
+   if(disposed||generation!==sensorGeneration)return;
+   if(direction){root.addEventListener('deviceorientation',orientationEvent);root.addEventListener('deviceorientationabsolute',orientationEvent);}
+   if(navigator.geolocation)watch=navigator.geolocation.watchPosition(position=>{if(disposed||generation!==sensorGeneration)return;observer={lat:position.coords.latitude,lon:position.coords.longitude,accuracyM:position.coords.accuracy,timestamp:position.timestamp};render();},error=>{if(generation!==sensorGeneration)return;write('sensorState',error.code===1?'위치 권한이 거부되었습니다.':'위치 정보를 받지 못했습니다.');},{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
+   write('sensorState',direction?'센서 수신 대기':'방향 권한 없음 · 위치만 사용');
+  }
+  on(element.querySelector('[data-recovery-sensors]'),'click',sensors);on(element.querySelector('[data-recovery-stop-sensors]'),'click',stopSensors);
+  on(element.querySelector('[data-recovery-north]'),'click',()=>{if(!orientation||Date.now()-orientationAt>3000){write('sensorState','방향 센서를 먼저 연결하세요.');return;}northBias=-orientation.headingDeg;manualNorth=true;render();});
+  on(element.querySelector('[data-recovery-ground]'),'change',event=>{const value=Number(event.target.value);if(Number.isFinite(value)&&value>=-2000&&value<=10000)estimator.configure({groundOffsetM:value});render();});
+  for(const [selector,field]of [['observer-height','observerHeightM'],['yaw-offset','yawOffsetDeg'],['pitch-offset','pitchOffsetDeg']])on(element.querySelector('[data-recovery-'+selector+']'),'change',event=>{if(event.target.validity.valid)config[field]=Number(event.target.value);render();});
+  on(element.querySelector('[data-recovery-station-form]'),'submit',event=>{event.preventDefault();const lat=Number(element.querySelector('[data-recovery-lat]').value),lon=Number(element.querySelector('[data-recovery-lon]').value);if(api.coordinates(lat,lon)){observer={lat,lon,accuracyM:30,timestamp:Date.now(),manual:true};write('sensorState','관측 위치 직접 입력');render();}});
+  on(element.querySelector('[data-recovery-reset]'),'click',()=>{estimator.reset();lastPacketKey='';render();});
+  const timer=setInterval(render,200),resize=()=>{lastMapAt=0;map?.invalidateSize?.();render();};on(root,'resize',resize);
+  on(root,'pagehide',stopSensors);
+  render();
+  return {stopSensors,update(packet,receivedAt=Date.now(),extraAge=0){if(!packet)return;const unique=packet.runId+':'+packet.telemetry.stageId+':'+packet.telemetry.receivedAt;if(unique===lastPacketKey)return;lastPacketKey=unique;estimator.update({...packet.recovery,timestamp:receivedAt-packet.sampleAgeMs-extraAge,stageId:packet.telemetry.stageId,epochId:packet.runId});},render,snapshot:()=>estimator.snapshot(),dispose(){disposed=true;clearInterval(timer);stopSensors();listeners.forEach(fn=>fn());targetLayer?.remove();landingLayer?.remove();observerLayer?.remove();if(ownedMap)map?.remove();}};
+ }
+ (root.Flash7=root.Flash7||{}).recoveryPanel={createPanel};
+})(typeof globalThis!=='undefined'?globalThis:window);
+
+/* PC publication and local recovery. All command paths remain in the main GCS. */
+function initMissionOperations(appScope){
+  const scope=window.Flash7.createScope('mission-operations'),runtime=window.Flash7;
+  let publisher=null,sharing=null,disposed=false,busy=false,lastSent=0,lastSample=0,runId=runtime.createSplitSessionId(),lastMode='',lastPhase='';
+  const mainPanel=document.querySelector('#controlCenterPanel .recovery-panel');
+  const recovery=mainPanel?runtime.recoveryPanel.createPanel(mainPanel,{map:()=>statusMapState.map}):null;
+  const write=(selector,text)=>{const node=document.querySelector(selector);if(node)node.textContent=text;};
+  const savedEndpoint=()=>{try{return localStorage.getItem('flash7-mission-endpoint')||'';}catch{return '';}};
+  const saveEndpoint=value=>{try{localStorage.setItem('flash7-mission-endpoint',value);}catch{}};
+  document.querySelectorAll('[data-mission-endpoint],[data-mission-join-endpoint]').forEach(node=>node.value=savedEndpoint());
+  const joinSettings=document.querySelector("#welcomeOnlinePane [data-mission-relay-settings]");
+  if(joinSettings&&!savedEndpoint())joinSettings.open=true;
+  const query=new URLSearchParams(location.search),configured=query.get('relay');
+  if(configured){try{const value=runtime.missionClient.endpoint(configured);document.querySelectorAll('[data-mission-endpoint],[data-mission-join-endpoint]').forEach(node=>node.value=value);}catch{}}
+  scope.listen(document.getElementById('welcomeOnlineBtn'),'click',()=>setWelcomeStartView(el.welcomeConnectScreen.dataset.welcomeView==='online'?'flight':'online'));
+  const join=document.querySelector('#welcomeOnlinePane [data-mission-join-form]');
+  scope.listen(join?.querySelector('[data-mission-demo]'),'click',()=>location.assign(new URL('mission.html#demo=descent',document.baseURI).href));
+  scope.listen(join,'submit',event=>{
+    event.preventDefault();const status=join.querySelector('[data-mission-join-status]');
+    try{const endpoint=runtime.missionClient.endpoint(join.querySelector('[data-mission-join-endpoint]').value.trim()),code=join.querySelector('[data-mission-join-code]').value.replace(/[\s-]/g,'').toUpperCase();if(!/^[A-Z2-9]{8}$/.test(code))throw new Error('접근 코드 8자리를 확인하세요.');saveEndpoint(endpoint);const url=new URL('mission.html',document.baseURI);url.hash=new URLSearchParams({relay:endpoint,code}).toString();location.assign(url.href);}catch(error){status.textContent=error.message;join.querySelector('details').open=true;}
+  });
+  const finite=(...values)=>{for(const v of values)if(v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v)))return Number(v);return null;};
+  function packet(){
+    if(typeof buildDesktopSplitSnapshot!=='function'||!uiSettings)return null;
+    const raw=runtime.telemetryStore.getSnapshot();if(!raw?.sample||!raw.receivedAt||getDisplayOperationModeValue()==='daq')return null;
+    const display=buildDesktopSplitSnapshot(),data=getActiveGyroTelemetryData(raw.sample)||{},age=Math.max(0,Date.now()-raw.receivedAt),phase=String(data.flight_phase||({0:'PRE_FLIGHT',1:'POWERED_FLIGHT',2:'COASTING',3:'DESCENT',4:'LANDED'})[Number(data.flightPhaseCode??data.flight_phase_code)]||({powered:'POWERED_FLIGHT',coasting:'COASTING',descent:'DESCENT',landed:'LANDED',ejection:'EJECTION'})[display.timeline?.active]||'PRE_FLIGHT');
+    const mode=[simEnabled?'SIM':replaySourceActive||replayUiActive?'REPLAY':'LIVE',data.simulation_profile||'',display.mission].join(':');
+    if(lastMode&&mode!==lastMode||lastPhase==='LANDED'&&phase==='PRE_FLIGHT')runId=runtime.createSplitSessionId();lastMode=mode;lastPhase=phase;
+    display.connected=display.connected&&age<5000;
+    if(!display.connected)display.quick.connection='DISCONNECTED';
+    const activeStage=stageTelemetryModeActive?stageTelemetryStore[display.stageId]:null;
+    const selectedAge=activeStage?Math.max(0,Date.now()-(activeStage.updatedAt||0)):age;
+    const bo=data.bo??data.baro_valid,altitude=bo!=null&&Number(bo)===0?null:finite(data.alt_m,data.altitude_m,data.baro_alt_m);
+    const g=extractTelemetryGeo(data,{koreaOnly:false});
+    display.connected=display.connected&&selectedAge<5000;
+    return runtime.missionSchema.normalize({version:1,runId,sentAt:Date.now(),sampleAgeMs:Math.max(age,selectedAge),telemetry:display,recovery:{phase,altitudeM:altitude,verticalSpeedMps:finite(data.vertical_speed_mps,raw.derived?.altitudeRateMps),chuteCommanded:parachuteDeployLatched===true||Number(data.parachute_commanded)===1||display.simulation&&!!(simState.drogueDeployed||simState.mainDeployed),chuteConfirmed:Number(data.parachute_open_confirmed)===1,gps:{lat:finite(g?.lat,data.gps_lat),lon:finite(g?.lon,data.gps_lon),alt:finite(g?.alt,data.gps_alt),fix:Number(data.gps_fix)===1,ageMs:finite(data.gps_age_ms),accuracyM:finite(data.gps_hacc_m,data.gps_accuracy_m)}}});
+  }
+  async function start(event){
+    event.preventDefault();if(busy||sharing)return;busy=true;const form=event.currentTarget,button=form.querySelector('[data-mission-start]'),secret=form.querySelector('[data-mission-publish-key]');button.disabled=true;let controller=new AbortController();
+    const cancel=()=>controller.abort();scope.add(cancel);
+    try{
+      const endpoint=runtime.missionClient.endpoint(form.querySelector('[data-mission-endpoint]').value.trim());saveEndpoint(endpoint);
+      if(secret.value.length<32)throw new Error('송신 키를 확인하세요.');
+      write('[data-mission-message]','온라인 미션을 만드는 중입니다.');
+      const response=await fetch(endpoint+'/api/missions',{method:'POST',headers:{Authorization:'Bearer '+secret.value},signal:controller.signal});const result=await response.json();
+      if(disposed)return;if(!response.ok)throw new Error(result.error||'미션을 만들지 못했습니다.');
+      sharing={...result,endpoint};secret.value='';
+      publisher=runtime.missionClient.createClient({endpoint,code:result.code,role:'host',hostToken:result.hostToken,onState(state,detail){write('[data-mission-host-status]',({connecting:'중계 연결 중',connected:'실시간 공유 중',reconnecting:'자동 재연결 중',offline:'중계 연결 끊김',rejected:'공유 종료'})[state]||state);if(detail)write('[data-mission-message]',detail);},onMessage(message){if(message.type==='presence')write('[data-mission-presence]','조회 중 '+message.viewers+'명');}});publisher.connect();
+      document.querySelector('[data-mission-share-result]').hidden=false;write('[data-mission-code]',result.code.slice(0,4)+' '+result.code.slice(4));write('[data-mission-expiry]',new Date(result.expiresAt).toLocaleTimeString('ko-KR')+'까지 유효');
+      const url=new URL('mission.html',document.baseURI);url.hash=new URLSearchParams({relay:endpoint,code:result.code}).toString();sharing.url=url.href;document.querySelector('[data-mission-open]').href=url.href;
+      write('[data-mission-message]','코드 소지자는 선택한 미션 텔레메트리를 조회할 수 있습니다. 폰에서는 기체 명령을 실행할 수 없습니다.');
+    }catch(error){if(!disposed)write('[data-mission-message]',error.name==='AbortError'?'공유 요청이 취소되었습니다.':error.message);}finally{busy=false;button.disabled=!!sharing;}
+  }
+  scope.listen(document.querySelector('[data-mission-publish-form]'),'submit',start);
+  scope.listen(document.querySelector('[data-mission-copy]'),'click',async()=>{if(!sharing)return;try{await navigator.clipboard.writeText(sharing.url);write('[data-mission-message]','폰 접속 링크를 복사했습니다.');}catch{write('[data-mission-message]','코드 '+sharing.code+'와 중계 주소를 폰에 입력하세요.');}});
+  scope.listen(document.querySelector('[data-mission-end]'),'click',async()=>{
+    if(!sharing)return;const previous=sharing;publisher?.close();publisher=null;sharing=null;
+    document.querySelector('[data-mission-share-result]').hidden=true;document.querySelector('[data-mission-start]').disabled=false;write('[data-mission-host-status]','공유 중지');
+    try{const response=await fetch(previous.endpoint+'/api/missions/'+previous.code+'/end',{method:'DELETE',headers:{Authorization:'Bearer '+previous.hostToken}});if(!response.ok)throw new Error();write('[data-mission-message]','미션 공유를 종료했습니다.');}catch{write('[data-mission-message]','송신을 중지했습니다. 서버 종료 확인은 실패하여 기존 코드는 만료 시 폐기됩니다.');}
+  });
+  scope.interval(()=>{
+    if(disposed)return;const next=packet();if(!next)return;
+    if(next.telemetry.receivedAt!==lastSample){lastSample=next.telemetry.receivedAt;recovery?.update(next);}
+    if(publisher&&Date.now()-lastSent>=100){lastSent=Date.now();publisher.send(next);}
+  },100);
+  scope.listen(window,'pagehide',event=>{if(!event.persisted){disposed=true;scope.dispose();}else{publisher?.close();publisher=null;}});
+  scope.listen(window,'pageshow',event=>{if(event.persisted&&sharing){publisher=runtime.missionClient.createClient({endpoint:sharing.endpoint,code:sharing.code,role:'host',hostToken:sharing.hostToken,onState:state=>write('[data-mission-host-status]',state==='connected'?'실시간 공유 중':'자동 재연결 중')});publisher.connect();}});
+  scope.add(()=>{disposed=true;publisher?.close();recovery?.dispose();});appScope?.add(()=>scope.dispose());
+}
 
 /* FLASH7 presentation: desktop/layout.js. Classic-script globals preserve the shared runtime contract. */
     const desktopSystemClockFormatter = new Intl.DateTimeFormat("ko-KR", {
@@ -44206,6 +44522,7 @@ function bindPlatformLayoutEvents(scope){
       listenApp(document,"keydown",primeCountdownAudio);
       if(appScope) appScope.add(()=>{if(countdownVoicePlayer){countdownVoicePlayer.dispose();countdownVoicePlayer=null;}});
       bindPlatformLayoutEvents(appScope);
+      initMissionOperations(appScope);
       applyTabletControlsLayout();
       applyPhoneLandscapeLayout();
       if(isMobileLayout()){

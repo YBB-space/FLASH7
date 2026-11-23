@@ -1,0 +1,28 @@
+<section class="recovery-panel" aria-label="위치 추적 및 회수 예측">
+  <header class="recovery-header"><div><small>TRACKING / RECOVERY</small><h2>추적·회수</h2></div><span data-recovery="status" role="status">수신 대기</span></header>
+  <div class="recovery-map" data-recovery-map aria-label="실측 위치와 예상 착지 영역 지도"></div>
+  <div class="recovery-readouts">
+    <article><small>TIME TO LAND</small><strong data-recovery="eta">--</strong><span data-recovery="landingState">하강 데이터 대기</span></article>
+    <article><small>PARACHUTE</small><strong class="recovery-state" data-recovery="chute">미확인</strong><span>전개 명령과 실제 전개를 구분합니다.</span></article>
+    <article class="recovery-coordinates"><small>ESTIMATED LANDING</small><strong data-recovery="landing">--</strong><span data-recovery="radius">예상 영역 대기</span></article>
+    <article><small>VERTICAL SPEED</small><strong data-recovery="vertical">--</strong><span>GPS·기압고도 수신 기준</span></article>
+  </div>
+  <p class="recovery-reference" data-recovery="reference">착지 지면: 발사점과 같은 높이 가정</p>
+  <section class="antenna-guide" aria-label="안테나 방향 안내">
+    <header><h3>ANTENNA ASSIST</h3><span data-recovery="sensorState">폰 센서 연결 필요</span></header>
+    <div class="antenna-aim" data-recovery-aim><div class="antenna-reticle" aria-hidden="true"><i></i><b data-recovery-arrow>↑</b></div><strong data-recovery="instruction">위치·방향을 연결하세요.</strong></div>
+    <div class="antenna-metrics"><span>방위 <b data-recovery="bearing">--</b></span><span>고각 <b data-recovery="elevation">--</b></span><span>거리 <b data-recovery="distance">--</b></span></div>
+    <p data-recovery="aimQuality">휴대폰 화면 상단을 안테나 방향에 맞추세요.</p>
+    <button type="button" data-recovery-sensors>위치·방향 센서 연결</button>
+    <div class="recovery-calibration"><button type="button" data-recovery-north>상단을 북쪽으로 맞춘 뒤 보정</button><button type="button" data-recovery-stop-sensors>센서 끄기</button></div>
+  </section>
+  <details class="recovery-settings"><summary>기준 위치·높이 설정</summary>
+    <p>높이차는 모두 발사점 기준입니다. 지형 높이를 모르면 평지 가정으로 표시합니다.</p>
+    <label>착지 지면 높이차 (m)<input type="number" min="-2000" max="10000" step="1" value="0" data-recovery-ground></label>
+    <label>관측 지면 높이차 (m)<input type="number" min="-2000" max="10000" step="1" value="0" data-recovery-observer-height></label>
+    <label>안테나 방위 보정 (°)<input type="number" min="-180" max="180" step="1" value="0" data-recovery-yaw-offset></label>
+    <label>안테나 고각 보정 (°)<input type="number" min="-90" max="90" step="1" value="0" data-recovery-pitch-offset></label>
+    <form data-recovery-station-form><p>PC에서는 관측 위치를 직접 입력할 수 있습니다.</p><label>관측 위도<input type="number" min="-90" max="90" step="any" data-recovery-lat required></label><label>관측 경도<input type="number" min="-180" max="180" step="any" data-recovery-lon required></label><button type="submit">관측 위치 적용</button></form>
+    <button type="button" data-recovery-reset>현재 미션 추정 초기화</button>
+  </details>
+</section>

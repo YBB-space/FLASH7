@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#000000"><meta name="referrer" content="no-referrer">
+  <title>FLASH7 · 온라인 미션</title><link rel="icon" href="img/Flash_logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261123-online-recovery"><link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <script defer src="vendor/leaflet/leaflet.js"></script>
+  <script defer src="scripts/ui/shared/recovery-estimator.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/mission-snapshot.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/mission-client.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/recovery-panel.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/flight-charts.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/link-quality.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/desktop/split-display.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/mission-demo.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/mobile/mission-viewer.js?v=20261123-online-recovery"></script>
+</head>
+<body class="split-monitor online-mission-viewer" data-online-tab="telemetry">
+  <section id="splitDisplayWait" class="split-entry" aria-label="온라인 미션 접속">
+    <div class="mission-join-content"><h1 id="splitDisplayWaitTitle">온라인 미션</h1><p id="splitDisplayWaitCopy">접근 코드를 입력해 미션 텔레메트리를 확인하세요.</p><span id="splitDisplayWaitStatus" hidden></span>
+<!-- @include ui/shared/mission-join-form.html -->
+      <a href="flash7.html">시작 화면으로</a>
+    </div>
+  </section>
+  <nav class="online-mission-nav" aria-label="온라인 미션 화면"><a href="flash7.html">FLASH7 / ONLINE</a><div><button type="button" data-online-tab="telemetry" aria-pressed="true">텔레메트리</button><button type="button" data-online-tab="recovery" aria-pressed="false">추적·회수</button><button type="button" data-online-leave>나가기</button></div></nav>
+  <div class="mission-stale-strip" data-online-status hidden role="status"></div>
+<!-- @include ui/shared/telemetry-display.html -->
+  <main class="online-recovery-layout">
+<!-- @include ui/shared/recovery-panel.html -->
+  </main>
+</body></html>

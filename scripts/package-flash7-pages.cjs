@@ -6,10 +6,10 @@ const root = path.resolve(__dirname, "..");
 const output = path.join(root, "_site");
 const {runtimeModules} = require(path.join(root, "flash7-loader.js"));
 const files = [...new Set([
-  "index.html", "flash7.html", "split-display.html", "overlay.html",
+  "index.html", "flash7.html", "split-display.html", "mission.html", "overlay.html",
   "flash7-loader.js", "flash7.runtime.js", "manifest.webmanifest", "CNAME",
   "styles/flash7-app.css", "firmware/firmware.bin", "firmware/manifest.json",
-  "scripts/ui/desktop/split-display.js",
+  "scripts/ui/desktop/split-display.js", "scripts/ui/mobile/mission-viewer.js", "scripts/ui/shared/mission-demo.js",
   ...runtimeModules.map(name=>"scripts/" + name),
   ...["i18n", "zip", "mesh", "export", "watchdog"].map(name=>"scripts/flash7-" + name + ".js")
 ])];

@@ -2380,6 +2380,7 @@
       listenApp(document,"keydown",primeCountdownAudio);
       if(appScope) appScope.add(()=>{if(countdownVoicePlayer){countdownVoicePlayer.dispose();countdownVoicePlayer=null;}});
       bindPlatformLayoutEvents(appScope);
+      initMissionOperations(appScope);
       applyTabletControlsLayout();
       applyPhoneLandscapeLayout();
       if(isMobileLayout()){

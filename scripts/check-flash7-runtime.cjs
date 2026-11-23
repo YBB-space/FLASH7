@@ -66,6 +66,8 @@ const html = fs.readFileSync(path.join(root, "flash7.html"), "utf8");
 if(fs.readFileSync(path.join(root, "split-display.html"), "utf8") !== renderSource("ui/desktop/split-display.html")){
   fail("split-display.html is stale; run node scripts/build-flash7-html.cjs");
 }
+if(fs.readFileSync(path.join(root,"mission.html"),"utf8") !== renderSource("ui/shared/mission-viewer.html")) fail("mission.html is stale; run npm run build.");
+new Function(fs.readFileSync(path.join(root,"scripts/ui/mobile/mission-viewer.js"),"utf8"));
 new Function(fs.readFileSync(path.join(root, "scripts/ui/desktop/split-display.js"), "utf8"));
 if(html !== renderSource("ui/shared/document.html")){
   fail("flash7.html is stale; run node scripts/build-flash7-html.cjs");

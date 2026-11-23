@@ -1,0 +1,2 @@
+# Copy to .dev.vars.local and choose a long random local-only publisher key.
+PUBLISH_KEY=replace-with-at-least-32-random-characters

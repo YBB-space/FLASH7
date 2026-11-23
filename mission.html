@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#000000"><meta name="referrer" content="no-referrer">
+  <title>FLASH7 · 온라인 미션</title><link rel="icon" href="img/Flash_logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261123-online-recovery"><link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <script defer src="vendor/leaflet/leaflet.js"></script>
+  <script defer src="scripts/ui/shared/recovery-estimator.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/mission-snapshot.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/mission-client.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/recovery-panel.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/flight-charts.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/link-quality.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/desktop/split-display.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/shared/mission-demo.js?v=20261123-online-recovery"></script>
+  <script defer src="scripts/ui/mobile/mission-viewer.js?v=20261123-online-recovery"></script>
+</head>
+<body class="split-monitor online-mission-viewer" data-online-tab="telemetry">
+  <section id="splitDisplayWait" class="split-entry" aria-label="온라인 미션 접속">
+    <div class="mission-join-content"><h1 id="splitDisplayWaitTitle">온라인 미션</h1><p id="splitDisplayWaitCopy">접근 코드를 입력해 미션 텔레메트리를 확인하세요.</p><span id="splitDisplayWaitStatus" hidden></span>
+<form class="mission-join-form" data-mission-join-form>
+  <label>ACCESS CODE<input type="text" data-mission-join-code inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z2-9 -]{8,11}" maxlength="11" placeholder="접근 코드 8자리" required></label>
+  <button type="submit" data-mission-join>미션 연결</button>
+  <button type="button" data-mission-demo>하강 시뮬 미리보기</button>
+  <p class="mission-join-error" data-mission-join-status role="status" aria-live="polite"></p>
+  <details data-mission-relay-settings><summary>중계 서버 설정</summary><label>중계 서버<input type="url" data-mission-join-endpoint placeholder="https://flash7-mission-relay.….workers.dev" required></label><p>처음 연결할 때 송신 PC와 같은 중계 주소를 입력하세요.</p></details>
+</form>
+
+      <a href="flash7.html">시작 화면으로</a>
+    </div>
+  </section>
+  <nav class="online-mission-nav" aria-label="온라인 미션 화면"><a href="flash7.html">FLASH7 / ONLINE</a><div><button type="button" data-online-tab="telemetry" aria-pressed="true">텔레메트리</button><button type="button" data-online-tab="recovery" aria-pressed="false">추적·회수</button><button type="button" data-online-leave>나가기</button></div></nav>
+  <div class="mission-stale-strip" data-online-status hidden role="status"></div>
+  <header class="split-monitor-header"><strong>FLASH7 / TELEMETRY</strong><span id="splitDisplayConnection" role="status">연결 대기</span></header>
+  <main class="split-monitor-main">
+    <div class="split-monitor-heading"><div><small id="splitDisplayStage">DISPLAY 02</small><h1 id="splitDisplayMission">FLASH7 MISSION</h1><p id="splitDisplayState">--</p></div><div class="camera-chart-settings" role="group" aria-label="텔레메트리 눈금 범위">
+        <strong>차트 범위</strong>
+        <div class="camera-chart-tools">
+          <button type="button" data-camera-chart-range="detail" aria-pressed="true" title="작은 변화 자세히 보기 · 범위 밖 피크는 화살표와 PEAK 값으로 표시">DETAIL</button>
+          <button type="button" data-camera-chart-range="full" aria-pressed="false" title="모든 피크를 포함한 전체 범위">FULL</button>
+        </div>
+      </div><strong id="splitDisplayCountdown" class="split-monitor-time">T- 00:00</strong></div>
+    <section id="splitDisplaySequence" class="split-sequence is-waiting" aria-label="미션 비행 단계">
+      <header><h2>MISSION SEQUENCE</h2><div><strong id="splitSequenceCurrent">수신 대기</strong><span id="splitSequenceStep">-- / 09</span></div></header>
+      <div class="split-sequence-rail">
+        <div class="split-sequence-line" aria-hidden="true"><i></i></div>
+        <ol>
+          <li data-sequence-step="standby"><i aria-hidden="true"></i><span>STANDBY</span></li>
+          <li data-sequence-step="count"><i aria-hidden="true"></i><span>COUNT</span></li>
+          <li data-sequence-step="ignition"><i aria-hidden="true"></i><span>IGNITION</span></li>
+          <li data-sequence-step="powered"><i aria-hidden="true"></i><span>POWERED</span></li>
+          <li data-sequence-step="coasting"><i aria-hidden="true"></i><span>COASTING</span></li>
+          <li data-sequence-step="separation"><i aria-hidden="true"></i><span>SEPARATION</span></li>
+          <li data-sequence-step="ejection"><i aria-hidden="true"></i><span>EJECTION</span></li>
+          <li data-sequence-step="descent"><i aria-hidden="true"></i><span>DESCENT</span></li>
+          <li data-sequence-step="landed"><i aria-hidden="true"></i><span>LANDED</span></li>
+        </ol>
+      </div>
+    </section>
+    <section class="split-quick-data" aria-label="실시간 퀵 데이터">
+      <header class="split-quick-header">
+        <h2>QUICK DATA</h2>
+        <div class="split-quick-chips">
+          <span id="splitQuickConnection"><i aria-hidden="true"></i><b id="splitQuickConnectionText">DISCONNECTED</b></span>
+          <span>CHIP <b id="splitQuickChip">--°C</b></span>
+          <span>PERF <b id="splitQuickPerf">--%</b></span>
+          <span aria-label="배터리"><svg viewBox="0 0 30 18" aria-hidden="true"><rect x="1" y="2" width="24" height="14" rx="3"/><path d="M28 6v6"/></svg><b id="splitQuickPower">N</b></span>
+        </div>
+      </header>
+      <div class="split-quick-body">
+        <div class="split-quick-primary">
+          <div><small>ALTITUDE</small><strong><span id="splitDisplayAltitude">--</span><em>m</em></strong></div>
+          <div><small>SPEED</small><strong><span id="splitDisplaySpeed">--</span><em>m/s</em></strong></div>
+        </div>
+        <div class="split-quick-details">
+          <div><small>STATE</small><strong id="splitQuickState">--</strong></div>
+          <div><small>SD CARD</small><strong id="splitQuickStorage">--</strong></div>
+          <div><small>점화 지연</small><strong><span id="splitQuickDelay">--</span><em>s</em></strong></div>
+          <div><small>ARM</small><strong><span id="splitQuickArm">--</span><em id="splitQuickArmLock" hidden>(LOCK ON)</em></strong></div>
+          <div><small>PYRO</small><strong id="splitQuickPyro">--</strong></div>
+          <div><small>GYRO X</small><strong><span id="splitQuickAttitudeX">--</span><em>deg</em></strong></div>
+          <div><small>GYRO Y</small><strong><span id="splitQuickAttitudeY">--</span><em>deg</em></strong></div>
+          <div><small>GYRO Z</small><strong><span id="splitQuickAttitudeZ">--</span><em>deg</em></strong></div>
+          <div><small>ACCELERATION</small><strong><span id="splitDisplayGforce">--</span><em>g</em></strong></div>
+        </div>
+      </div>
+    </section>
+    <div class="split-monitor-charts">
+      <section class="camera-telemetry-chart" aria-label="고도 및 속도 차트"><div class="camera-chart-header"><strong class="camera-chart-heading">ALTITUDE / SPEED</strong><div class="camera-chart-legend"><span class="camera-chart-legend-item camera-chart-legend-item--alt"><i></i>ALT</span><span class="camera-chart-legend-item camera-chart-legend-item--speed"><i></i>SPEED</span></div></div><div class="camera-chart-plot"><canvas id="splitDisplayAltitudeChart"></canvas></div></section>
+      <section class="camera-telemetry-chart" aria-label="가속도 및 자이로 차트"><div class="camera-chart-header"><strong class="camera-chart-heading">TELEMETRY</strong><div class="camera-chart-legend"><span class="camera-chart-legend-item camera-chart-legend-item--g"><i></i>G</span><span class="camera-chart-legend-item camera-chart-legend-item--gyro-x"><i></i>X <b id="splitDisplayGyroX">--</b></span><span class="camera-chart-legend-item camera-chart-legend-item--gyro-y"><i></i>Y <b id="splitDisplayGyroY">--</b></span><span class="camera-chart-legend-item camera-chart-legend-item--gyro-z"><i></i>Z <b id="splitDisplayGyroZ">--</b></span></div></div><div class="camera-chart-plot"><canvas id="splitDisplayDynamicsChart"></canvas></div></section>
+    </div>
+    <div class="split-monitor-systems" aria-label="링크 품질 및 에어브레이크">
+      <section class="comm-v3-quality-stage" data-split-quality-stage="1" aria-label="1단 링크 품질">
+        <header class="comm-v3-panel-head"><div><span>STAGE 1</span><strong>링크 품질</strong></div><em>최근 30초</em></header>
+        <div class="comm-v3-metrics" role="group" aria-label="1단 링크 지표 선택">
+          <button class="is-active" type="button" data-split-link-metric="rssi" aria-pressed="true"><small>RSSI</small><strong id="splitLink1Rssi">--</strong><i>dBm</i></button>
+          <button type="button" data-split-link-metric="loss" aria-pressed="false"><small>LOSS</small><strong id="splitLink1Loss">--</strong><i>%</i></button>
+          <button type="button" data-split-link-metric="hz" aria-pressed="false"><small>RX RATE</small><strong id="splitLink1Rate">--</strong><i>Hz</i></button>
+        </div>
+        <div class="comm-v3-chart"><span id="splitLink1Value" class="comm-v3-chart-value">-- dBm</span><canvas id="splitLink1Chart" aria-label="1단 최근 30초 링크 품질"></canvas></div>
+      </section>
+      <section id="splitAirbrake" class="split-airbrake is-unknown" aria-label="에어브레이크 전개 현황">
+        <header class="split-airbrake-header"><strong>AIRBRAKE</strong><span data-airbrake-mode>WAITING</span></header>
+        <div class="split-airbrake-body">
+          <div class="split-airbrake-visual" aria-hidden="true">
+            <svg viewBox="0 0 160 128" fill="none">
+              <circle class="split-airbrake-hull" cx="80" cy="64" r="37"/>
+              <circle class="split-airbrake-inset" cx="80" cy="64" r="27"/>
+              <g class="split-airbrake-interior">
+                <g transform="rotate(0 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <g transform="rotate(90 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <g transform="rotate(180 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <g transform="rotate(270 80 64)"><rect class="split-airbrake-track" x="76" y="40" width="8" height="13" rx="1.5"/><path class="split-airbrake-track-line" d="M80 42V51"/><rect class="split-airbrake-carriage" x="78.5" y="45.5" width="3" height="4" rx=".7"/></g>
+                <circle class="split-airbrake-fastener" cx="58" cy="42" r=".9"/>
+                <circle class="split-airbrake-fastener" cx="102" cy="42" r=".9"/>
+                <circle class="split-airbrake-fastener" cx="102" cy="86" r=".9"/>
+                <circle class="split-airbrake-fastener" cx="58" cy="86" r=".9"/>
+              </g>
+              <g class="split-airbrake-flap split-airbrake-flap--north" transform="rotate(0 80 64)"><path data-airbrake-panel="north" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <g class="split-airbrake-flap split-airbrake-flap--east" transform="rotate(90 80 64)"><path data-airbrake-panel="east" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <g class="split-airbrake-flap split-airbrake-flap--south" transform="rotate(180 80 64)"><path data-airbrake-panel="south" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <g class="split-airbrake-flap split-airbrake-flap--west" transform="rotate(270 80 64)"><path data-airbrake-panel="west" d="M69 33V28.67295653468861A37 37 0 0 1 91 28.67295653468861V33Z"/></g>
+              <circle class="split-airbrake-hub" cx="80" cy="64" r="8"/>
+              <g class="split-airbrake-core" data-airbrake-servo-core><circle cx="80" cy="64" r="4.5"/><path d="M77 64H83"/></g>
+            </svg>
+          </div>
+          <div class="split-airbrake-readout">
+            <div class="split-airbrake-values">
+              <div><small>DEPLOYMENT</small><strong><span data-airbrake-value>--</span><i>%</i></strong></div>
+              <div class="split-airbrake-servo" aria-label="공통 서보 각도" title="시뮬레이션 기준: 수납 0°, 전개 90°"><small>SERVO ANGLE</small><strong><span data-airbrake-servo-angle>--</span><i>°</i></strong></div>
+            </div>
+            <span id="splitAirbrakeStatus" data-airbrake-status role="status">전개 데이터 대기</span>
+            <div class="split-airbrake-meter" role="meter" aria-label="에어브레이크 전개율" aria-valuemin="0" aria-valuemax="100" aria-valuetext="전개 데이터 대기"><i></i></div>
+          </div>
+        </div>
+        <div class="split-airbrake-auto" data-airbrake-auto hidden><span>TARGET<strong>10,000 ft</strong></span><span>PREDICTED<strong data-airbrake-prediction>--</strong></span></div>
+        <div class="split-airbrake-controls" role="group" aria-label="시뮬레이션 에어브레이크" aria-describedby="splitAirbrakeStatus">
+          <button type="button" data-airbrake-target="0" aria-pressed="false" disabled>수납</button>
+          <button type="button" data-airbrake-target="100" aria-pressed="false" disabled>전개</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <main class="online-recovery-layout">
+<section class="recovery-panel" aria-label="위치 추적 및 회수 예측">
+  <header class="recovery-header"><div><small>TRACKING / RECOVERY</small><h2>추적·회수</h2></div><span data-recovery="status" role="status">수신 대기</span></header>
+  <div class="recovery-map" data-recovery-map aria-label="실측 위치와 예상 착지 영역 지도"></div>
+  <div class="recovery-readouts">
+    <article><small>TIME TO LAND</small><strong data-recovery="eta">--</strong><span data-recovery="landingState">하강 데이터 대기</span></article>
+    <article><small>PARACHUTE</small><strong class="recovery-state" data-recovery="chute">미확인</strong><span>전개 명령과 실제 전개를 구분합니다.</span></article>
+    <article class="recovery-coordinates"><small>ESTIMATED LANDING</small><strong data-recovery="landing">--</strong><span data-recovery="radius">예상 영역 대기</span></article>
+    <article><small>VERTICAL SPEED</small><strong data-recovery="vertical">--</strong><span>GPS·기압고도 수신 기준</span></article>
+  </div>
+  <p class="recovery-reference" data-recovery="reference">착지 지면: 발사점과 같은 높이 가정</p>
+  <section class="antenna-guide" aria-label="안테나 방향 안내">
+    <header><h3>ANTENNA ASSIST</h3><span data-recovery="sensorState">폰 센서 연결 필요</span></header>
+    <div class="antenna-aim" data-recovery-aim><div class="antenna-reticle" aria-hidden="true"><i></i><b data-recovery-arrow>↑</b></div><strong data-recovery="instruction">위치·방향을 연결하세요.</strong></div>
+    <div class="antenna-metrics"><span>방위 <b data-recovery="bearing">--</b></span><span>고각 <b data-recovery="elevation">--</b></span><span>거리 <b data-recovery="distance">--</b></span></div>
+    <p data-recovery="aimQuality">휴대폰 화면 상단을 안테나 방향에 맞추세요.</p>
+    <button type="button" data-recovery-sensors>위치·방향 센서 연결</button>
+    <div class="recovery-calibration"><button type="button" data-recovery-north>상단을 북쪽으로 맞춘 뒤 보정</button><button type="button" data-recovery-stop-sensors>센서 끄기</button></div>
+  </section>
+  <details class="recovery-settings"><summary>기준 위치·높이 설정</summary>
+    <p>높이차는 모두 발사점 기준입니다. 지형 높이를 모르면 평지 가정으로 표시합니다.</p>
+    <label>착지 지면 높이차 (m)<input type="number" min="-2000" max="10000" step="1" value="0" data-recovery-ground></label>
+    <label>관측 지면 높이차 (m)<input type="number" min="-2000" max="10000" step="1" value="0" data-recovery-observer-height></label>
+    <label>안테나 방위 보정 (°)<input type="number" min="-180" max="180" step="1" value="0" data-recovery-yaw-offset></label>
+    <label>안테나 고각 보정 (°)<input type="number" min="-90" max="90" step="1" value="0" data-recovery-pitch-offset></label>
+    <form data-recovery-station-form><p>PC에서는 관측 위치를 직접 입력할 수 있습니다.</p><label>관측 위도<input type="number" min="-90" max="90" step="any" data-recovery-lat required></label><label>관측 경도<input type="number" min="-180" max="180" step="any" data-recovery-lon required></label><button type="submit">관측 위치 적용</button></form>
+    <button type="button" data-recovery-reset>현재 미션 추정 초기화</button>
+  </details>
+</section>
+
+  </main>
+</body></html>
