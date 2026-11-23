@@ -33,8 +33,8 @@
       bearingUncertaintyDeg:Math.atan2((number(target.uncertaintyM)||30)+(number(observer.accuracyM)||30),Math.max(1,geo.distanceM))/rad};
   }
   function createEstimator(settings={}){
-    let options={groundOffsetM:0,terrainUncertaintyM:20,...settings},epoch=null,last=null,fix=null,velocity={east:0,north:0},velocityKnown=false,altitudes=[],vertical=null,airborne=false,groundSince=0,commanded=false,confirmed=false,rejected=false;
-    function reset(key){epoch=key;last=fix=null;velocity={east:0,north:0};velocityKnown=false;altitudes=[];vertical=null;airborne=false;groundSince=0;commanded=confirmed=rejected=false;}
+    let options={groundOffsetM:0,terrainUncertaintyM:20,...settings},epoch=null,last=null,fix=null,velocityFix=null,velocity={east:0,north:0},velocityKnown=false,altitudes=[],vertical=null,airborne=false,groundSince=0,commanded=false,confirmed=false,rejected=false;
+    function reset(key){epoch=key;last=fix=velocityFix=null;velocity={east:0,north:0};velocityKnown=false;altitudes=[];vertical=null;airborne=false;groundSince=0;commanded=confirmed=rejected=false;}
     function update(sample,now=Date.now()){
       if(!sample||!finite(sample.timestamp))return snapshot(now);
       const key=String(sample.epochId||'live')+':'+String(sample.stageId||1);
@@ -66,10 +66,16 @@
           if(fix){
             const dt=(measuredAt-fix.measuredAt)/1000,delta=offset(fix,point),distance=Math.hypot(delta.east,delta.north);
             if(dt>0&&dt<=10&&distance>Math.max(100,(accuracy+fix.accuracyM)*3+1200*dt)){accept=false;rejected=true;}
-            if(accept&&dt>=.2&&dt<=5){const gain=velocityKnown?.35:1;velocity.east+=(delta.east/dt-velocity.east)*gain;velocity.north+=(delta.north/dt-velocity.north)*gain;velocityKnown=true;}
-            else if(dt>5)velocityKnown=false;
+
           }
-          if(accept)fix={...point,measuredAt,accuracyM:accuracy};
+          if(accept){
+            const accepted={...point,measuredAt,accuracyM:accuracy},anchor=velocityFix||fix;
+            if(anchor){const dt=(measuredAt-anchor.measuredAt)/1000;
+              if(dt>=.2&&dt<=5){const delta=offset(anchor,point),gain=velocityKnown?.35:1;velocity.east+=(delta.east/dt-velocity.east)*gain;velocity.north+=(delta.north/dt-velocity.north)*gain;velocityKnown=true;velocityFix=accepted;}
+              else if(dt>5){velocityKnown=false;velocityFix=accepted;}
+            }
+            if(!velocityFix)velocityFix=accepted;fix=accepted;
+          }
         }
       }
       const phase=String(sample.phase||'').toUpperCase();
@@ -86,7 +92,6 @@
       const phase=String(last.phase||'').toUpperCase(),descending=vertical!==null&&vertical<-.5&&(airborne||/DESCENT|EJECTION/.test(phase));
       const stable=recent&&vertical!==null&&vertical<=-2&&vertical>=-20&&altitudes.slice(-20).every((p,i,a)=>!i||p.h<=a[i-1].h+1.5);
       const chute=confirmed?'confirmed':commanded&&stable?'inferred':commanded?'commanded':'unknown';
-      const height=last.altitudeM===null?null:last.altitudeM-options.groundOffsetM;
       const currentAltitude=age<=5000&&last.altitudeM!==null&&vertical!==null?last.altitudeM+vertical*Math.min(age/1000,5):last.altitudeM;
       const currentHeight=currentAltitude===null?null:currentAltitude-options.groundOffsetM;
       const uncertainty=fix?fix.accuracyM+(velocityKnown?3:15)*gpsAge/1000:null;

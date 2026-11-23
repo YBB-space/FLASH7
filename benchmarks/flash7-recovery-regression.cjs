@@ -19,6 +19,7 @@ state=e.update(sample(21,{gps:{lat:60,lon:20,fix:true,ageMs:0,accuracyM:5}}),sta
 assert.equal(state.status,'gps-rejected');assert.ok(recovery.bearingDistance(measured,state.target).distanceM<100,'GPS jump is rejected');
 state=e.update(sample(22,{stageId:2,gps:null,altitudeM:null,verticalSpeedMps:null,chuteCommanded:false}),start+22000);
 assert.equal(state.target,null,'stage switch does not borrow GPS from another stage');assert.equal(state.chute,'unknown');assert.equal(state.verticalSpeedMps,null);
+const fast=recovery.createEstimator();for(let tick=0;tick<=200;tick++)state=fast.update(sample(tick/10),start+tick*100);assert.equal(state.velocityKnown,true,'10 Hz input accumulates a velocity baseline');near(recovery.offset(state.target,state.landing).east,5*state.landing.etaSec,2);
 const unknown=recovery.createEstimator();
 for(let t=0;t<10;t++)state=unknown.update(sample(t,{gps:null,chuteCommanded:false}),start+t*1000);
 assert.equal(state.target,null);assert.equal(state.landing,null);assert.equal(state.chute,'unknown','stable descent alone cannot confirm a parachute');
