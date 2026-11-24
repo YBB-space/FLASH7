@@ -1,6 +1,6 @@
 # FLASH7 mission relay
 
-GitHub Pages의 PC 지상국과 별도 기기의 조회 화면을 연결하는 Cloudflare Worker + SQLite Durable Object입니다. 계정 생성이나 실제 서비스 배포는 이 소스에 포함되지 않습니다.
+GitHub Pages의 PC 지상국과 별도 기기의 조회 화면을 연결하는 Cloudflare Worker + SQLite Durable Object입니다. 서비스 주소: `https://flash7-mission-relay.flash7-mission-relay.workers.dev`. 앱의 공통 설정에 연결되어 있으며 주소를 사용자에게 입력받지 않습니다.
 
 ## 로컬 실행
 

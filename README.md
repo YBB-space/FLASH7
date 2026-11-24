@@ -66,7 +66,7 @@ PC의 **제어 센터 → 추적·회수 예측**, 조회 화면의 **추적·�
 
 착지 계산은 하강 중의 기압 고도 변화와 GPS 수평 이동을 사용합니다. 지면 높이는 발사점과 같다고 가정하며 수동 변경할 수 있습니다. 지형·바람 수치예보를 사용하지 않고, 표시 반경은 보정된 통계적 신뢰구간이 아닙니다. 전개 명령과 하강 추정은 실제 낙하산 확인 센서와 구분합니다. GPS 이상값, 오래된 데이터와 스테이지·미션 변경을 처리하고 수신 중단 후 예측 갱신을 중지합니다.
 
-중계 서버 소스와 설정은 [`services/mission-relay`](services/mission-relay/README.md)에 있습니다. Cloudflare 계정 연결·실제 중계 배포는 별도 단계이며 GitHub Pages만으로 기기 간 실시간 중계를 실행하지 않습니다. `npm run check`는 추정·스키마·온라인 토글 회귀를 포함합니다. 로컬 Worker에서 조회자 10개 동시 수신·재연결·권한 검사는 `services/mission-relay`의 `npm run test:integration`으로 실행합니다.
+중계 서버 소스와 설정은 [`services/mission-relay`](services/mission-relay/README.md)에 있습니다. 중계는 Cloudflare에 배포되어 있으며 PC와 폰은 앱에 설정된 공통 HTTPS 주소로 연결합니다. GitHub Pages는 화면을, Cloudflare는 실시간 중계를 담당합니다. `npm run check`는 추정·스키마·온라인 토글 회귀를 포함합니다. 로컬 Worker에서 조회자 10개 동시 수신·재연결·권한 검사는 `services/mission-relay`의 `npm run test:integration`으로 실행합니다.
 
 ## 정리한 기능과 코드
 

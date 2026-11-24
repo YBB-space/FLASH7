@@ -2,11 +2,11 @@
 (function(root){
  'use strict';
  // Set once when the production Worker is deployed. This is a public service URL, never a key.
- const relayOrigin='';
+ const relayOrigin='https://flash7-mission-relay.flash7-mission-relay.workers.dev';
  function configuredEndpoint(){
-   if(relayOrigin)return relayOrigin;
    const host=root.location?.hostname;
    if(host==='localhost'||host==='127.0.0.1')return 'http://'+host+':8787';
+   if(relayOrigin)return relayOrigin;
    throw new Error('온라인 서비스 연결 준비 중입니다.');
  }
  (root.Flash7=root.Flash7||{}).missionConfig={configuredEndpoint};
