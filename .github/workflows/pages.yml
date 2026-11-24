@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -16,6 +17,8 @@ concurrency:
 
 jobs:
   deploy:
+    env:
+      PAGES_ARTIFACT: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -39,6 +42,33 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: _site
+          name: ${{ env.PAGES_ARTIFACT }}
+      - name: Wait for uploaded artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          const url = `${process.env.GITHUB_API_URL}/repos/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}/artifacts?name=${encodeURIComponent(process.env.PAGES_ARTIFACT)}`;
+          for (let attempt = 0; attempt < 12; attempt++) {
+            const response = await fetch(url, {headers: {
+              Authorization: `Bearer ${process.env.GH_TOKEN}`,
+              Accept: 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28'
+            }});
+            if (!response.ok) throw new Error(`Artifact metadata HTTP ${response.status}`);
+            const data = await response.json();
+            const matches = (data.artifacts || []).filter(item => item.name === process.env.PAGES_ARTIFACT && !item.expired);
+            if (matches.length === 1) {
+              console.log('Current deployment artifact is available.');
+              process.exit(0);
+            }
+            if (matches.length > 1) throw new Error('Current deployment artifact is duplicated.');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
+          throw new Error('Current deployment artifact metadata did not become available.');
+          JS
       - name: Deploy site
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ env.PAGES_ARTIFACT }}
