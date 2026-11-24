@@ -3,7 +3,7 @@
  'use strict';
  const runtime=window.Flash7,adapter=runtime.remoteTelemetry,form=document.querySelector('[data-mission-join-form]'),wait=document.getElementById('splitDisplayWait'),banner=document.querySelector('[data-online-status]'),panel=runtime.recoveryPanel.createPanel(document.querySelector('.online-recovery-layout .recovery-panel'));
  const endpointInput=form.querySelector('[data-mission-join-endpoint]'),codeInput=form.querySelector('[data-mission-join-code]'),joinButton=form.querySelector('[data-mission-join]'),status=form.querySelector('[data-mission-join-status]');
- let client=null,lastReceived=0,lastPacket=null,joined=false,disposed=false,endpoint='',code='',lastRun='',demoTimer=null,demoMode=false;
+ let client=null,lastReceived=0,lastPacket=null,joined=false,disposed=false,endpoint='',code='',lastRun='';
  const hash=new URLSearchParams(location.hash.slice(1));
  try{endpointInput.value=hash.get('relay')||localStorage.getItem('flash7-mission-endpoint')||'';}catch{endpointInput.value=hash.get('relay')||'';}
  codeInput.value=(hash.get('code')||'').replace(/[\s-]/g,'').toUpperCase();
@@ -36,21 +36,13 @@
    else if(name==='connecting')status.textContent='미션에 연결하고 있습니다.';
  }
  function connect(){
-   demoMode=false;clearInterval(demoTimer);demoTimer=null;client?.close();client=runtime.missionClient.createClient({endpoint,code,role:'viewer',onState:state,onMessage:incoming});client.connect();
+   client?.close();client=runtime.missionClient.createClient({endpoint,code,role:'viewer',onState:state,onMessage:incoming});client.connect();
  }
  form.addEventListener('submit',event=>{event.preventDefault();try{endpoint=runtime.missionClient.endpoint(endpointInput.value.trim());code=codeInput.value.replace(/[\s-]/g,'').toUpperCase();if(!/^[A-Z2-9]{8}$/.test(code))throw new Error('접근 코드 8자리를 확인하세요.');joinButton.disabled=true;try{localStorage.setItem('flash7-mission-endpoint',endpoint);}catch{}const url=new URL(location.href);url.hash=new URLSearchParams({relay:endpoint,code}).toString();history.replaceState(null,'',url.href);connect();}catch(error){joinButton.disabled=false;status.textContent=error.message;form.querySelector('details').open=true;}});
  document.querySelectorAll('button[data-online-tab]').forEach(button=>button.addEventListener('click',()=>{document.body.dataset.onlineTab=button.dataset.onlineTab;document.querySelectorAll('button[data-online-tab]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));window.dispatchEvent(new Event('resize'));panel.render();}));
- document.querySelector('[data-online-leave]').addEventListener('click',()=>{demoMode=false;clearInterval(demoTimer);demoTimer=null;panel.stopSensors();client?.close();client=null;joined=false;lastPacket=null;lastReceived=0;adapter.clear();showBanner('');wait.classList.remove('hidden');joinButton.disabled=false;status.textContent='미션에서 나왔습니다.';const url=new URL(location.href);url.hash='';history.replaceState(null,'',url.href);codeInput.focus();});
+ document.querySelector('[data-online-leave]').addEventListener('click',()=>{panel.stopSensors();client?.close();client=null;joined=false;lastPacket=null;lastReceived=0;adapter.clear();showBanner('');wait.classList.remove('hidden');joinButton.disabled=false;status.textContent='미션에서 나왔습니다.';const url=new URL(location.href);url.hash='';history.replaceState(null,'',url.href);codeInput.focus();});
  const timer=setInterval(()=>{if(lastPacket&&Date.now()-lastReceived+lastPacket.sampleAgeMs>5000){adapter.stale();showBanner('텔레메트리 수신 끊김 · 마지막 수신값 · 예측 갱신 중지');}},1000);
- window.addEventListener('pagehide',event=>{clearInterval(demoTimer);demoTimer=null;client?.close();client=null;if(!event.persisted){disposed=true;clearInterval(timer);panel.dispose();}});
- window.addEventListener('pageshow',event=>{if(event.persisted&&!disposed){if(demoMode)startDemo();else if(endpoint&&code)connect();}});
- function startDemo(){
-   demoMode=true;client?.close();client=null;clearInterval(demoTimer);adapter.clear();lastRun='';const id='demo-'+Date.now(),start=Date.now();
-   for(let i=-70;i<0;i++){const now=start+i*100;apply(runtime.missionDemo.sample(i/10,now,id),0,now);}
-   apply(runtime.missionDemo.sample(0,start,id));
-   demoTimer=setInterval(()=>{const now=Date.now();apply(runtime.missionDemo.sample((now-start)/1000,now,id));},100);
-   const url=new URL(location.href);url.hash='demo=descent';history.replaceState(null,'',url.href);showBanner('로컬 하강 시뮬레이션 · 실제 데이터 및 온라인 송신 아님');
- }
- form.querySelector('[data-mission-demo]').addEventListener('click',startDemo);
- if(hash.get('demo')==='descent')startDemo();else if(hash.get('relay')&&hash.get('code'))form.requestSubmit();
+ window.addEventListener('pagehide',event=>{client?.close();client=null;if(!event.persisted){disposed=true;clearInterval(timer);panel.dispose();}});
+ window.addEventListener('pageshow',event=>{if(event.persisted&&!disposed){if(endpoint&&code)connect();}});
+ if(hash.get('relay')&&hash.get('code'))form.requestSubmit();
 })();

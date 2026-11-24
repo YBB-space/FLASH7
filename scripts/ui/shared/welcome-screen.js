@@ -34,17 +34,16 @@ function releaseWelcomeConnectionSurface(node){
 function setWelcomeStartView(view){
   const root=el.welcomeConnectScreen;
   if(!root) return;
-  const next=["flight","simulation","replay","mission","fc","online"].includes(view) ? view : "flight";
+  const next=["flight","simulation","replay","mission","fc"].includes(view) ? view : "flight";
   root.dataset.welcomeView=next;
   if(next!=="mission" && welcomeMissionSettingsState) finishWelcomeMissionSettings();
   if(next!=="replay" && welcomeReplayPickerState) setReplayDataPickerVisible(false);
-  for(const [id,name] of [["welcomeSimulationChoices","simulation"],["welcomeReplayPane","replay"],["welcomeMissionPane","mission"],["welcomeFcGuide","fc"],["welcomeOnlinePane","online"]]){
+  for(const [id,name] of [["welcomeSimulationChoices","simulation"],["welcomeReplayPane","replay"],["welcomeMissionPane","mission"],["welcomeFcGuide","fc"]]){
     const node=document.getElementById(id);if(node) node.hidden=next!==name;
   }
-  for(const [id,name] of [["welcomeFlightBtn","flight"],["welcomeReplayBtn","replay"],["welcomeSimConnectBtn","simulation"],["welcomeOnlineBtn","online"]]){
+  for(const [id,name] of [["welcomeFlightBtn","flight"],["welcomeReplayBtn","replay"],["welcomeSimConnectBtn","simulation"]]){
     const node=document.getElementById(id);if(node) node.setAttribute("aria-pressed",String(next===name));
   }
-  document.getElementById("welcomeOnlineBtn")?.setAttribute("aria-expanded",String(next==="online"));
   const simulation=document.getElementById("welcomeSimConnectBtn");
   if(simulation) simulation.setAttribute("aria-expanded",String(next==="simulation"));
   const mission=document.getElementById("welcomeMissionBtn");

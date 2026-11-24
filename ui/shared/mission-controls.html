@@ -1,15 +1,6 @@
 <details class="control-center-scene mission-publish-section">
   <summary><span><strong>온라인 미션 공유</strong><small data-mission-host-status>조회 전용 텔레메트리 공유</small></span><span aria-hidden="true">⌄</span></summary>
-  <form class="mission-publish-form" data-mission-publish-form>
-    <label>중계 서버<input type="url" data-mission-endpoint placeholder="https://flash7-mission-relay.….workers.dev" autocomplete="url" required></label>
-    <label>송신 키<input type="password" data-mission-publish-key autocomplete="off" minlength="32" placeholder="중계 서버에 설정한 송신 키" required></label>
-    <button type="submit" data-mission-start>미션 공유 시작</button>
-  </form>
-  <div class="mission-share-result" data-mission-share-result hidden>
-    <small>ACCESS CODE</small><strong data-mission-code>--</strong><p data-mission-expiry></p>
-    <p data-mission-presence>조회 연결 대기</p><button type="button" data-mission-copy>폰 접속 링크 복사</button><a data-mission-open target="_blank" rel="noopener">조회 화면 열기</a><button type="button" data-mission-end>공유 종료</button>
-  </div>
-  <p class="mission-status" data-mission-message role="status">공유를 켜면 선택한 스테이지의 위치·텔레메트리가 코드 소지자에게 전달됩니다.</p>
+<!-- @include ui/shared/mission-publish.html -->
 </details>
 <details class="control-center-scene mission-recovery-section"><summary><span><strong>추적·회수 예측</strong><small>실제 GPS 위치 · 착지 영역 · 안테나 안내</small></span><span aria-hidden="true">⌄</span></summary>
 <!-- @include ui/shared/recovery-panel.html -->

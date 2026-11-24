@@ -1,6 +1,13 @@
     <section id="welcomeConnectScreen" class="welcome-connect-screen hidden" data-welcome-view="flight" style="display:none;" aria-label="FLASH7 시작" aria-hidden="true">
       <header class="welcome-home-header">
         <div class="welcome-home-brand"><img src="img/Flash_logo_plain.svg" alt="FLASH7"></div>
+        <div class="welcome-online-controls">
+          <button id="welcomeOnlineBtn" class="welcome-online-toggle" type="button" role="switch" aria-checked="false" aria-controls="welcomeOnlineSettings"><span>온라인 모드</span><i aria-hidden="true"></i></button>
+          <details id="welcomeOnlineSettings" class="welcome-online-settings"><summary>온라인 설정</summary><div class="mission-publish-section">
+<!-- @include ui/shared/mission-publish.html -->
+            <a class="welcome-online-join" href="mission.html">접근 코드로 미션 참여</a>
+          </div></details>
+        </div>
         <button id="welcomeMissionBtn" class="welcome-home-mission" type="button" aria-label="미션 수정" aria-controls="welcomeMissionPane" aria-expanded="false"><span>MISSION</span><strong id="welcomeMissionName">ARAEA-I</strong><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12.5 3.5 4 4M4 12l8.5-8.5a1.4 1.4 0 0 1 2 0l2 2a1.4 1.4 0 0 1 0 2L8 16l-4.5.5Z"/></svg></button>
       </header>
       <div class="welcome-home-stage">
@@ -38,10 +45,6 @@
           <header class="welcome-home-pane-header"><h2 id="welcomeMissionTitle">미션 설정</h2></header>
           <div id="welcomeMissionMount"></div>
         </section>
-        <section id="welcomeOnlinePane" class="welcome-home-pane welcome-online-pane" aria-labelledby="welcomeOnlineTitle" hidden>
-          <header class="welcome-home-pane-header"><h2 id="welcomeOnlineTitle">온라인 미션</h2></header><p>접근 코드로 같은 미션의 실시간 텔레메트리를 확인하세요.</p>
-<!-- @include ui/shared/mission-join-form.html -->
-        </section>
         <section id="welcomeSimulationChoices" class="welcome-home-simulation" aria-labelledby="welcomeSimulationTitle" hidden>
           <header><h2 id="welcomeSimulationTitle">시뮬레이션</h2><p>기체 연결 없이 시작하세요.</p></header>
           <div class="welcome-home-modes">
@@ -67,7 +70,6 @@
           <button id="welcomeSimConnectBtn" class="welcome-home-shortcut" type="button" aria-controls="welcomeSimulationChoices" aria-expanded="false" aria-pressed="false">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg><span>시뮬레이션</span>
           </button>
-          <button id="welcomeOnlineBtn" class="welcome-home-shortcut" type="button" aria-pressed="false" aria-controls="welcomeOnlinePane" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c5 5 5 12 0 17-5-5-5-12 0-17Z"/></svg><span>온라인 미션</span></button>
         </nav>
         <div class="welcome-home-connect">
           <span>Wi-Fi · USB</span>

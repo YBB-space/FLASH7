@@ -3,17 +3,16 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#000000"><meta name="referrer" content="no-referrer">
   <title>FLASH7 · 온라인 미션</title><link rel="icon" href="img/Flash_logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-online-recovery"><link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-online-toggle"><link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <script defer src="vendor/leaflet/leaflet.js"></script>
-  <script defer src="scripts/ui/shared/recovery-estimator.js?v=20261124-online-recovery"></script>
-  <script defer src="scripts/ui/shared/mission-snapshot.js?v=20261124-online-recovery"></script>
-  <script defer src="scripts/ui/shared/mission-client.js?v=20261124-online-recovery"></script>
-  <script defer src="scripts/ui/shared/recovery-panel.js?v=20261124-online-recovery"></script>
-  <script defer src="scripts/ui/shared/flight-charts.js?v=20261124-online-recovery"></script>
-  <script defer src="scripts/ui/shared/link-quality.js?v=20261124-online-recovery"></script>
-  <script defer src="scripts/ui/desktop/split-display.js?v=20261124-online-recovery"></script>
-  <script defer src="scripts/ui/shared/mission-demo.js?v=20261124-online-recovery"></script>
-  <script defer src="scripts/ui/mobile/mission-viewer.js?v=20261124-online-recovery"></script>
+  <script defer src="scripts/ui/shared/recovery-estimator.js?v=20261124-online-toggle"></script>
+  <script defer src="scripts/ui/shared/mission-snapshot.js?v=20261124-online-toggle"></script>
+  <script defer src="scripts/ui/shared/mission-client.js?v=20261124-online-toggle"></script>
+  <script defer src="scripts/ui/shared/recovery-panel.js?v=20261124-online-toggle"></script>
+  <script defer src="scripts/ui/shared/flight-charts.js?v=20261124-online-toggle"></script>
+  <script defer src="scripts/ui/shared/link-quality.js?v=20261124-online-toggle"></script>
+  <script defer src="scripts/ui/desktop/split-display.js?v=20261124-online-toggle"></script>
+  <script defer src="scripts/ui/mobile/mission-viewer.js?v=20261124-online-toggle"></script>
 </head>
 <body class="split-monitor online-mission-viewer" data-online-tab="telemetry">
   <section id="splitDisplayWait" class="split-entry" aria-label="온라인 미션 접속">
@@ -21,7 +20,6 @@
 <form class="mission-join-form" data-mission-join-form>
   <label>ACCESS CODE<input type="text" data-mission-join-code inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z2-9 -]{8,11}" maxlength="11" placeholder="접근 코드 8자리" required></label>
   <button type="submit" data-mission-join>미션 연결</button>
-  <button type="button" data-mission-demo>하강 시뮬 미리보기</button>
   <p class="mission-join-error" data-mission-join-status role="status" aria-live="polite"></p>
   <details data-mission-relay-settings><summary>중계 서버 설정</summary><label>중계 서버<input type="url" data-mission-join-endpoint placeholder="https://flash7-mission-relay.….workers.dev" required></label><p>처음 연결할 때 송신 PC와 같은 중계 주소를 입력하세요.</p></details>
 </form>

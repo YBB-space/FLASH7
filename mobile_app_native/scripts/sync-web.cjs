@@ -16,7 +16,7 @@ if(process.exitCode) throw new Error("FLASH7 validation failed; native assets we
 
 const files = [
   "flash7.html", "split-display.html", "mission.html", "flash7-loader.js", "flash7.runtime.js",
-  "scripts/ui/desktop/split-display.js", "scripts/ui/mobile/mission-viewer.js", "scripts/ui/shared/mission-demo.js",
+  "scripts/ui/desktop/split-display.js", "scripts/ui/mobile/mission-viewer.js",
   "overlay.html", "manifest.webmanifest", "styles/flash7-app.css",
   "firmware/firmware.bin", "firmware/manifest.json",
   ...runtimeModules.map(name=>"scripts/" + name),

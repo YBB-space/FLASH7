@@ -127,7 +127,7 @@
   <!-- Preload 축소: AP 모드/저메모리 환경에서 동시 요청 버스트를 줄임 -->
   <script>
     (function(){
-    var ASSET_VER = "20261124-online-recovery";
+    var ASSET_VER = "20261124-online-toggle";
       window.__flashBoot = window.__flashBoot || {jsReady:false,lastError:"",phase:"static_loader",version:ASSET_VER};
       var isLocalPreview = !!window.__flashBoot.localPreview;
       var beaconEnabled = (window.__flashBoot.beaconEnabled !== false);
@@ -365,7 +365,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-online-recovery">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-online-toggle">
 </head>
 <body>
   <!-- ✅ LOCKOUT 배경 오버레이 -->
@@ -510,6 +510,7 @@
     <p data-mission-presence>조회 연결 대기</p><button type="button" data-mission-copy>폰 접속 링크 복사</button><a data-mission-open target="_blank" rel="noopener">조회 화면 열기</a><button type="button" data-mission-end>공유 종료</button>
   </div>
   <p class="mission-status" data-mission-message role="status">공유를 켜면 선택한 스테이지의 위치·텔레메트리가 코드 소지자에게 전달됩니다.</p>
+
 </details>
 <details class="control-center-scene mission-recovery-section"><summary><span><strong>추적·회수 예측</strong><small>실제 GPS 위치 · 착지 영역 · 안테나 안내</small></span><span aria-hidden="true">⌄</span></summary>
 <section class="recovery-panel" aria-label="위치 추적 및 회수 예측">
@@ -631,6 +632,23 @@
     <section id="welcomeConnectScreen" class="welcome-connect-screen hidden" data-welcome-view="flight" style="display:none;" aria-label="FLASH7 시작" aria-hidden="true">
       <header class="welcome-home-header">
         <div class="welcome-home-brand"><img src="img/Flash_logo_plain.svg" alt="FLASH7"></div>
+        <div class="welcome-online-controls">
+          <button id="welcomeOnlineBtn" class="welcome-online-toggle" type="button" role="switch" aria-checked="false" aria-controls="welcomeOnlineSettings"><span>온라인 모드</span><i aria-hidden="true"></i></button>
+          <details id="welcomeOnlineSettings" class="welcome-online-settings"><summary>온라인 설정</summary><div class="mission-publish-section">
+  <form class="mission-publish-form" data-mission-publish-form>
+    <label>중계 서버<input type="url" data-mission-endpoint placeholder="https://flash7-mission-relay.….workers.dev" autocomplete="url" required></label>
+    <label>송신 키<input type="password" data-mission-publish-key autocomplete="off" minlength="32" placeholder="중계 서버에 설정한 송신 키" required></label>
+    <button type="submit" data-mission-start>미션 공유 시작</button>
+  </form>
+  <div class="mission-share-result" data-mission-share-result hidden>
+    <small>ACCESS CODE</small><strong data-mission-code>--</strong><p data-mission-expiry></p>
+    <p data-mission-presence>조회 연결 대기</p><button type="button" data-mission-copy>폰 접속 링크 복사</button><a data-mission-open target="_blank" rel="noopener">조회 화면 열기</a><button type="button" data-mission-end>공유 종료</button>
+  </div>
+  <p class="mission-status" data-mission-message role="status">공유를 켜면 선택한 스테이지의 위치·텔레메트리가 코드 소지자에게 전달됩니다.</p>
+
+            <a class="welcome-online-join" href="mission.html">접근 코드로 미션 참여</a>
+          </div></details>
+        </div>
         <button id="welcomeMissionBtn" class="welcome-home-mission" type="button" aria-label="미션 수정" aria-controls="welcomeMissionPane" aria-expanded="false"><span>MISSION</span><strong id="welcomeMissionName">ARAEA-I</strong><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12.5 3.5 4 4M4 12l8.5-8.5a1.4 1.4 0 0 1 2 0l2 2a1.4 1.4 0 0 1 0 2L8 16l-4.5.5Z"/></svg></button>
       </header>
       <div class="welcome-home-stage">
@@ -668,17 +686,6 @@
           <header class="welcome-home-pane-header"><h2 id="welcomeMissionTitle">미션 설정</h2></header>
           <div id="welcomeMissionMount"></div>
         </section>
-        <section id="welcomeOnlinePane" class="welcome-home-pane welcome-online-pane" aria-labelledby="welcomeOnlineTitle" hidden>
-          <header class="welcome-home-pane-header"><h2 id="welcomeOnlineTitle">온라인 미션</h2></header><p>접근 코드로 같은 미션의 실시간 텔레메트리를 확인하세요.</p>
-<form class="mission-join-form" data-mission-join-form>
-  <label>ACCESS CODE<input type="text" data-mission-join-code inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z2-9 -]{8,11}" maxlength="11" placeholder="접근 코드 8자리" required></label>
-  <button type="submit" data-mission-join>미션 연결</button>
-  <button type="button" data-mission-demo>하강 시뮬 미리보기</button>
-  <p class="mission-join-error" data-mission-join-status role="status" aria-live="polite"></p>
-  <details data-mission-relay-settings><summary>중계 서버 설정</summary><label>중계 서버<input type="url" data-mission-join-endpoint placeholder="https://flash7-mission-relay.….workers.dev" required></label><p>처음 연결할 때 송신 PC와 같은 중계 주소를 입력하세요.</p></details>
-</form>
-
-        </section>
         <section id="welcomeSimulationChoices" class="welcome-home-simulation" aria-labelledby="welcomeSimulationTitle" hidden>
           <header><h2 id="welcomeSimulationTitle">시뮬레이션</h2><p>기체 연결 없이 시작하세요.</p></header>
           <div class="welcome-home-modes">
@@ -704,7 +711,6 @@
           <button id="welcomeSimConnectBtn" class="welcome-home-shortcut" type="button" aria-controls="welcomeSimulationChoices" aria-expanded="false" aria-pressed="false">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg><span>시뮬레이션</span>
           </button>
-          <button id="welcomeOnlineBtn" class="welcome-home-shortcut" type="button" aria-pressed="false" aria-controls="welcomeOnlinePane" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c5 5 5 12 0 17-5-5-5-12 0-17Z"/></svg><span>온라인 미션</span></button>
         </nav>
         <div class="welcome-home-connect">
           <span>Wi-Fi · USB</span>
@@ -5048,6 +5054,6 @@
     <button id="controlsOverlayClose" class="controls-overlay-close" type="button" aria-label="close">×</button>
     </div>
 
-  <script src="scripts/flash7-watchdog.js?v=20261124-online-recovery"></script>
+  <script src="scripts/flash7-watchdog.js?v=20261124-online-toggle"></script>
 </body>
 </html> 

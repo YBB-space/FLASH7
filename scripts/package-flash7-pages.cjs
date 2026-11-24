@@ -9,7 +9,7 @@ const files = [...new Set([
   "index.html", "flash7.html", "split-display.html", "mission.html", "overlay.html",
   "flash7-loader.js", "flash7.runtime.js", "manifest.webmanifest", "CNAME",
   "styles/flash7-app.css", "firmware/firmware.bin", "firmware/manifest.json",
-  "scripts/ui/desktop/split-display.js", "scripts/ui/mobile/mission-viewer.js", "scripts/ui/shared/mission-demo.js",
+  "scripts/ui/desktop/split-display.js", "scripts/ui/mobile/mission-viewer.js",
   ...runtimeModules.map(name=>"scripts/" + name),
   ...["i18n", "zip", "mesh", "export", "watchdog"].map(name=>"scripts/flash7-" + name + ".js")
 ])];
