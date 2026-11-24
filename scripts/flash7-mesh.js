@@ -215,7 +215,12 @@
         stage2:{pos:[], norm:[], col:[], count:0}
       };
     }
-    const convert = (p)=>[
+    // Preserve the source proportions while mapping the mission's nose axis to +Y.
+    const convert = opts.sourceAxis === "x" ? (p)=>[
+      (p[1] - cy) * scale,
+      (opts.noseDirection === -1 ? -1 : 1) * (p[0] - cx) * scale,
+      (opts.noseDirection === -1 ? 1 : -1) * (p[2] - cz) * scale
+    ] : (p)=>[
       (p[0] - cx) * scale,
       (p[2] - cz) * scale,
       -(p[1] - cy) * scale

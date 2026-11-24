@@ -27,6 +27,7 @@
       "ui/shared/mission-snapshot.js",
       "ui/shared/mission-config.js",
       "ui/shared/mission-client.js",
+      "ui/mobile/recovery-camera.js",
       "ui/shared/recovery-panel.js",
       "ui/shared/mission-operations.js",
       "ui/desktop/layout.js",

@@ -9,20 +9,22 @@ function getGyroSceneEnvironmentPalette(dark){
   };
 }
 
-function getGyroSceneGridMetrics(distance){
+function getGyroSceneGridMetrics(distance,metersPerUnit=GYRO_TRAIL_BASE_METERS_PER_UNIT){
+  const ratio=GYRO_TRAIL_BASE_METERS_PER_UNIT/getGyroSceneMetersPerUnit(metersPerUnit);
   const numericDistance = Number(distance);
   const safeDistance = Math.max(0.05, Number.isFinite(numericDistance) ? numericDistance : 1);
   return {
-    span:Math.max(1200, safeDistance * 18),
-    fadeNear:120, fadeFar:900
+    span:Math.max(1200*ratio, safeDistance * 18),
+    fadeNear:120*ratio, fadeFar:900*ratio
   };
 }
 
-function getGyroSceneClipRange(distance, targetY){
+function getGyroSceneClipRange(distance, targetY, metersPerUnit=GYRO_TRAIL_BASE_METERS_PER_UNIT){
+  const ratio=GYRO_TRAIL_BASE_METERS_PER_UNIT/getGyroSceneMetersPerUnit(metersPerUnit);
   const safeDistance = Math.max(0.05, Number(distance) || 1);
   return {
-    near:Math.max(0.025, Math.min(0.25, safeDistance / 2000)),
-    far:Math.max(1800, Math.abs(Number(targetY) || 0) + safeDistance * 24)
+    near:Math.max(0.025*ratio, Math.min(0.25*ratio, safeDistance / 2000)),
+    far:Math.max(1800*ratio, Math.abs(Number(targetY) || 0) + safeDistance * 24)
   };
 }
 
@@ -61,11 +63,12 @@ function createGyroSceneEnvironment(gl){
     uniform vec2 uEye;
     uniform float uEyeHeight;
     uniform float uGrid;
+    uniform float uMetersPerUnit;
     uniform float uFadeNear;
     uniform float uFadeFar;
     float gridLine(float stepSize){
-      vec2 cell = vWorld / stepSize;
-      vec2 footprint = ${derivatives ? "max(fwidth(cell), vec2(0.0001))" : "vec2(max(0.0001, 2.0 * vDepth / (uHeight * uProjection.y * stepSize)))"};
+      vec2 cell = vWorld * uMetersPerUnit / stepSize;
+      vec2 footprint = ${derivatives ? "max(fwidth(cell), vec2(0.0001))" : "vec2(max(0.0001, 2.0 * vDepth * uMetersPerUnit / (uHeight * uProjection.y * stepSize)))"};
       vec2 edge = abs(fract(cell - 0.5) - 0.5);
       vec2 line = 1.0 - smoothstep(footprint * 0.35, footprint * 1.25, edge);
       float visible = 1.0 - smoothstep(0.03125, 0.0625, max(footprint.x, footprint.y));
@@ -89,8 +92,8 @@ function createGyroSceneEnvironment(gl){
         if(uGrid > 0.5){
           // These spacings belong to the world. Subpixel levels fade through
           // their pixel footprint, rather than growing along with the camera.
-          float grid = min(0.23, gridLine(0.25) * 0.07 + gridLine(1.25) * 0.13
-            + gridLine(6.25) * 0.09 + gridLine(31.25) * 0.07 + gridLine(156.25) * 0.05);
+          float grid = min(0.23, gridLine(1.0) * 0.07 + gridLine(5.0) * 0.13
+            + gridLine(25.0) * 0.09 + gridLine(125.0) * 0.07 + gridLine(625.0) * 0.05);
           ground = mix(ground, uLineColor, grid * fade);
         }
         gl_FragColor = vec4(ground, fade);
@@ -101,7 +104,7 @@ function createGyroSceneEnvironment(gl){
     prog, aPos:gl.getAttribLocation(prog, "aPos"),
     posBuf:createGyroArrayBuffer(gl, [-1,-1, 1,-1, 1,1, -1,-1, 1,1, -1,1], gl.STATIC_DRAW)
   };
-  for(const name of ["ViewProj", "Center", "Span", "Sky", "Height", "Width", "Projection", "ProjectionOffset", "ViewY", "SkyColor", "HorizonColor", "GroundColor", "LineColor", "Eye", "EyeHeight", "Grid", "FadeNear", "FadeFar"]){
+  for(const name of ["ViewProj", "Center", "Span", "Sky", "Height", "Width", "Projection", "ProjectionOffset", "ViewY", "SkyColor", "HorizonColor", "GroundColor", "LineColor", "Eye", "EyeHeight", "Grid", "MetersPerUnit", "FadeNear", "FadeFar"]){
     environment["u" + name] = gl.getUniformLocation(prog, "u" + name);
   }
   return environment;
@@ -109,13 +112,14 @@ function createGyroSceneEnvironment(gl){
 
 function drawGyroSceneEnvironment(sky, palette, viewProj, eye, distance, view){
   const {gl, environment, width, height, proj} = gyroGl;
-  const metrics = getGyroSceneGridMetrics(distance);
+  const units=getGyroSceneMetersPerUnit(gyroSceneView.metersPerUnit),snap=256*GYRO_TRAIL_BASE_METERS_PER_UNIT/units;
+  const metrics = getGyroSceneGridMetrics(distance,units);
   gl.useProgram(environment.prog);
   bindGyroVertexAttributes([environment.aPos]);
   gl.bindBuffer(gl.ARRAY_BUFFER, environment.posBuf);
   gl.vertexAttribPointer(environment.aPos, 2, gl.FLOAT, false, 0, 0);
   gl.uniformMatrix4fv(environment.uViewProj, false, new Float32Array(viewProj));
-  gl.uniform2f(environment.uCenter, Math.floor(eye[0] / 256) * 256, Math.floor(eye[2] / 256) * 256);
+  gl.uniform2f(environment.uCenter, Math.floor(eye[0] / snap) * snap, Math.floor(eye[2] / snap) * snap);
   gl.uniform1f(environment.uSpan, metrics.span);
   gl.uniform1f(environment.uSky, sky ? 1 : 0);
   gl.uniform1f(environment.uHeight, height);
@@ -130,6 +134,7 @@ function drawGyroSceneEnvironment(sky, palette, viewProj, eye, distance, view){
   gl.uniform2f(environment.uEye, eye[0], eye[2]);
   gl.uniform1f(environment.uEyeHeight, eye[1]);
   gl.uniform1f(environment.uGrid, gyroSceneView.grid ? 1 : 0);
+  gl.uniform1f(environment.uMetersPerUnit, units);
   gl.uniform1f(environment.uFadeNear, metrics.fadeNear);
   gl.uniform1f(environment.uFadeFar, metrics.fadeFar);
   if(sky){

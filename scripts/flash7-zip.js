@@ -147,8 +147,8 @@
       name,
       normalizedName: normalizePath(name).toLowerCase(),
       method,
-      compressedSize: zip64.compressedSize || compressedSize32,
-      localOffset: zip64.localOffset || localOffset32,
+      compressedSize: zip64.compressedSize ?? compressedSize32,
+      localOffset: zip64.localOffset ?? localOffset32,
       nextOffset: offset + 46 + fileNameLen + extraLen + commentLen
     };
   }

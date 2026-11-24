@@ -13,6 +13,7 @@
     <div class="antenna-aim" data-recovery-aim><div class="antenna-reticle" aria-hidden="true"><i></i><b data-recovery-arrow>↑</b></div><strong data-recovery="instruction">위치·방향을 연결하세요.</strong></div>
     <div class="antenna-metrics"><span>방위 <b data-recovery="bearing">--</b></span><span>고각 <b data-recovery="elevation">--</b></span><span>거리 <b data-recovery="distance">--</b></span></div>
     <p data-recovery="aimQuality">휴대폰 화면 상단을 안테나 방향에 맞추세요.</p>
+    <button type="button" data-recovery-camera-open>카메라로 찾기</button>
     <button type="button" data-recovery-sensors>위치·방향 센서 연결</button>
     <div class="recovery-calibration"><button type="button" data-recovery-north>상단을 북쪽으로 맞춘 뒤 보정</button><button type="button" data-recovery-stop-sensors>센서 끄기</button></div>
   </section>
@@ -25,4 +26,5 @@
     <form data-recovery-station-form><p>PC에서는 관측 위치를 직접 입력할 수 있습니다.</p><label>관측 위도<input type="number" min="-90" max="90" step="any" data-recovery-lat required></label><label>관측 경도<input type="number" min="-180" max="180" step="any" data-recovery-lon required></label><button type="submit">관측 위치 적용</button></form>
     <button type="button" data-recovery-reset>현재 미션 추정 초기화</button>
   </details>
+<!-- @include ui/mobile/recovery-camera.html -->
 </section>

@@ -2,44 +2,60 @@
 const gyroSceneView = {
   mode:"vehicle", preset:"orbit", grid:true, autoFrame:true, userAdjusted:false,
   anchor:{x:0, y:0, z:0}, frame:0, animateUntil:0,
-  dollyZoom:false, orbitReferenceDistance:1.95, flightFrameDistance:0
+  dollyZoom:false, orbitReferenceDistance:1.95, flightFrameDistance:0, metersPerUnit:GYRO_TRAIL_BASE_METERS_PER_UNIT
 };
 const GYRO_SCENE_FOV_DEG = 56;
 const GYRO_SCENE_ZOOM_MAX = 22.5;
 const GYRO_SCENE_FRAME_MAX = 500;
 const GYRO_SCENE_CAMERA_FLOOR = 0.08;
 
+function getGyroSceneMetersPerUnit(value){
+  const units=Number(value);return Number.isFinite(units)?Math.max(GYRO_TRAIL_BASE_METERS_PER_UNIT,units):GYRO_TRAIL_BASE_METERS_PER_UNIT;
+}
+function getGyroSceneUnitRatio(){return GYRO_TRAIL_BASE_METERS_PER_UNIT/getGyroSceneMetersPerUnit(gyroSceneView.metersPerUnit);}
+function getGyroSceneCameraFloor(){return GYRO_SCENE_CAMERA_FLOOR*getGyroSceneUnitRatio();}
+function rebaseGyroSceneUnits(nextUnits){
+  const next=getGyroSceneMetersPerUnit(nextUnits),previous=getGyroSceneMetersPerUnit(gyroSceneView.metersPerUnit);
+  if(next===previous)return false;
+  const ratio=previous/next;
+  for(const key of ['distance','desiredDistance','targetX','targetY','targetZ','panX','panY','panZ'])if(Number.isFinite(gyroCameraState[key]))gyroCameraState[key]*=ratio;
+  for(const key of ['x','y','z'])gyroSceneView.anchor[key]*=ratio;
+  gyroSceneView.orbitReferenceDistance*=ratio;gyroSceneView.flightFrameDistance*=ratio;gyroSceneView.metersPerUnit=next;return true;
+}
 function getGyroSceneRocketScale(metersPerUnit){
-  const scale=Math.max(GYRO_TRAIL_BASE_METERS_PER_UNIT,Number(metersPerUnit)||GYRO_TRAIL_BASE_METERS_PER_UNIT);
-  // Keep the physical scale near the vehicle; only a small visibility floor
-  // remains when the complete flight is normalized into the overview space.
-  return Math.max(.04,GYRO_ROCKET_ACTUAL_HEIGHT_M/(GYRO_ROCKET_TARGET_LENGTH*scale));
+  const scale=getGyroSceneMetersPerUnit(metersPerUnit);
+  // The vehicle and path use the same meters-per-world-unit at every flight scale.
+  return getGyroRocketActualHeightM()/(GYRO_ROCKET_TARGET_LENGTH*scale);
 }
 
 function getGyroSceneStrokeHalfWidth(point,view,viewportHeight,pixels){
-  const depth=Math.max(.001,-(view[2]*point.x+view[6]*point.y+view[10]*point.z+view[14]));
-  return Math.max(.000001,depth*Math.tan(GYRO_SCENE_FOV_DEG*DEG_TO_RAD*.5)*pixels/Math.max(1,viewportHeight));
+  const depth=Math.max(1e-8,-(view[2]*point.x+view[6]*point.y+view[10]*point.z+view[14]));
+  return Math.max(1e-10,depth*Math.tan(GYRO_SCENE_FOV_DEG*DEG_TO_RAD*.5)*pixels/Math.max(1,viewportHeight));
 }
-function getGyroSceneVehicleLift(scale,altitude){
-  return Math.max(0,scale*GYRO_ROCKET_TARGET_LENGTH*.5+.02-(Number(altitude)||0));
+function getGyroSceneLaunchOffset(metersPerUnit){
+  const units=getGyroSceneMetersPerUnit(metersPerUnit);
+  return (getGyroRocketActualHeightM()*.5+.05)/units;
+}
+function getGyroSceneVehicleLift(scale,altitude,metersPerUnit=GYRO_TRAIL_BASE_METERS_PER_UNIT){
+  return Math.max(0,scale*GYRO_ROCKET_TARGET_LENGTH*.5+.05/getGyroSceneMetersPerUnit(metersPerUnit)-(Number(altitude)||0));
 }
 
 function getGyroSceneZoomLimit(mode, frameDistance){
   return mode === "flight"
-    ? Math.min(GYRO_SCENE_FRAME_MAX, Math.max(GYRO_SCENE_ZOOM_MAX, (Number(frameDistance) || 0) * 1.15))
-    : GYRO_SCENE_ZOOM_MAX;
+    ? Math.min(GYRO_SCENE_FRAME_MAX, Math.max(GYRO_SCENE_ZOOM_MAX*getGyroSceneUnitRatio(), (Number(frameDistance) || 0) * 1.15))
+    : GYRO_SCENE_ZOOM_MAX*getGyroSceneUnitRatio();
 }
 
 function constrainGyroScenePan(){
   if(getGyroPreviewMode() !== "3d" || gyroSceneView.mode !== "free") return;
-  gyroCameraState.panY = Math.max(gyroCameraState.panY, GYRO_SCENE_CAMERA_FLOOR - gyroSceneView.anchor.y);
+  gyroCameraState.panY = Math.max(gyroCameraState.panY, getGyroSceneCameraFloor() - gyroSceneView.anchor.y);
 }
 
 function getGyroSceneOrbitPitch(pitch, distance, referenceDistance){
   const angle = clampLocal(Number(pitch) || 0, 0, 84);
   const blend = clampLocal((Math.abs(angle) - 65) / 19, 0, 1);
   const weight = 1 - blend * blend * (3 - 2 * blend);
-  const ratio = Math.max(0.05, Number(referenceDistance) || 1) / Math.max(0.05, Number(distance) || 1);
+  const ratio = Math.max(1e-8, Number(referenceDistance) || 1) / Math.max(1e-8, Number(distance) || 1);
   return clampLocal(Math.atan(Math.tan(angle * DEG_TO_RAD) * Math.pow(ratio, 0.42 * weight)) / DEG_TO_RAD, 0, 84);
 }
 
@@ -49,7 +65,7 @@ function rebaseGyroSceneOrbit(){
       gyroCameraState.pitchDeg, gyroCameraState.distance, gyroSceneView.orbitReferenceDistance
     );
   }
-  gyroSceneView.orbitReferenceDistance = Math.max(0.05, gyroCameraState.distance || gyroCameraState.desiredDistance || 1);
+  gyroSceneView.orbitReferenceDistance = Math.max(1e-8, gyroCameraState.distance || gyroCameraState.desiredDistance || 1);
 }
 
 function getGyroScenePixelRatio(width, height, deviceRatio, mobile){
@@ -79,6 +95,7 @@ function syncGyroSceneControls(){
   if(!view) return;
   const controls = document.querySelector(".scene3d-controls");
   if(!controls) return;
+  controls.querySelector('[data-gyro-action="grid"]')?.setAttribute("title","1 m 보조 격자 · 5 m 기준 격자");
   controls.querySelectorAll("[data-gyro-preset]").forEach(button=>{
     button.setAttribute("aria-pressed", String(button.dataset.gyroPreset === gyroSceneView.preset));
   });
@@ -162,6 +179,7 @@ function setGyroScenePreset(preset){
 function bindGyroSceneControls(){
   const controls = document.querySelector(".scene3d-controls");
   if(!controls) return;
+  controls.querySelector('[data-gyro-action="grid"]')?.setAttribute("title","1 m 보조 격자 · 5 m 기준 격자");
   const scope = window.Flash7.createScope("scene3d");
   window.Flash7.appScope.add(()=>scope.dispose());
   scope.listen(controls, "click", event=>{

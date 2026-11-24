@@ -745,7 +745,8 @@ if (typeof window !== "undefined") {
     let gyroZeroYawOffsetDeg = 0;
     let gyroZeroQuat = [1,0,0,0];
     let gyroGl = null;
-    let gyroRocketMeshPromise = null;
+    const gyroRocketMeshPromises = new Map();
+    let gyroRocketMeshKey = "";
     let mobileMockup3d = null;
     let mobileMockup3dPromise = null;
     let mobileMockup3dRaf = 0;
@@ -2229,56 +2230,51 @@ if (typeof window !== "undefined") {
       return {rocket};
     }
 
-function requestGyroRocketMesh(){
-      if(gyroRocketMeshPromise) return gyroRocketMeshPromise;
-      const modelCandidates = [
-        new URL(GYRO_ROCKET_MODEL_PATH, window.location.href).href,
-        new URL("./3d/assembly.model", window.location.href).href,
-        new URL("/3d/assembly.model", window.location.origin).href,
-        new URL("/flash7/3d/assembly.model", window.location.origin).href
-      ];
-      const sourceCandidates = [
-        new URL(GYRO_ROCKET_3MF_PATH, window.location.href).href,
-        new URL("./3d/assembly.3mf", window.location.href).href,
-        new URL("/3d/assembly.3mf", window.location.origin).href,
-        new URL("/flash7/3d/assembly.3mf", window.location.origin).href
-      ];
-      gyroRocketMeshPromise = (async ()=>{
+    function getGyroRocketModelConfig(){
+      return uiSettings && normalizeSelectedMission(uiSettings.selectedMission) !== "araea_i"
+        ? {key:"assembly", source:GYRO_ROCKET_3MF_PATH, model:GYRO_ROCKET_MODEL_PATH, heightM:GYRO_ROCKET_ACTUAL_HEIGHT_M, parse:{splitSourceZ:924}}
+        : {key:"araea_i", source:"3d/2026 ARAEA-1.3mf", model:null, heightM:3.409, parse:{sourceAxis:"x",noseDirection:-1}};
+    }
+    function getGyroRocketActualHeightM(){return getGyroRocketModelConfig().heightM;}
+    function requestGyroRocketMesh(profile = getGyroRocketModelConfig()){
+      if(gyroRocketMeshPromises.has(profile.key)) return gyroRocketMeshPromises.get(profile.key);
+      const candidates = path=>Array.from(new Set([
+        new URL(path, window.location.href).href,
+        new URL("/" + path, window.location.origin).href,
+        new URL("/flash7/" + path, window.location.origin).href
+      ]));
+      const promise = (async ()=>{
         const api = (typeof window !== "undefined") ? window.FLASH7_MESH : null;
         if(!api || typeof api.parseMobileMockup3mfMesh !== "function") return null;
-        for(const src of Array.from(new Set(modelCandidates))){
-          try{
-            const res = await fetch(src, {cache:"no-store"});
-            if(!res.ok) continue;
-            const xml = await res.text();
-            return api.parseMobileMockup3mfMesh(xml, {
-              maxTriangles: GYRO_ROCKET_3MF_MAX_TRIANGLES,
-              targetSpan: GYRO_ROCKET_TARGET_LENGTH,
-              splitSourceZ:924
-            });
-          }catch(err){
-            console.warn("[gyro] assembly.model load failed:", src, err);
-          }
+        const parse = xml=>api.parseMobileMockup3mfMesh(xml, {
+          maxTriangles:GYRO_ROCKET_3MF_MAX_TRIANGLES,
+          targetSpan:GYRO_ROCKET_TARGET_LENGTH,
+          ...profile.parse
+        });
+        if(profile.model) for(const src of candidates(profile.model)){
+          try{const res=await fetch(src,{cache:"no-store"});if(res.ok)return parse(await res.text());}
+          catch(err){console.warn("[gyro] rocket model load failed:",src,err);}
         }
-        for(const src of Array.from(new Set(sourceCandidates))){
+        for(const src of candidates(profile.source)){
           try{
-            const res = await fetch(src, {cache:"no-store"});
-            if(!res.ok) continue;
-            const buf = await res.arrayBuffer();
-            const xml = await readZipTextEntry(buf, ["3D/3dmodel.model", "3d/3dmodel.model"]);
-            return api.parseMobileMockup3mfMesh(xml, {
-              maxTriangles: GYRO_ROCKET_3MF_MAX_TRIANGLES,
-              targetSpan: GYRO_ROCKET_TARGET_LENGTH,
-              splitSourceZ:924
-            });
-          }catch(err){
-            console.warn("[gyro] assembly.3mf load failed:", src, err);
-          }
+            const res=await fetch(src,{cache:"no-store"});if(!res.ok)continue;
+            const xml=await readZipTextEntry(await res.arrayBuffer(),["3D/3dmodel.model","3d/3dmodel.model"]);
+            return parse(xml);
+          }catch(err){console.warn("[gyro] rocket 3MF load failed:",src,err);}
         }
-        console.warn("[gyro] assembly model failed to load");
         return null;
       })();
-      return gyroRocketMeshPromise;
+      gyroRocketMeshPromises.set(profile.key,promise);return promise;
+    }
+    function syncGyroRocketMesh(){
+      if(!gyroGl) return;
+      const profile=getGyroRocketModelConfig();
+      if(gyroRocketMeshKey===profile.key) return;
+      gyroRocketMeshKey=profile.key;const target=gyroGl;
+      requestGyroRocketMesh(profile).then(mesh=>{
+        if(!mesh||gyroGl!==target||gyroRocketMeshKey!==profile.key) return;
+        if(applyGyroRocketMeshToGl(mesh)) renderGyroGl(gyroPitchDeg,gyroYawDeg,gyroRollDeg);
+      });
     }
 
     function gyroMeshBoundsCenter(positionSets){
@@ -2847,11 +2843,12 @@ function requestMobileMockup3dMesh(){
 
     function resetGyroCameraPose(resetPan){
       gyroSceneView.dollyZoom = false;
-      gyroSceneView.orbitReferenceDistance = GYRO_CAMERA_DEFAULT.distance;
+      const resetDistance=GYRO_CAMERA_DEFAULT.distance*(getGyroPreviewMode()==="3d"?getGyroSceneUnitRatio():1);
+      gyroSceneView.orbitReferenceDistance = resetDistance;
       gyroCameraState.yawDeg = GYRO_CAMERA_DEFAULT.yawDeg;
       gyroCameraState.pitchDeg = GYRO_CAMERA_DEFAULT.pitchDeg;
-      gyroCameraState.distance = GYRO_CAMERA_DEFAULT.distance;
-      gyroCameraState.desiredDistance = GYRO_CAMERA_DEFAULT.distance;
+      gyroCameraState.distance = resetDistance;
+      gyroCameraState.desiredDistance = resetDistance;
       gyroCameraState.manualZoomUntilMs = 0;
       gyroCameraState.previewRocketX = 0.5;
       gyroCameraState.previewRocketY = 0.5;
@@ -2895,8 +2892,9 @@ function requestMobileMockup3dMesh(){
       gyroCameraState.panY += (basis.right[1] * sx) + (basis.up[1] * sy);
       gyroCameraState.panZ += (basis.right[2] * sx) + (basis.up[2] * sy);
       const panLen = Math.hypot(gyroCameraState.panX, gyroCameraState.panY, gyroCameraState.panZ);
-      if(panLen > GYRO_CAMERA_PAN_LIMIT){
-        const ratio = GYRO_CAMERA_PAN_LIMIT / panLen;
+      const panLimit=GYRO_CAMERA_PAN_LIMIT*(getGyroPreviewMode()==="3d"?getGyroSceneUnitRatio():1);
+      if(panLen > panLimit){
+        const ratio = panLimit / panLen;
         gyroCameraState.panX *= ratio;
         gyroCameraState.panY *= ratio;
         gyroCameraState.panZ *= ratio;
@@ -2909,8 +2907,9 @@ function requestMobileMockup3dMesh(){
       gyroCameraState.panY += dy;
       gyroCameraState.panZ += dz;
       const panLen = Math.hypot(gyroCameraState.panX, gyroCameraState.panY, gyroCameraState.panZ);
-      if(panLen > GYRO_CAMERA_PAN_LIMIT){
-        const ratio = GYRO_CAMERA_PAN_LIMIT / panLen;
+      const panLimit=GYRO_CAMERA_PAN_LIMIT*(getGyroPreviewMode()==="3d"?getGyroSceneUnitRatio():1);
+      if(panLen > panLimit){
+        const ratio = panLimit / panLen;
         gyroCameraState.panX *= ratio;
         gyroCameraState.panY *= ratio;
         gyroCameraState.panZ *= ratio;
@@ -2961,12 +2960,12 @@ function requestMobileMockup3dMesh(){
     }
     function getGyroCameraMinDistance(){
       if(el.gyro3dViewport && el.gyro3dViewport.classList.contains("is-camera-gyro-plus-mounted")){
-        return 0.78;
+        return .78*getGyroSceneUnitRatio();
       }
       if(el.gyro3dViewport && el.gyro3dViewport.classList.contains("is-camera-preview-mounted")){
         return 0.68;
       }
-      if(getGyroPreviewMode() === "3d") return 0.68;
+      if(getGyroPreviewMode() === "3d") return Math.max(.68,getGyroRocketActualHeightM()*.9/GYRO_TRAIL_BASE_METERS_PER_UNIT)*getGyroSceneUnitRatio();
       return GYRO_CAMERA_MIN_DISTANCE;
     }
     function holdGyroManualZoom(){
@@ -3445,6 +3444,7 @@ function requestMobileMockup3dMesh(){
       const lineGeom = buildGyroLineGeometry();
       const solidGeom = buildGyroSolidGeometry();
 
+      gyroRocketMeshKey = "";
       gyroGl = {
         gl,
         canvas: el.gyroGl,
@@ -3521,11 +3521,7 @@ function requestMobileMockup3dMesh(){
       bindGyroViewportInteractions();
       resizeGyroGl();
       renderGyroGl(0,0,0);
-      requestGyroRocketMesh().then((mesh)=>{
-        if(!mesh) return;
-        if(!applyGyroRocketMeshToGl(mesh)) return;
-        renderGyroGl(gyroPitchDeg, gyroYawDeg, gyroRollDeg);
-      });
+      syncGyroRocketMesh();
       setTimeout(()=>{
         ensureGyroTerrainForGeo(getGyroTerrainReferenceGeo());
       }, 2500);
@@ -3553,7 +3549,7 @@ function requestMobileMockup3dMesh(){
       const fullScene = getGyroPreviewMode() === "3d";
       const fov = fullScene ? GYRO_SCENE_FOV_DEG : GYRO_FOV_DEG;
       const clip = fullScene ? getGyroSceneClipRange(
-        Math.max(gyroCameraState.distance, gyroCameraState.desiredDistance), gyroCameraState.targetY
+        Math.max(gyroCameraState.distance, gyroCameraState.desiredDistance), gyroCameraState.targetY,gyroSceneView.metersPerUnit
       ) : {near:0.05, far:950};
       const resized = gyroGl.width !== w || gyroGl.height !== h;
       if(!resized && gyroGl.fov === fov && gyroGl.near === clip.near && gyroGl.far === clip.far) return;
@@ -4782,9 +4778,10 @@ function requestMobileMockup3dMesh(){
           ()=>getGyroPathRenderData(nestedOptions)
         );
       }
+      const initialBase=getGyroSceneLaunchOffset(Number(opts.sharedScaleY)||gyroPathState.renderScaleY);
       const baseResult = {
-        current: {x:0, y:GYRO_WORLD_ALTITUDE_BASE, z:0},
-        bounds:{minX:0, maxX:0, minY:GYRO_WORLD_ALTITUDE_BASE, maxY:GYRO_WORLD_ALTITUDE_BASE, minZ:0, maxZ:0},
+        current: {x:0, y:initialBase, z:0},
+        bounds:{minX:0, maxX:0, minY:initialBase, maxY:initialBase, minZ:0, maxZ:0},
         trailPos: [],
         trailCol: [],
         trailGlowCol: [],
@@ -4792,7 +4789,7 @@ function requestMobileMockup3dMesh(){
         trailHotCol: [],
         trailWorldPoints: [],
         trailVertexCount: 0,
-        lookTarget: {x:0, y:GYRO_WORLD_ALTITUDE_BASE, z:0},
+        lookTarget: {x:0, y:initialBase, z:0},
         cameraDistance: GYRO_CAMERA_DEFAULT.distance
       };
       const pts = gyroPathState.points;
@@ -4806,6 +4803,8 @@ function requestMobileMockup3dMesh(){
         gyroPathState.renderScaleXZ = nextScale / GYRO_TRAIL_HORIZONTAL_EXAGGERATION;
         gyroPathState.renderScaleY = nextScale;
         gyroPathState.smoothPath = [];
+        const base=getGyroSceneLaunchOffset(nextScale);
+        baseResult.current.y=baseResult.lookTarget.y=baseResult.bounds.minY=baseResult.bounds.maxY=base;
         return baseResult;
       }
 
@@ -4904,13 +4903,14 @@ function requestMobileMockup3dMesh(){
 
       const scaleXZ = gyroPathState.renderScaleXZ;
       const scaleY = gyroPathState.renderScaleY;
+      const baseY = getGyroSceneLaunchOffset(scaleY);
       const smoothPath = [];
       const smoothPathMeters = gyroPathState.smoothPathMeters || [];
 
       for(let i=0;i<smoothPathMeters.length;i++){
         const m = smoothPathMeters[i];
         const wx = m.x / scaleXZ;
-        const wy = GYRO_WORLD_ALTITUDE_BASE + (m.y / scaleY);
+        const wy = baseY + (m.y / scaleY);
         const wz = m.z / scaleXZ;
         smoothPath.push({x: wx, y: wy, z: wz, ms:m.ms});
         trailPos.push(wx, wy, wz);
@@ -4931,7 +4931,7 @@ function requestMobileMockup3dMesh(){
       const currentRaw = subset[subset.length - 1];
       const currentWorld = {
         x: currentRaw.x / scaleXZ,
-        y: GYRO_WORLD_ALTITUDE_BASE + (currentRaw.y / scaleY),
+        y: baseY + (currentRaw.y / scaleY),
         z: currentRaw.z / scaleXZ,
         ms: currentRaw.ms
       };
@@ -4939,7 +4939,7 @@ function requestMobileMockup3dMesh(){
 
       if(!isFinite(minWX)){
         minWX = maxWX = 0;
-        minWY = maxWY = GYRO_WORLD_ALTITUDE_BASE;
+        minWY = maxWY = baseY;
         minWZ = maxWZ = 0;
       }
       const centerX = (minWX + maxWX) * 0.5;
@@ -4952,7 +4952,7 @@ function requestMobileMockup3dMesh(){
       );
       const heightSpread = Math.max(0.12, maxWY - minWY);
       const cameraDistance = clampLocal(3.1 + (extent * 1.2) + (heightSpread * 0.55), GYRO_CAMERA_MIN_DISTANCE + 0.15, getGyroCameraMaxDistance() - 2.2);
-      const lookTargetYMin = GYRO_WORLD_ALTITUDE_BASE + 0.08;
+      const lookTargetYMin = baseY + .08 / scaleY;
       const lookTargetYMax = Math.max(2.65, currentWorld.y + 0.42);
       const lookTarget = {
         x: clampLocal(centerX * 0.4, -1.45, 1.45),
@@ -5176,6 +5176,7 @@ function requestMobileMockup3dMesh(){
 
     function renderGyroGl(pitchDeg, yawDeg, rollDeg){
       if(!gyroGl) return;
+      syncGyroRocketMesh();
       yawDeg = getGyroDisplayYawDeg(yawDeg);
       resizeGyroGl();
       const gl = gyroGl.gl;
@@ -5204,6 +5205,7 @@ function requestMobileMockup3dMesh(){
             sharedScaleY
           })
         : null;
+      if(showWorldDecor&&rebaseGyroSceneUnits(gyroPathState.renderScaleY))resizeGyroGl();
       const simpleRocketPos = {x:0, y:GYRO_WORLD_ALTITUDE_BASE + 0.34, z:0};
       const inExpanded = isGyroViewportExpanded();
       const inCameraPreview = !!(el.gyro3dViewport &&
@@ -5213,7 +5215,7 @@ function requestMobileMockup3dMesh(){
         ? getGyroSceneRocketScale(gyroPathState.renderScaleY)
         : GYRO_ROCKET_SCALE * (inCameraPreview ? 1.2 : 1);
       const worldRocketLift = showWorldDecor
-        ? getGyroSceneVehicleLift(rocketDisplayScale,Math.min(pathRender.current.y,secondStagePathRender ? secondStagePathRender.current.y : pathRender.current.y))
+        ? getGyroSceneVehicleLift(rocketDisplayScale,Math.min(pathRender.current.y,secondStagePathRender ? secondStagePathRender.current.y : pathRender.current.y),gyroPathState.renderScaleY)
         : 0;
       const rocketRenderPos = showWorldDecor
         ? {x:pathRender.current.x, y:pathRender.current.y + worldRocketLift, z:pathRender.current.z}
@@ -5360,7 +5362,7 @@ function requestMobileMockup3dMesh(){
 
       const targetX = lookTargetSource.x + gyroCameraState.panX;
       const targetY = showWorldDecor
-        ? Math.max(GYRO_SCENE_CAMERA_FLOOR, lookTargetSource.y + gyroCameraState.panY)
+        ? Math.max(getGyroSceneCameraFloor(), lookTargetSource.y + gyroCameraState.panY)
         : lookTargetSource.y + gyroCameraState.panY;
       const targetZ = lookTargetSource.z + gyroCameraState.panZ;
       const targetSmooth = (inCameraPreview && separation > 0)
@@ -5368,7 +5370,7 @@ function requestMobileMockup3dMesh(){
         : (inCameraPreview ? 0.36 : (showWorldDecor ? 0.34 : GYRO_CAMERA_TARGET_SMOOTH));
       gyroCameraState.targetX += (targetX - gyroCameraState.targetX) * targetSmooth;
       gyroCameraState.targetY += (targetY - gyroCameraState.targetY) * targetSmooth;
-      if(showWorldDecor) gyroCameraState.targetY = Math.max(GYRO_SCENE_CAMERA_FLOOR, gyroCameraState.targetY);
+      if(showWorldDecor) gyroCameraState.targetY = Math.max(getGyroSceneCameraFloor(), gyroCameraState.targetY);
       gyroCameraState.targetZ += (targetZ - gyroCameraState.targetZ) * targetSmooth;
 
       const rocketModel = mat4Mul(

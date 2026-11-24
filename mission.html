@@ -3,17 +3,18 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#000000"><meta name="referrer" content="no-referrer">
   <title>FLASH7 · 온라인 미션</title><link rel="icon" href="img/Flash_logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-online-preview"><link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-camera-recovery"><link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <script defer src="vendor/leaflet/leaflet.js"></script>
-  <script defer src="scripts/ui/shared/recovery-estimator.js?v=20261124-online-preview"></script>
-  <script defer src="scripts/ui/shared/mission-snapshot.js?v=20261124-online-preview"></script>
-  <script defer src="scripts/ui/shared/mission-config.js?v=20261124-online-preview"></script>
-  <script defer src="scripts/ui/shared/mission-client.js?v=20261124-online-preview"></script>
-  <script defer src="scripts/ui/shared/recovery-panel.js?v=20261124-online-preview"></script>
-  <script defer src="scripts/ui/shared/flight-charts.js?v=20261124-online-preview"></script>
-  <script defer src="scripts/ui/shared/link-quality.js?v=20261124-online-preview"></script>
-  <script defer src="scripts/ui/desktop/split-display.js?v=20261124-online-preview"></script>
-  <script defer src="scripts/ui/mobile/mission-viewer.js?v=20261124-online-preview"></script>
+  <script defer src="scripts/ui/shared/recovery-estimator.js?v=20261124-camera-recovery"></script>
+  <script defer src="scripts/ui/shared/mission-snapshot.js?v=20261124-camera-recovery"></script>
+  <script defer src="scripts/ui/shared/mission-config.js?v=20261124-camera-recovery"></script>
+  <script defer src="scripts/ui/shared/mission-client.js?v=20261124-camera-recovery"></script>
+  <script defer src="scripts/ui/mobile/recovery-camera.js?v=20261124-camera-recovery"></script>
+  <script defer src="scripts/ui/shared/recovery-panel.js?v=20261124-camera-recovery"></script>
+  <script defer src="scripts/ui/shared/flight-charts.js?v=20261124-camera-recovery"></script>
+  <script defer src="scripts/ui/shared/link-quality.js?v=20261124-camera-recovery"></script>
+  <script defer src="scripts/ui/desktop/split-display.js?v=20261124-camera-recovery"></script>
+  <script defer src="scripts/ui/mobile/mission-viewer.js?v=20261124-camera-recovery"></script>
 </head>
 <body class="split-monitor online-mission-viewer" data-online-tab="telemetry">
   <section id="splitDisplayWait" class="split-entry" aria-label="온라인 미션 접속">
@@ -157,6 +158,7 @@
     <div class="antenna-aim" data-recovery-aim><div class="antenna-reticle" aria-hidden="true"><i></i><b data-recovery-arrow>↑</b></div><strong data-recovery="instruction">위치·방향을 연결하세요.</strong></div>
     <div class="antenna-metrics"><span>방위 <b data-recovery="bearing">--</b></span><span>고각 <b data-recovery="elevation">--</b></span><span>거리 <b data-recovery="distance">--</b></span></div>
     <p data-recovery="aimQuality">휴대폰 화면 상단을 안테나 방향에 맞추세요.</p>
+    <button type="button" data-recovery-camera-open>카메라로 찾기</button>
     <button type="button" data-recovery-sensors>위치·방향 센서 연결</button>
     <div class="recovery-calibration"><button type="button" data-recovery-north>상단을 북쪽으로 맞춘 뒤 보정</button><button type="button" data-recovery-stop-sensors>센서 끄기</button></div>
   </section>
@@ -169,6 +171,17 @@
     <form data-recovery-station-form><p>PC에서는 관측 위치를 직접 입력할 수 있습니다.</p><label>관측 위도<input type="number" min="-90" max="90" step="any" data-recovery-lat required></label><label>관측 경도<input type="number" min="-180" max="180" step="any" data-recovery-lon required></label><button type="submit">관측 위치 적용</button></form>
     <button type="button" data-recovery-reset>현재 미션 추정 초기화</button>
   </details>
+<section class="recovery-camera" data-recovery-camera hidden role="dialog" aria-modal="true" aria-label="카메라로 위치 찾기" data-aligned="false">
+  <video autoplay muted playsinline aria-hidden="true"></video>
+  <div class="recovery-camera-shade" aria-hidden="true"></div>
+  <header class="recovery-camera-header"><div><small>CAMERA ASSIST</small><strong>카메라로 찾기</strong></div><button type="button" data-camera-close>닫기</button></header>
+  <nav class="recovery-camera-modes" aria-label="찾을 위치"><button type="button" data-camera-mode="landing" aria-pressed="true">예상 착지</button><button type="button" data-camera-mode="rocket" aria-pressed="false">기체 위치</button></nav>
+  <div class="recovery-camera-center" aria-hidden="true"><i></i></div>
+  <div class="recovery-camera-target" data-camera-target hidden aria-hidden="true"><i></i><span>목표 위치</span></div>
+  <div class="recovery-camera-direction" data-camera-direction hidden aria-hidden="true"></div>
+  <footer class="recovery-camera-footer"><strong data-camera-message role="status">카메라 연결 대기</strong><span data-camera-range>--</span><p data-camera-quality>GPS·방향 센서로 표시하는 추정 위치입니다.</p><div><button type="button" data-camera-retry hidden>다시 연결</button><button type="button" data-camera-north>북쪽 보정</button></div><small>GPS·방향 센서 기반 추정 위치 · 기기별 오차가 있습니다.</small></footer>
+</section>
+
 </section>
 
   </main>

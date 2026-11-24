@@ -2,7 +2,7 @@
 (function(root){
  'use strict';
  function createPanel(element,options={}){
-  const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
+  const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,cameraOrientation=null,cameraOrientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
   const config={observerHeightM:0,yawOffsetDeg:0,pitchOffsetDeg:0},listeners=[];
   const write=(key,value)=>{const node=element.querySelector('[data-recovery="'+key+'"]');if(node&&node.textContent!==value)node.textContent=value;};
   const on=(node,type,fn)=>{node?.addEventListener(type,fn);listeners.push(()=>node?.removeEventListener(type,fn));};
@@ -40,19 +40,25 @@
    write('instruction',instruction);
    const arrow=element.querySelector('[data-recovery-arrow]');if(arrow)arrow.style.transform=aim&&aim.yawErrorDeg!==null?'rotate('+aim.yawErrorDeg+'deg)':'none';
    write('aimQuality',aim?'방위 불확실성 약 ±'+fmt(Math.min(180,aim.bearingUncertaintyDeg))+'° · 관측지 높이차 '+fmt(config.observerHeightM)+' m 기준':'휴대폰 화면 상단을 안테나 방향에 맞추세요.');
-   if(watch!==null||orientation)write('sensorState',!gpsFresh?'위치 수신 대기':!attitudeFresh?'방향 수신 대기':orientation.absolute?'절대 방위 사용':manualNorth?'수동 북쪽 기준 · 주기적 재보정':'북쪽 보정 필요');
+   if(watch!==null||orientation||cameraOrientation)write('sensorState',!gpsFresh?'위치 수신 대기':!attitudeFresh&&(!cameraOrientation||Date.now()-cameraOrientationAt>=3000)?'방향 수신 대기':orientation?.absolute||cameraOrientation?.absolute?'절대 방위 사용':manualNorth?'수동 북쪽 기준 · 주기적 재보정':'북쪽 보정 필요');
    mapUpdate();
   }
   function orientationEvent(event){
    if(disposed)return;
-   const axis=api.orientationAxis(event.alpha,event.beta,event.gamma,root.screen?.orientation?.angle||root.orientation||0);if(!axis||axis.horizontalStrength<.15){orientation=null;return;}
+   const angle=root.screen?.orientation?.angle??root.orientation??0,axis=api.orientationAxis(event.alpha,event.beta,event.gamma,angle);
    const compass=typeof event.webkitCompassHeading==='number'&&event.webkitCompassHeading>=0&&(event.webkitCompassAccuracy==null||event.webkitCompassAccuracy>=0);
-   if(compass)axis.headingDeg=(axis.headingDeg+api.wrap(event.webkitCompassHeading-((360-event.alpha)%360))+360)%360;
-   orientation={...axis,absolute:compass||event.absolute===true};orientationAt=Date.now();
+   const absolute=compass||event.absolute===true;
+   if(!absolute&&cameraOrientation?.absolute&&Date.now()-cameraOrientationAt<1000)return;
+   if(absolute&&cameraOrientation&&!cameraOrientation.absolute){manualNorth=false;northBias=0;}
+   const correction=compass?api.wrap(event.webkitCompassHeading-((360-event.alpha)%360)):0;
+   const cameraBasis=root.Flash7.recoveryCamera.basis(event.alpha,event.beta,event.gamma,angle,correction);
+   if(cameraBasis){cameraOrientation={basis:cameraBasis,absolute:compass||event.absolute===true};cameraOrientationAt=Date.now();}
+   if(!axis||axis.horizontalStrength<.15){orientation=null;return;}
+   axis.headingDeg=(axis.headingDeg+correction+360)%360;orientation={...axis,absolute:compass||event.absolute===true};orientationAt=Date.now();
   }
-  function stopSensors(){sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
+  function stopSensors(closeCamera=true){if(closeCamera)camera?.close();sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;cameraOrientation=null;manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
   async function sensors(){
-   stopSensors();const generation=sensorGeneration;
+   stopSensors(false);const generation=sensorGeneration;
    if(!root.isSecureContext){write('sensorState','HTTPS 또는 네이티브 앱에서 연결하세요.');return;}
    let direction=typeof root.DeviceOrientationEvent!=='undefined';
    try{if(typeof root.DeviceOrientationEvent?.requestPermission==='function')direction=await root.DeviceOrientationEvent.requestPermission(true)==='granted';}catch{direction=false;}
@@ -61,8 +67,18 @@
    if(navigator.geolocation)watch=navigator.geolocation.watchPosition(position=>{if(disposed||generation!==sensorGeneration)return;observer={lat:position.coords.latitude,lon:position.coords.longitude,accuracyM:position.coords.accuracy,timestamp:position.timestamp};render();},error=>{if(generation!==sensorGeneration)return;write('sensorState',error.code===1?'위치 권한이 거부되었습니다.':'위치 정보를 받지 못했습니다.');},{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
    write('sensorState',direction?'센서 수신 대기':'방향 권한 없음 · 위치만 사용');
   }
+  function calibrateNorth(){
+   if(!orientation||Date.now()-orientationAt>3000){write('sensorState','폰을 잠시 눕히고 상단을 북쪽으로 맞춰주세요.');return false;}
+   northBias=-orientation.headingDeg;manualNorth=true;render();return true;
+  }
+  const camera=root.Flash7.recoveryCamera.create(element.querySelector('[data-recovery-camera]'),{
+   getState(){const state=estimator.snapshot(),gpsFresh=observer&&(observer.manual||Date.now()-observer.timestamp<15000),poseFresh=cameraOrientation&&Date.now()-cameraOrientationAt<3000;
+    return {observer:gpsFresh?observer:null,pose:poseFresh?cameraOrientation.basis:null,absolute:!!(poseFresh&&(cameraOrientation.absolute||manualNorth)),northBias:manualNorth?northBias:0,observerHeightM:config.observerHeightM,stale:['stale','gps-stale','gps-rejected'].includes(state.status),targets:{rocket:state.target,landing:state.landing?{...state.landing,heightM:state.groundOffsetM,ageMs:state.target?.ageMs??Infinity,uncertaintyM:state.landing.radiusM}:null}};
+   },calibrate:calibrateNorth,onRetry:sensors,onClose:()=>stopSensors(false)
+  });
+  on(element.querySelector('[data-recovery-camera-open]'),'click',()=>{void sensors();camera.open();});
   on(element.querySelector('[data-recovery-sensors]'),'click',sensors);on(element.querySelector('[data-recovery-stop-sensors]'),'click',stopSensors);
-  on(element.querySelector('[data-recovery-north]'),'click',()=>{if(!orientation||Date.now()-orientationAt>3000){write('sensorState','방향 센서를 먼저 연결하세요.');return;}northBias=-orientation.headingDeg;manualNorth=true;render();});
+  on(element.querySelector('[data-recovery-north]'),'click',calibrateNorth);
   on(element.querySelector('[data-recovery-ground]'),'change',event=>{const value=Number(event.target.value);if(Number.isFinite(value)&&value>=-2000&&value<=10000)estimator.configure({groundOffsetM:value});render();});
   for(const [selector,field]of [['observer-height','observerHeightM'],['yaw-offset','yawOffsetDeg'],['pitch-offset','pitchOffsetDeg']])on(element.querySelector('[data-recovery-'+selector+']'),'change',event=>{if(event.target.validity.valid)config[field]=Number(event.target.value);render();});
   on(element.querySelector('[data-recovery-station-form]'),'submit',event=>{event.preventDefault();const lat=Number(element.querySelector('[data-recovery-lat]').value),lon=Number(element.querySelector('[data-recovery-lon]').value);if(api.coordinates(lat,lon)){observer={lat,lon,accuracyM:30,timestamp:Date.now(),manual:true};write('sensorState','관측 위치 직접 입력');render();}});
@@ -70,7 +86,7 @@
   const timer=setInterval(render,200),resize=()=>{lastMapAt=0;map?.invalidateSize?.();render();};on(root,'resize',resize);
   on(root,'pagehide',stopSensors);
   render();
-  return {stopSensors,update(packet,receivedAt=Date.now(),extraAge=0){if(!packet)return;const unique=packet.runId+':'+packet.telemetry.stageId+':'+packet.telemetry.receivedAt;if(unique===lastPacketKey)return;lastPacketKey=unique;estimator.update({...packet.recovery,timestamp:receivedAt-packet.sampleAgeMs-extraAge,stageId:packet.telemetry.stageId,epochId:packet.runId});},render,snapshot:()=>estimator.snapshot(),dispose(){disposed=true;clearInterval(timer);stopSensors();listeners.forEach(fn=>fn());targetLayer?.remove();landingLayer?.remove();observerLayer?.remove();if(ownedMap)map?.remove();}};
+  return {stopSensors,update(packet,receivedAt=Date.now(),extraAge=0){if(!packet)return;const unique=packet.runId+':'+packet.telemetry.stageId+':'+packet.telemetry.receivedAt;if(unique===lastPacketKey)return;lastPacketKey=unique;estimator.update({...packet.recovery,timestamp:receivedAt-packet.sampleAgeMs-extraAge,stageId:packet.telemetry.stageId,epochId:packet.runId});},render,snapshot:()=>estimator.snapshot(),dispose(){disposed=true;clearInterval(timer);camera.dispose();stopSensors();listeners.forEach(fn=>fn());targetLayer?.remove();landingLayer?.remove();observerLayer?.remove();if(ownedMap)map?.remove();}};
  }
  (root.Flash7=root.Flash7||{}).recoveryPanel={createPanel};
 })(typeof globalThis!=='undefined'?globalThis:window);

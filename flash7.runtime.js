@@ -746,7 +746,8 @@ if (typeof window !== "undefined") {
     let gyroZeroYawOffsetDeg = 0;
     let gyroZeroQuat = [1,0,0,0];
     let gyroGl = null;
-    let gyroRocketMeshPromise = null;
+    const gyroRocketMeshPromises = new Map();
+    let gyroRocketMeshKey = "";
     let mobileMockup3d = null;
     let mobileMockup3dPromise = null;
     let mobileMockup3dRaf = 0;
@@ -2230,56 +2231,51 @@ if (typeof window !== "undefined") {
       return {rocket};
     }
 
-function requestGyroRocketMesh(){
-      if(gyroRocketMeshPromise) return gyroRocketMeshPromise;
-      const modelCandidates = [
-        new URL(GYRO_ROCKET_MODEL_PATH, window.location.href).href,
-        new URL("./3d/assembly.model", window.location.href).href,
-        new URL("/3d/assembly.model", window.location.origin).href,
-        new URL("/flash7/3d/assembly.model", window.location.origin).href
-      ];
-      const sourceCandidates = [
-        new URL(GYRO_ROCKET_3MF_PATH, window.location.href).href,
-        new URL("./3d/assembly.3mf", window.location.href).href,
-        new URL("/3d/assembly.3mf", window.location.origin).href,
-        new URL("/flash7/3d/assembly.3mf", window.location.origin).href
-      ];
-      gyroRocketMeshPromise = (async ()=>{
+    function getGyroRocketModelConfig(){
+      return uiSettings && normalizeSelectedMission(uiSettings.selectedMission) !== "araea_i"
+        ? {key:"assembly", source:GYRO_ROCKET_3MF_PATH, model:GYRO_ROCKET_MODEL_PATH, heightM:GYRO_ROCKET_ACTUAL_HEIGHT_M, parse:{splitSourceZ:924}}
+        : {key:"araea_i", source:"3d/2026 ARAEA-1.3mf", model:null, heightM:3.409, parse:{sourceAxis:"x",noseDirection:-1}};
+    }
+    function getGyroRocketActualHeightM(){return getGyroRocketModelConfig().heightM;}
+    function requestGyroRocketMesh(profile = getGyroRocketModelConfig()){
+      if(gyroRocketMeshPromises.has(profile.key)) return gyroRocketMeshPromises.get(profile.key);
+      const candidates = path=>Array.from(new Set([
+        new URL(path, window.location.href).href,
+        new URL("/" + path, window.location.origin).href,
+        new URL("/flash7/" + path, window.location.origin).href
+      ]));
+      const promise = (async ()=>{
         const api = (typeof window !== "undefined") ? window.FLASH7_MESH : null;
         if(!api || typeof api.parseMobileMockup3mfMesh !== "function") return null;
-        for(const src of Array.from(new Set(modelCandidates))){
-          try{
-            const res = await fetch(src, {cache:"no-store"});
-            if(!res.ok) continue;
-            const xml = await res.text();
-            return api.parseMobileMockup3mfMesh(xml, {
-              maxTriangles: GYRO_ROCKET_3MF_MAX_TRIANGLES,
-              targetSpan: GYRO_ROCKET_TARGET_LENGTH,
-              splitSourceZ:924
-            });
-          }catch(err){
-            console.warn("[gyro] assembly.model load failed:", src, err);
-          }
+        const parse = xml=>api.parseMobileMockup3mfMesh(xml, {
+          maxTriangles:GYRO_ROCKET_3MF_MAX_TRIANGLES,
+          targetSpan:GYRO_ROCKET_TARGET_LENGTH,
+          ...profile.parse
+        });
+        if(profile.model) for(const src of candidates(profile.model)){
+          try{const res=await fetch(src,{cache:"no-store"});if(res.ok)return parse(await res.text());}
+          catch(err){console.warn("[gyro] rocket model load failed:",src,err);}
         }
-        for(const src of Array.from(new Set(sourceCandidates))){
+        for(const src of candidates(profile.source)){
           try{
-            const res = await fetch(src, {cache:"no-store"});
-            if(!res.ok) continue;
-            const buf = await res.arrayBuffer();
-            const xml = await readZipTextEntry(buf, ["3D/3dmodel.model", "3d/3dmodel.model"]);
-            return api.parseMobileMockup3mfMesh(xml, {
-              maxTriangles: GYRO_ROCKET_3MF_MAX_TRIANGLES,
-              targetSpan: GYRO_ROCKET_TARGET_LENGTH,
-              splitSourceZ:924
-            });
-          }catch(err){
-            console.warn("[gyro] assembly.3mf load failed:", src, err);
-          }
+            const res=await fetch(src,{cache:"no-store"});if(!res.ok)continue;
+            const xml=await readZipTextEntry(await res.arrayBuffer(),["3D/3dmodel.model","3d/3dmodel.model"]);
+            return parse(xml);
+          }catch(err){console.warn("[gyro] rocket 3MF load failed:",src,err);}
         }
-        console.warn("[gyro] assembly model failed to load");
         return null;
       })();
-      return gyroRocketMeshPromise;
+      gyroRocketMeshPromises.set(profile.key,promise);return promise;
+    }
+    function syncGyroRocketMesh(){
+      if(!gyroGl) return;
+      const profile=getGyroRocketModelConfig();
+      if(gyroRocketMeshKey===profile.key) return;
+      gyroRocketMeshKey=profile.key;const target=gyroGl;
+      requestGyroRocketMesh(profile).then(mesh=>{
+        if(!mesh||gyroGl!==target||gyroRocketMeshKey!==profile.key) return;
+        if(applyGyroRocketMeshToGl(mesh)) renderGyroGl(gyroPitchDeg,gyroYawDeg,gyroRollDeg);
+      });
     }
 
     function gyroMeshBoundsCenter(positionSets){
@@ -2848,11 +2844,12 @@ function requestMobileMockup3dMesh(){
 
     function resetGyroCameraPose(resetPan){
       gyroSceneView.dollyZoom = false;
-      gyroSceneView.orbitReferenceDistance = GYRO_CAMERA_DEFAULT.distance;
+      const resetDistance=GYRO_CAMERA_DEFAULT.distance*(getGyroPreviewMode()==="3d"?getGyroSceneUnitRatio():1);
+      gyroSceneView.orbitReferenceDistance = resetDistance;
       gyroCameraState.yawDeg = GYRO_CAMERA_DEFAULT.yawDeg;
       gyroCameraState.pitchDeg = GYRO_CAMERA_DEFAULT.pitchDeg;
-      gyroCameraState.distance = GYRO_CAMERA_DEFAULT.distance;
-      gyroCameraState.desiredDistance = GYRO_CAMERA_DEFAULT.distance;
+      gyroCameraState.distance = resetDistance;
+      gyroCameraState.desiredDistance = resetDistance;
       gyroCameraState.manualZoomUntilMs = 0;
       gyroCameraState.previewRocketX = 0.5;
       gyroCameraState.previewRocketY = 0.5;
@@ -2896,8 +2893,9 @@ function requestMobileMockup3dMesh(){
       gyroCameraState.panY += (basis.right[1] * sx) + (basis.up[1] * sy);
       gyroCameraState.panZ += (basis.right[2] * sx) + (basis.up[2] * sy);
       const panLen = Math.hypot(gyroCameraState.panX, gyroCameraState.panY, gyroCameraState.panZ);
-      if(panLen > GYRO_CAMERA_PAN_LIMIT){
-        const ratio = GYRO_CAMERA_PAN_LIMIT / panLen;
+      const panLimit=GYRO_CAMERA_PAN_LIMIT*(getGyroPreviewMode()==="3d"?getGyroSceneUnitRatio():1);
+      if(panLen > panLimit){
+        const ratio = panLimit / panLen;
         gyroCameraState.panX *= ratio;
         gyroCameraState.panY *= ratio;
         gyroCameraState.panZ *= ratio;
@@ -2910,8 +2908,9 @@ function requestMobileMockup3dMesh(){
       gyroCameraState.panY += dy;
       gyroCameraState.panZ += dz;
       const panLen = Math.hypot(gyroCameraState.panX, gyroCameraState.panY, gyroCameraState.panZ);
-      if(panLen > GYRO_CAMERA_PAN_LIMIT){
-        const ratio = GYRO_CAMERA_PAN_LIMIT / panLen;
+      const panLimit=GYRO_CAMERA_PAN_LIMIT*(getGyroPreviewMode()==="3d"?getGyroSceneUnitRatio():1);
+      if(panLen > panLimit){
+        const ratio = panLimit / panLen;
         gyroCameraState.panX *= ratio;
         gyroCameraState.panY *= ratio;
         gyroCameraState.panZ *= ratio;
@@ -2962,12 +2961,12 @@ function requestMobileMockup3dMesh(){
     }
     function getGyroCameraMinDistance(){
       if(el.gyro3dViewport && el.gyro3dViewport.classList.contains("is-camera-gyro-plus-mounted")){
-        return 0.78;
+        return .78*getGyroSceneUnitRatio();
       }
       if(el.gyro3dViewport && el.gyro3dViewport.classList.contains("is-camera-preview-mounted")){
         return 0.68;
       }
-      if(getGyroPreviewMode() === "3d") return 0.68;
+      if(getGyroPreviewMode() === "3d") return Math.max(.68,getGyroRocketActualHeightM()*.9/GYRO_TRAIL_BASE_METERS_PER_UNIT)*getGyroSceneUnitRatio();
       return GYRO_CAMERA_MIN_DISTANCE;
     }
     function holdGyroManualZoom(){
@@ -3446,6 +3445,7 @@ function requestMobileMockup3dMesh(){
       const lineGeom = buildGyroLineGeometry();
       const solidGeom = buildGyroSolidGeometry();
 
+      gyroRocketMeshKey = "";
       gyroGl = {
         gl,
         canvas: el.gyroGl,
@@ -3522,11 +3522,7 @@ function requestMobileMockup3dMesh(){
       bindGyroViewportInteractions();
       resizeGyroGl();
       renderGyroGl(0,0,0);
-      requestGyroRocketMesh().then((mesh)=>{
-        if(!mesh) return;
-        if(!applyGyroRocketMeshToGl(mesh)) return;
-        renderGyroGl(gyroPitchDeg, gyroYawDeg, gyroRollDeg);
-      });
+      syncGyroRocketMesh();
       setTimeout(()=>{
         ensureGyroTerrainForGeo(getGyroTerrainReferenceGeo());
       }, 2500);
@@ -3554,7 +3550,7 @@ function requestMobileMockup3dMesh(){
       const fullScene = getGyroPreviewMode() === "3d";
       const fov = fullScene ? GYRO_SCENE_FOV_DEG : GYRO_FOV_DEG;
       const clip = fullScene ? getGyroSceneClipRange(
-        Math.max(gyroCameraState.distance, gyroCameraState.desiredDistance), gyroCameraState.targetY
+        Math.max(gyroCameraState.distance, gyroCameraState.desiredDistance), gyroCameraState.targetY,gyroSceneView.metersPerUnit
       ) : {near:0.05, far:950};
       const resized = gyroGl.width !== w || gyroGl.height !== h;
       if(!resized && gyroGl.fov === fov && gyroGl.near === clip.near && gyroGl.far === clip.far) return;
@@ -4783,9 +4779,10 @@ function requestMobileMockup3dMesh(){
           ()=>getGyroPathRenderData(nestedOptions)
         );
       }
+      const initialBase=getGyroSceneLaunchOffset(Number(opts.sharedScaleY)||gyroPathState.renderScaleY);
       const baseResult = {
-        current: {x:0, y:GYRO_WORLD_ALTITUDE_BASE, z:0},
-        bounds:{minX:0, maxX:0, minY:GYRO_WORLD_ALTITUDE_BASE, maxY:GYRO_WORLD_ALTITUDE_BASE, minZ:0, maxZ:0},
+        current: {x:0, y:initialBase, z:0},
+        bounds:{minX:0, maxX:0, minY:initialBase, maxY:initialBase, minZ:0, maxZ:0},
         trailPos: [],
         trailCol: [],
         trailGlowCol: [],
@@ -4793,7 +4790,7 @@ function requestMobileMockup3dMesh(){
         trailHotCol: [],
         trailWorldPoints: [],
         trailVertexCount: 0,
-        lookTarget: {x:0, y:GYRO_WORLD_ALTITUDE_BASE, z:0},
+        lookTarget: {x:0, y:initialBase, z:0},
         cameraDistance: GYRO_CAMERA_DEFAULT.distance
       };
       const pts = gyroPathState.points;
@@ -4807,6 +4804,8 @@ function requestMobileMockup3dMesh(){
         gyroPathState.renderScaleXZ = nextScale / GYRO_TRAIL_HORIZONTAL_EXAGGERATION;
         gyroPathState.renderScaleY = nextScale;
         gyroPathState.smoothPath = [];
+        const base=getGyroSceneLaunchOffset(nextScale);
+        baseResult.current.y=baseResult.lookTarget.y=baseResult.bounds.minY=baseResult.bounds.maxY=base;
         return baseResult;
       }
 
@@ -4905,13 +4904,14 @@ function requestMobileMockup3dMesh(){
 
       const scaleXZ = gyroPathState.renderScaleXZ;
       const scaleY = gyroPathState.renderScaleY;
+      const baseY = getGyroSceneLaunchOffset(scaleY);
       const smoothPath = [];
       const smoothPathMeters = gyroPathState.smoothPathMeters || [];
 
       for(let i=0;i<smoothPathMeters.length;i++){
         const m = smoothPathMeters[i];
         const wx = m.x / scaleXZ;
-        const wy = GYRO_WORLD_ALTITUDE_BASE + (m.y / scaleY);
+        const wy = baseY + (m.y / scaleY);
         const wz = m.z / scaleXZ;
         smoothPath.push({x: wx, y: wy, z: wz, ms:m.ms});
         trailPos.push(wx, wy, wz);
@@ -4932,7 +4932,7 @@ function requestMobileMockup3dMesh(){
       const currentRaw = subset[subset.length - 1];
       const currentWorld = {
         x: currentRaw.x / scaleXZ,
-        y: GYRO_WORLD_ALTITUDE_BASE + (currentRaw.y / scaleY),
+        y: baseY + (currentRaw.y / scaleY),
         z: currentRaw.z / scaleXZ,
         ms: currentRaw.ms
       };
@@ -4940,7 +4940,7 @@ function requestMobileMockup3dMesh(){
 
       if(!isFinite(minWX)){
         minWX = maxWX = 0;
-        minWY = maxWY = GYRO_WORLD_ALTITUDE_BASE;
+        minWY = maxWY = baseY;
         minWZ = maxWZ = 0;
       }
       const centerX = (minWX + maxWX) * 0.5;
@@ -4953,7 +4953,7 @@ function requestMobileMockup3dMesh(){
       );
       const heightSpread = Math.max(0.12, maxWY - minWY);
       const cameraDistance = clampLocal(3.1 + (extent * 1.2) + (heightSpread * 0.55), GYRO_CAMERA_MIN_DISTANCE + 0.15, getGyroCameraMaxDistance() - 2.2);
-      const lookTargetYMin = GYRO_WORLD_ALTITUDE_BASE + 0.08;
+      const lookTargetYMin = baseY + .08 / scaleY;
       const lookTargetYMax = Math.max(2.65, currentWorld.y + 0.42);
       const lookTarget = {
         x: clampLocal(centerX * 0.4, -1.45, 1.45),
@@ -5177,6 +5177,7 @@ function requestMobileMockup3dMesh(){
 
     function renderGyroGl(pitchDeg, yawDeg, rollDeg){
       if(!gyroGl) return;
+      syncGyroRocketMesh();
       yawDeg = getGyroDisplayYawDeg(yawDeg);
       resizeGyroGl();
       const gl = gyroGl.gl;
@@ -5205,6 +5206,7 @@ function requestMobileMockup3dMesh(){
             sharedScaleY
           })
         : null;
+      if(showWorldDecor&&rebaseGyroSceneUnits(gyroPathState.renderScaleY))resizeGyroGl();
       const simpleRocketPos = {x:0, y:GYRO_WORLD_ALTITUDE_BASE + 0.34, z:0};
       const inExpanded = isGyroViewportExpanded();
       const inCameraPreview = !!(el.gyro3dViewport &&
@@ -5214,7 +5216,7 @@ function requestMobileMockup3dMesh(){
         ? getGyroSceneRocketScale(gyroPathState.renderScaleY)
         : GYRO_ROCKET_SCALE * (inCameraPreview ? 1.2 : 1);
       const worldRocketLift = showWorldDecor
-        ? getGyroSceneVehicleLift(rocketDisplayScale,Math.min(pathRender.current.y,secondStagePathRender ? secondStagePathRender.current.y : pathRender.current.y))
+        ? getGyroSceneVehicleLift(rocketDisplayScale,Math.min(pathRender.current.y,secondStagePathRender ? secondStagePathRender.current.y : pathRender.current.y),gyroPathState.renderScaleY)
         : 0;
       const rocketRenderPos = showWorldDecor
         ? {x:pathRender.current.x, y:pathRender.current.y + worldRocketLift, z:pathRender.current.z}
@@ -5361,7 +5363,7 @@ function requestMobileMockup3dMesh(){
 
       const targetX = lookTargetSource.x + gyroCameraState.panX;
       const targetY = showWorldDecor
-        ? Math.max(GYRO_SCENE_CAMERA_FLOOR, lookTargetSource.y + gyroCameraState.panY)
+        ? Math.max(getGyroSceneCameraFloor(), lookTargetSource.y + gyroCameraState.panY)
         : lookTargetSource.y + gyroCameraState.panY;
       const targetZ = lookTargetSource.z + gyroCameraState.panZ;
       const targetSmooth = (inCameraPreview && separation > 0)
@@ -5369,7 +5371,7 @@ function requestMobileMockup3dMesh(){
         : (inCameraPreview ? 0.36 : (showWorldDecor ? 0.34 : GYRO_CAMERA_TARGET_SMOOTH));
       gyroCameraState.targetX += (targetX - gyroCameraState.targetX) * targetSmooth;
       gyroCameraState.targetY += (targetY - gyroCameraState.targetY) * targetSmooth;
-      if(showWorldDecor) gyroCameraState.targetY = Math.max(GYRO_SCENE_CAMERA_FLOOR, gyroCameraState.targetY);
+      if(showWorldDecor) gyroCameraState.targetY = Math.max(getGyroSceneCameraFloor(), gyroCameraState.targetY);
       gyroCameraState.targetZ += (targetZ - gyroCameraState.targetZ) * targetSmooth;
 
       const rocketModel = mat4Mul(
@@ -18254,44 +18256,60 @@ function acknowledgeWelcomeMissionLocalSave(){
 const gyroSceneView = {
   mode:"vehicle", preset:"orbit", grid:true, autoFrame:true, userAdjusted:false,
   anchor:{x:0, y:0, z:0}, frame:0, animateUntil:0,
-  dollyZoom:false, orbitReferenceDistance:1.95, flightFrameDistance:0
+  dollyZoom:false, orbitReferenceDistance:1.95, flightFrameDistance:0, metersPerUnit:GYRO_TRAIL_BASE_METERS_PER_UNIT
 };
 const GYRO_SCENE_FOV_DEG = 56;
 const GYRO_SCENE_ZOOM_MAX = 22.5;
 const GYRO_SCENE_FRAME_MAX = 500;
 const GYRO_SCENE_CAMERA_FLOOR = 0.08;
 
+function getGyroSceneMetersPerUnit(value){
+  const units=Number(value);return Number.isFinite(units)?Math.max(GYRO_TRAIL_BASE_METERS_PER_UNIT,units):GYRO_TRAIL_BASE_METERS_PER_UNIT;
+}
+function getGyroSceneUnitRatio(){return GYRO_TRAIL_BASE_METERS_PER_UNIT/getGyroSceneMetersPerUnit(gyroSceneView.metersPerUnit);}
+function getGyroSceneCameraFloor(){return GYRO_SCENE_CAMERA_FLOOR*getGyroSceneUnitRatio();}
+function rebaseGyroSceneUnits(nextUnits){
+  const next=getGyroSceneMetersPerUnit(nextUnits),previous=getGyroSceneMetersPerUnit(gyroSceneView.metersPerUnit);
+  if(next===previous)return false;
+  const ratio=previous/next;
+  for(const key of ['distance','desiredDistance','targetX','targetY','targetZ','panX','panY','panZ'])if(Number.isFinite(gyroCameraState[key]))gyroCameraState[key]*=ratio;
+  for(const key of ['x','y','z'])gyroSceneView.anchor[key]*=ratio;
+  gyroSceneView.orbitReferenceDistance*=ratio;gyroSceneView.flightFrameDistance*=ratio;gyroSceneView.metersPerUnit=next;return true;
+}
 function getGyroSceneRocketScale(metersPerUnit){
-  const scale=Math.max(GYRO_TRAIL_BASE_METERS_PER_UNIT,Number(metersPerUnit)||GYRO_TRAIL_BASE_METERS_PER_UNIT);
-  // Keep the physical scale near the vehicle; only a small visibility floor
-  // remains when the complete flight is normalized into the overview space.
-  return Math.max(.04,GYRO_ROCKET_ACTUAL_HEIGHT_M/(GYRO_ROCKET_TARGET_LENGTH*scale));
+  const scale=getGyroSceneMetersPerUnit(metersPerUnit);
+  // The vehicle and path use the same meters-per-world-unit at every flight scale.
+  return getGyroRocketActualHeightM()/(GYRO_ROCKET_TARGET_LENGTH*scale);
 }
 
 function getGyroSceneStrokeHalfWidth(point,view,viewportHeight,pixels){
-  const depth=Math.max(.001,-(view[2]*point.x+view[6]*point.y+view[10]*point.z+view[14]));
-  return Math.max(.000001,depth*Math.tan(GYRO_SCENE_FOV_DEG*DEG_TO_RAD*.5)*pixels/Math.max(1,viewportHeight));
+  const depth=Math.max(1e-8,-(view[2]*point.x+view[6]*point.y+view[10]*point.z+view[14]));
+  return Math.max(1e-10,depth*Math.tan(GYRO_SCENE_FOV_DEG*DEG_TO_RAD*.5)*pixels/Math.max(1,viewportHeight));
 }
-function getGyroSceneVehicleLift(scale,altitude){
-  return Math.max(0,scale*GYRO_ROCKET_TARGET_LENGTH*.5+.02-(Number(altitude)||0));
+function getGyroSceneLaunchOffset(metersPerUnit){
+  const units=getGyroSceneMetersPerUnit(metersPerUnit);
+  return (getGyroRocketActualHeightM()*.5+.05)/units;
+}
+function getGyroSceneVehicleLift(scale,altitude,metersPerUnit=GYRO_TRAIL_BASE_METERS_PER_UNIT){
+  return Math.max(0,scale*GYRO_ROCKET_TARGET_LENGTH*.5+.05/getGyroSceneMetersPerUnit(metersPerUnit)-(Number(altitude)||0));
 }
 
 function getGyroSceneZoomLimit(mode, frameDistance){
   return mode === "flight"
-    ? Math.min(GYRO_SCENE_FRAME_MAX, Math.max(GYRO_SCENE_ZOOM_MAX, (Number(frameDistance) || 0) * 1.15))
-    : GYRO_SCENE_ZOOM_MAX;
+    ? Math.min(GYRO_SCENE_FRAME_MAX, Math.max(GYRO_SCENE_ZOOM_MAX*getGyroSceneUnitRatio(), (Number(frameDistance) || 0) * 1.15))
+    : GYRO_SCENE_ZOOM_MAX*getGyroSceneUnitRatio();
 }
 
 function constrainGyroScenePan(){
   if(getGyroPreviewMode() !== "3d" || gyroSceneView.mode !== "free") return;
-  gyroCameraState.panY = Math.max(gyroCameraState.panY, GYRO_SCENE_CAMERA_FLOOR - gyroSceneView.anchor.y);
+  gyroCameraState.panY = Math.max(gyroCameraState.panY, getGyroSceneCameraFloor() - gyroSceneView.anchor.y);
 }
 
 function getGyroSceneOrbitPitch(pitch, distance, referenceDistance){
   const angle = clampLocal(Number(pitch) || 0, 0, 84);
   const blend = clampLocal((Math.abs(angle) - 65) / 19, 0, 1);
   const weight = 1 - blend * blend * (3 - 2 * blend);
-  const ratio = Math.max(0.05, Number(referenceDistance) || 1) / Math.max(0.05, Number(distance) || 1);
+  const ratio = Math.max(1e-8, Number(referenceDistance) || 1) / Math.max(1e-8, Number(distance) || 1);
   return clampLocal(Math.atan(Math.tan(angle * DEG_TO_RAD) * Math.pow(ratio, 0.42 * weight)) / DEG_TO_RAD, 0, 84);
 }
 
@@ -18301,7 +18319,7 @@ function rebaseGyroSceneOrbit(){
       gyroCameraState.pitchDeg, gyroCameraState.distance, gyroSceneView.orbitReferenceDistance
     );
   }
-  gyroSceneView.orbitReferenceDistance = Math.max(0.05, gyroCameraState.distance || gyroCameraState.desiredDistance || 1);
+  gyroSceneView.orbitReferenceDistance = Math.max(1e-8, gyroCameraState.distance || gyroCameraState.desiredDistance || 1);
 }
 
 function getGyroScenePixelRatio(width, height, deviceRatio, mobile){
@@ -18331,6 +18349,7 @@ function syncGyroSceneControls(){
   if(!view) return;
   const controls = document.querySelector(".scene3d-controls");
   if(!controls) return;
+  controls.querySelector('[data-gyro-action="grid"]')?.setAttribute("title","1 m 보조 격자 · 5 m 기준 격자");
   controls.querySelectorAll("[data-gyro-preset]").forEach(button=>{
     button.setAttribute("aria-pressed", String(button.dataset.gyroPreset === gyroSceneView.preset));
   });
@@ -18414,6 +18433,7 @@ function setGyroScenePreset(preset){
 function bindGyroSceneControls(){
   const controls = document.querySelector(".scene3d-controls");
   if(!controls) return;
+  controls.querySelector('[data-gyro-action="grid"]')?.setAttribute("title","1 m 보조 격자 · 5 m 기준 격자");
   const scope = window.Flash7.createScope("scene3d");
   window.Flash7.appScope.add(()=>scope.dispose());
   scope.listen(controls, "click", event=>{
@@ -18468,20 +18488,22 @@ function getGyroSceneEnvironmentPalette(dark){
   };
 }
 
-function getGyroSceneGridMetrics(distance){
+function getGyroSceneGridMetrics(distance,metersPerUnit=GYRO_TRAIL_BASE_METERS_PER_UNIT){
+  const ratio=GYRO_TRAIL_BASE_METERS_PER_UNIT/getGyroSceneMetersPerUnit(metersPerUnit);
   const numericDistance = Number(distance);
   const safeDistance = Math.max(0.05, Number.isFinite(numericDistance) ? numericDistance : 1);
   return {
-    span:Math.max(1200, safeDistance * 18),
-    fadeNear:120, fadeFar:900
+    span:Math.max(1200*ratio, safeDistance * 18),
+    fadeNear:120*ratio, fadeFar:900*ratio
   };
 }
 
-function getGyroSceneClipRange(distance, targetY){
+function getGyroSceneClipRange(distance, targetY, metersPerUnit=GYRO_TRAIL_BASE_METERS_PER_UNIT){
+  const ratio=GYRO_TRAIL_BASE_METERS_PER_UNIT/getGyroSceneMetersPerUnit(metersPerUnit);
   const safeDistance = Math.max(0.05, Number(distance) || 1);
   return {
-    near:Math.max(0.025, Math.min(0.25, safeDistance / 2000)),
-    far:Math.max(1800, Math.abs(Number(targetY) || 0) + safeDistance * 24)
+    near:Math.max(0.025*ratio, Math.min(0.25*ratio, safeDistance / 2000)),
+    far:Math.max(1800*ratio, Math.abs(Number(targetY) || 0) + safeDistance * 24)
   };
 }
 
@@ -18520,11 +18542,12 @@ function createGyroSceneEnvironment(gl){
     uniform vec2 uEye;
     uniform float uEyeHeight;
     uniform float uGrid;
+    uniform float uMetersPerUnit;
     uniform float uFadeNear;
     uniform float uFadeFar;
     float gridLine(float stepSize){
-      vec2 cell = vWorld / stepSize;
-      vec2 footprint = ${derivatives ? "max(fwidth(cell), vec2(0.0001))" : "vec2(max(0.0001, 2.0 * vDepth / (uHeight * uProjection.y * stepSize)))"};
+      vec2 cell = vWorld * uMetersPerUnit / stepSize;
+      vec2 footprint = ${derivatives ? "max(fwidth(cell), vec2(0.0001))" : "vec2(max(0.0001, 2.0 * vDepth * uMetersPerUnit / (uHeight * uProjection.y * stepSize)))"};
       vec2 edge = abs(fract(cell - 0.5) - 0.5);
       vec2 line = 1.0 - smoothstep(footprint * 0.35, footprint * 1.25, edge);
       float visible = 1.0 - smoothstep(0.03125, 0.0625, max(footprint.x, footprint.y));
@@ -18548,8 +18571,8 @@ function createGyroSceneEnvironment(gl){
         if(uGrid > 0.5){
           // These spacings belong to the world. Subpixel levels fade through
           // their pixel footprint, rather than growing along with the camera.
-          float grid = min(0.23, gridLine(0.25) * 0.07 + gridLine(1.25) * 0.13
-            + gridLine(6.25) * 0.09 + gridLine(31.25) * 0.07 + gridLine(156.25) * 0.05);
+          float grid = min(0.23, gridLine(1.0) * 0.07 + gridLine(5.0) * 0.13
+            + gridLine(25.0) * 0.09 + gridLine(125.0) * 0.07 + gridLine(625.0) * 0.05);
           ground = mix(ground, uLineColor, grid * fade);
         }
         gl_FragColor = vec4(ground, fade);
@@ -18560,7 +18583,7 @@ function createGyroSceneEnvironment(gl){
     prog, aPos:gl.getAttribLocation(prog, "aPos"),
     posBuf:createGyroArrayBuffer(gl, [-1,-1, 1,-1, 1,1, -1,-1, 1,1, -1,1], gl.STATIC_DRAW)
   };
-  for(const name of ["ViewProj", "Center", "Span", "Sky", "Height", "Width", "Projection", "ProjectionOffset", "ViewY", "SkyColor", "HorizonColor", "GroundColor", "LineColor", "Eye", "EyeHeight", "Grid", "FadeNear", "FadeFar"]){
+  for(const name of ["ViewProj", "Center", "Span", "Sky", "Height", "Width", "Projection", "ProjectionOffset", "ViewY", "SkyColor", "HorizonColor", "GroundColor", "LineColor", "Eye", "EyeHeight", "Grid", "MetersPerUnit", "FadeNear", "FadeFar"]){
     environment["u" + name] = gl.getUniformLocation(prog, "u" + name);
   }
   return environment;
@@ -18568,13 +18591,14 @@ function createGyroSceneEnvironment(gl){
 
 function drawGyroSceneEnvironment(sky, palette, viewProj, eye, distance, view){
   const {gl, environment, width, height, proj} = gyroGl;
-  const metrics = getGyroSceneGridMetrics(distance);
+  const units=getGyroSceneMetersPerUnit(gyroSceneView.metersPerUnit),snap=256*GYRO_TRAIL_BASE_METERS_PER_UNIT/units;
+  const metrics = getGyroSceneGridMetrics(distance,units);
   gl.useProgram(environment.prog);
   bindGyroVertexAttributes([environment.aPos]);
   gl.bindBuffer(gl.ARRAY_BUFFER, environment.posBuf);
   gl.vertexAttribPointer(environment.aPos, 2, gl.FLOAT, false, 0, 0);
   gl.uniformMatrix4fv(environment.uViewProj, false, new Float32Array(viewProj));
-  gl.uniform2f(environment.uCenter, Math.floor(eye[0] / 256) * 256, Math.floor(eye[2] / 256) * 256);
+  gl.uniform2f(environment.uCenter, Math.floor(eye[0] / snap) * snap, Math.floor(eye[2] / snap) * snap);
   gl.uniform1f(environment.uSpan, metrics.span);
   gl.uniform1f(environment.uSky, sky ? 1 : 0);
   gl.uniform1f(environment.uHeight, height);
@@ -18589,6 +18613,7 @@ function drawGyroSceneEnvironment(sky, palette, viewProj, eye, distance, view){
   gl.uniform2f(environment.uEye, eye[0], eye[2]);
   gl.uniform1f(environment.uEyeHeight, eye[1]);
   gl.uniform1f(environment.uGrid, gyroSceneView.grid ? 1 : 0);
+  gl.uniform1f(environment.uMetersPerUnit, units);
   gl.uniform1f(environment.uFadeNear, metrics.fadeNear);
   gl.uniform1f(environment.uFadeFar, metrics.fadeFar);
   if(sky){
@@ -19285,11 +19310,99 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
  if(typeof module==='object'&&module.exports)module.exports=root.Flash7.missionClient;
 })(typeof globalThis!=='undefined'?globalThis:window);
 
+/* Rear-camera aiming overlay. Video and phone sensors remain on this device. */
+(function(root){
+ 'use strict';
+ const rad=Math.PI/180,finite=n=>typeof n==='number'&&Number.isFinite(n),wrap=n=>((n+540)%360)-180;
+ function rotate(vector,angle){const a=angle*rad,c=Math.cos(a),s=Math.sin(a);return [vector[0]*c+vector[1]*s,-vector[0]*s+vector[1]*c,vector[2]];}
+ function basis(alpha,beta,gamma,screenAngle=0,northOffset=0){
+   if(![alpha,beta,gamma,screenAngle,northOffset].every(finite))return null;
+   const a=alpha*rad,b=beta*rad,g=gamma*rad,s=screenAngle*rad,ca=Math.cos(a),sa=Math.sin(a),cb=Math.cos(b),sb=Math.sin(b),cg=Math.cos(g),sg=Math.sin(g);
+   const x=[ca*cg-sa*sb*sg,sa*cg+ca*sb*sg,-cb*sg],y=[-sa*cb,ca*cb,sb],z=[ca*sg+sa*sb*cg,sa*sg-ca*sb*cg,cb*cg];
+   return {right:rotate(x.map((n,i)=>n*Math.cos(s)+y[i]*Math.sin(s)),northOffset),up:rotate(x.map((n,i)=>-n*Math.sin(s)+y[i]*Math.cos(s)),northOffset),forward:rotate(z.map(n=>-n),northOffset)};
+ }
+ function rotateBasis(value,offset){return value&&{right:rotate(value.right,offset),up:rotate(value.up,offset),forward:rotate(value.forward,offset)};}
+ function focal(width,height,videoWidth,videoHeight){
+   // Browser camera APIs do not expose calibrated intrinsics. Use an approximate 65° long-axis FOV, including cover cropping.
+   if(![width,height].every(n=>finite(n)&&n>0))return null;
+   if(![videoWidth,videoHeight].every(n=>finite(n)&&n>0))return width/(2*Math.tan(30*rad));
+   return Math.max(videoWidth,videoHeight)/(2*Math.tan(32.5*rad))*Math.max(width/videoWidth,height/videoHeight);
+ }
+ function project(target,pose,{width,height,focalPx,margin=30,reticleRadius=42,insets={}}={}){
+   if(!target||!pose||![target.bearingDeg,target.elevationDeg,width,height].every(finite)||width<=0||height<=0)return null;
+   const b=target.bearingDeg*rad,e=target.elevationDeg*rad,vector=[Math.sin(b)*Math.cos(e),Math.cos(b)*Math.cos(e),Math.sin(e)],dot=v=>v.reduce((sum,n,i)=>sum+n*vector[i],0);
+   const x=dot(pose.right),y=dot(pose.up),z=dot(pose.forward),f=finite(focalPx)&&focalPx>0?focalPx:width/(2*Math.tan(30*rad)),front=z>.001;
+   let dx,dy;
+   if(front){dx=f*x/z;dy=-f*y/z;}
+   else{const heading=Math.atan2(pose.forward[0],pose.forward[1])/rad,delta=wrap(target.bearingDeg-heading);dx=Math.abs(x)>.01?x:Math.sign(delta)||1;dy=-y;}
+   const left=Math.max(1,width/2-(insets.left??margin)),right=Math.max(1,width/2-(insets.right??margin)),top=Math.max(1,height/2-(insets.top??margin)),bottom=Math.max(1,height/2-(insets.bottom??margin)),length=Math.hypot(dx,dy)||1,ux=dx/length,uy=dy/length;
+   const edge=Math.min((ux>=0?right:left)/Math.max(.000001,Math.abs(ux)),(uy>=0?bottom:top)/Math.max(.000001,Math.abs(uy))),inView=front&&dx>=-left&&dx<=right&&dy>=-top&&dy<=bottom;
+   const arrowDistance=inView?Math.min(78,Math.max(62,length-22)):edge;
+   return {x:width/2+dx,y:height/2+dy,inView,front,aligned:inView&&Math.hypot(dx,dy)<=reticleRadius,offsetPx:front?Math.hypot(dx,dy):Infinity,arrowX:width/2+ux*arrowDistance,arrowY:height/2+uy*arrowDistance,arrowAngleDeg:Math.atan2(uy,ux)/rad+90};
+ }
+ function create(view,options){
+   const doc=view.ownerDocument,video=view.querySelector('video'),marker=view.querySelector('[data-camera-target]'),arrow=view.querySelector('[data-camera-direction]'),message=view.querySelector('[data-camera-message]'),range=view.querySelector('[data-camera-range]'),quality=view.querySelector('[data-camera-quality]'),retry=view.querySelector('[data-camera-retry]'),closeButton=view.querySelector('[data-camera-close]');
+   const originalParent=view.parentNode,placeholder=doc.createComment('recovery-camera'),listeners=[];
+   let active=false,disposed=false,generation=0,stream=null,frame=null,lastFrame=0,ready=false,selected='landing',previousFocus=null,previousOverflow='',shown=null,aligned=false;
+   const listen=(node,type,fn)=>{node.addEventListener(type,fn);listeners.push(()=>node.removeEventListener(type,fn));};
+   const text=(node,value)=>{if(node.textContent!==value)node.textContent=value;};
+   const clearAim=()=>{marker.hidden=true;arrow.hidden=true;aligned=false;shown=null;view.dataset.aligned='false';};
+   function stopMedia(){if(frame!==null)root.cancelAnimationFrame(frame);frame=null;ready=false;const previous=stream;stream=null;previous?.getTracks().forEach(track=>track.stop());video.pause();video.srcObject=null;clearAim();}
+   function error(error){const name=error?.name;text(message,name==='NotAllowedError'?'카메라 권한을 허용해 주세요.':name==='NotFoundError'?'후면 카메라를 찾지 못했습니다.':name==='NotReadableError'?'다른 앱의 카메라 사용을 종료해 주세요.':error?.message||'카메라를 시작하지 못했습니다.');retry.hidden=false;}
+   function render(time=0){
+     if(!active||disposed)return;frame=root.requestAnimationFrame(render);if(time-lastFrame<30)return;lastFrame=time;
+     if(!ready)return;
+     const state=options.getState(),target=state.targets?.[selected];
+     let waiting=!state.observer?'휴대폰 위치 수신 대기':!state.pose?'방향 센서 수신 대기':!state.absolute?'북쪽 방향 보정이 필요합니다.':state.stale?'텔레메트리 수신 복구 대기':!target?(selected==='landing'?'착지 예측 데이터 대기':'기체 GPS 수신 대기'):null;
+     if(waiting){clearAim();text(message,waiting);text(range,'--');text(quality,state.absolute?'GPS·방향 데이터를 기다리고 있습니다.':'폰을 잠시 눕히고 상단을 북쪽에 맞춘 뒤 보정하세요.');return;}
+     const aim=root.Flash7.recovery.guidance(target,state.observer,null,{observerHeightM:(state.observerHeightM||0)+1.5});
+     if(!aim||aim.elevationDeg===null){clearAim();text(message,'목표 높이 데이터 대기');return;}
+     const width=view.clientWidth,height=view.clientHeight,pose=rotateBasis(state.pose,state.northBias||0),point=project(aim,pose,{width,height,focalPx:focal(width,height,video.videoWidth,video.videoHeight),insets:{left:30,right:30,top:height<500?90:150,bottom:height<500?100:190}});
+     if(!point){clearAim();return;}
+     if(point.inView){
+       const gain=shown?.mode===selected?Math.min(1,(time-shown.time)/90):1;
+       shown={x:shown?shown.x+(point.x-shown.x)*gain:point.x,y:shown?shown.y+(point.y-shown.y)*gain:point.y,time,mode:selected};
+       marker.hidden=false;marker.style.left=shown.x+'px';marker.style.top=shown.y+'px';
+     }else{marker.hidden=true;shown=null;}
+     aligned=point.inView&&point.offsetPx<=(aligned?48:42)&&shown&&Math.hypot(shown.x-width/2,shown.y-height/2)<=48;
+     view.dataset.aligned=String(!!aligned);arrow.hidden=!!aligned;arrow.style.left=point.arrowX+'px';arrow.style.top=point.arrowY+'px';arrow.style.transform='translate(-50%,-50%) rotate('+point.arrowAngleDeg+'deg)';
+     text(message,aligned?'방향 일치':point.inView?'목표 원을 중앙 원에 맞추세요.':'화면 밖 · 삼각형 방향으로 움직이세요.');
+     text(range,(aim.distanceM>=1000?(aim.distanceM/1000).toFixed(2)+' km':Math.round(aim.distanceM)+' m')+' · '+Math.round(aim.bearingDeg)+'°');
+     text(quality,'방위 오차 약 ±'+Math.round(aim.bearingUncertaintyDeg)+'° · '+(selected==='landing'?'예상 착지 지점':'기체 위치')+' · 추정 표시');
+   }
+   async function startMedia(){
+     const attempt=++generation;stopMedia();retry.hidden=true;text(message,'카메라 연결 중');
+     if(!root.isSecureContext||!root.navigator.mediaDevices?.getUserMedia){error(new Error('카메라는 HTTPS 환경에서 사용할 수 있습니다.'));return;}
+     try{
+       const acquired=await root.navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+       if(!active||disposed||attempt!==generation){acquired.getTracks().forEach(track=>track.stop());return;}
+       stream=acquired;
+       if(!acquired.getVideoTracks().length)throw new Error('카메라 영상이 없습니다.');
+       if(acquired.getVideoTracks()[0]?.getSettings?.().facingMode==='user')throw new Error('방향 안내에는 후면 카메라가 필요합니다.');
+       video.srcObject=acquired;await video.play();
+       if(!active||disposed||attempt!==generation)return;
+       ready=true;lastFrame=0;frame=root.requestAnimationFrame(render);
+       acquired.getVideoTracks().forEach(track=>track.addEventListener('ended',()=>{if(active&&stream===acquired){generation++;stopMedia();error(new Error('카메라 연결이 종료되었습니다.'));}},{once:true}));
+     }catch(cause){if(active&&!disposed&&attempt===generation){stopMedia();error(cause);}}
+   }
+   function close(){if(!active)return;active=false;generation++;stopMedia();view.hidden=true;doc.body.style.overflow=previousOverflow;if(placeholder.parentNode){placeholder.replaceWith(view);}previousFocus?.focus?.();options.onClose?.();}
+   function open(){if(active||disposed)return;active=true;previousFocus=doc.activeElement;previousOverflow=doc.body.style.overflow;view.before(placeholder);doc.body.append(view);doc.body.style.overflow='hidden';view.hidden=false;closeButton.focus();void startMedia();}
+   listen(closeButton,'click',close);listen(retry,'click',()=>{options.onRetry?.();void startMedia();});
+   view.querySelectorAll('[data-camera-mode]').forEach(button=>listen(button,'click',()=>{selected=button.dataset.cameraMode;shown=null;aligned=false;view.querySelectorAll('[data-camera-mode]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));}));
+   listen(view.querySelector('[data-camera-north]'),'click',()=>options.calibrate?.());
+   listen(doc,'visibilitychange',()=>{if(doc.hidden)close();});listen(root,'pagehide',close);
+   listen(view,'keydown',event=>{if(event.key==='Escape'){event.preventDefault();close();}else if(event.key==='Tab'){const buttons=Array.from(view.querySelectorAll('button')).filter(node=>!node.hidden&&!node.disabled),first=buttons[0],last=buttons.at(-1);if(event.shiftKey&&doc.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&doc.activeElement===last){event.preventDefault();first?.focus();}}});
+   return {open,close,isOpen:()=>active,dispose(){close();disposed=true;listeners.forEach(remove=>remove());if(view.parentNode!==originalParent&&originalParent)originalParent.append(view);}};
+ }
+ const api={basis,rotateBasis,focal,project,create};(root.Flash7=root.Flash7||{}).recoveryCamera=api;
+ if(typeof module==='object'&&module.exports)module.exports=api;
+})(typeof globalThis!=='undefined'?globalThis:window);
+
 /* Shared read-only recovery presentation. Phone sensor data stays on this device. */
 (function(root){
  'use strict';
  function createPanel(element,options={}){
-  const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
+  const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,cameraOrientation=null,cameraOrientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
   const config={observerHeightM:0,yawOffsetDeg:0,pitchOffsetDeg:0},listeners=[];
   const write=(key,value)=>{const node=element.querySelector('[data-recovery="'+key+'"]');if(node&&node.textContent!==value)node.textContent=value;};
   const on=(node,type,fn)=>{node?.addEventListener(type,fn);listeners.push(()=>node?.removeEventListener(type,fn));};
@@ -19327,19 +19440,25 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
    write('instruction',instruction);
    const arrow=element.querySelector('[data-recovery-arrow]');if(arrow)arrow.style.transform=aim&&aim.yawErrorDeg!==null?'rotate('+aim.yawErrorDeg+'deg)':'none';
    write('aimQuality',aim?'방위 불확실성 약 ±'+fmt(Math.min(180,aim.bearingUncertaintyDeg))+'° · 관측지 높이차 '+fmt(config.observerHeightM)+' m 기준':'휴대폰 화면 상단을 안테나 방향에 맞추세요.');
-   if(watch!==null||orientation)write('sensorState',!gpsFresh?'위치 수신 대기':!attitudeFresh?'방향 수신 대기':orientation.absolute?'절대 방위 사용':manualNorth?'수동 북쪽 기준 · 주기적 재보정':'북쪽 보정 필요');
+   if(watch!==null||orientation||cameraOrientation)write('sensorState',!gpsFresh?'위치 수신 대기':!attitudeFresh&&(!cameraOrientation||Date.now()-cameraOrientationAt>=3000)?'방향 수신 대기':orientation?.absolute||cameraOrientation?.absolute?'절대 방위 사용':manualNorth?'수동 북쪽 기준 · 주기적 재보정':'북쪽 보정 필요');
    mapUpdate();
   }
   function orientationEvent(event){
    if(disposed)return;
-   const axis=api.orientationAxis(event.alpha,event.beta,event.gamma,root.screen?.orientation?.angle||root.orientation||0);if(!axis||axis.horizontalStrength<.15){orientation=null;return;}
+   const angle=root.screen?.orientation?.angle??root.orientation??0,axis=api.orientationAxis(event.alpha,event.beta,event.gamma,angle);
    const compass=typeof event.webkitCompassHeading==='number'&&event.webkitCompassHeading>=0&&(event.webkitCompassAccuracy==null||event.webkitCompassAccuracy>=0);
-   if(compass)axis.headingDeg=(axis.headingDeg+api.wrap(event.webkitCompassHeading-((360-event.alpha)%360))+360)%360;
-   orientation={...axis,absolute:compass||event.absolute===true};orientationAt=Date.now();
+   const absolute=compass||event.absolute===true;
+   if(!absolute&&cameraOrientation?.absolute&&Date.now()-cameraOrientationAt<1000)return;
+   if(absolute&&cameraOrientation&&!cameraOrientation.absolute){manualNorth=false;northBias=0;}
+   const correction=compass?api.wrap(event.webkitCompassHeading-((360-event.alpha)%360)):0;
+   const cameraBasis=root.Flash7.recoveryCamera.basis(event.alpha,event.beta,event.gamma,angle,correction);
+   if(cameraBasis){cameraOrientation={basis:cameraBasis,absolute:compass||event.absolute===true};cameraOrientationAt=Date.now();}
+   if(!axis||axis.horizontalStrength<.15){orientation=null;return;}
+   axis.headingDeg=(axis.headingDeg+correction+360)%360;orientation={...axis,absolute:compass||event.absolute===true};orientationAt=Date.now();
   }
-  function stopSensors(){sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
+  function stopSensors(closeCamera=true){if(closeCamera)camera?.close();sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;cameraOrientation=null;manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
   async function sensors(){
-   stopSensors();const generation=sensorGeneration;
+   stopSensors(false);const generation=sensorGeneration;
    if(!root.isSecureContext){write('sensorState','HTTPS 또는 네이티브 앱에서 연결하세요.');return;}
    let direction=typeof root.DeviceOrientationEvent!=='undefined';
    try{if(typeof root.DeviceOrientationEvent?.requestPermission==='function')direction=await root.DeviceOrientationEvent.requestPermission(true)==='granted';}catch{direction=false;}
@@ -19348,8 +19467,18 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
    if(navigator.geolocation)watch=navigator.geolocation.watchPosition(position=>{if(disposed||generation!==sensorGeneration)return;observer={lat:position.coords.latitude,lon:position.coords.longitude,accuracyM:position.coords.accuracy,timestamp:position.timestamp};render();},error=>{if(generation!==sensorGeneration)return;write('sensorState',error.code===1?'위치 권한이 거부되었습니다.':'위치 정보를 받지 못했습니다.');},{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
    write('sensorState',direction?'센서 수신 대기':'방향 권한 없음 · 위치만 사용');
   }
+  function calibrateNorth(){
+   if(!orientation||Date.now()-orientationAt>3000){write('sensorState','폰을 잠시 눕히고 상단을 북쪽으로 맞춰주세요.');return false;}
+   northBias=-orientation.headingDeg;manualNorth=true;render();return true;
+  }
+  const camera=root.Flash7.recoveryCamera.create(element.querySelector('[data-recovery-camera]'),{
+   getState(){const state=estimator.snapshot(),gpsFresh=observer&&(observer.manual||Date.now()-observer.timestamp<15000),poseFresh=cameraOrientation&&Date.now()-cameraOrientationAt<3000;
+    return {observer:gpsFresh?observer:null,pose:poseFresh?cameraOrientation.basis:null,absolute:!!(poseFresh&&(cameraOrientation.absolute||manualNorth)),northBias:manualNorth?northBias:0,observerHeightM:config.observerHeightM,stale:['stale','gps-stale','gps-rejected'].includes(state.status),targets:{rocket:state.target,landing:state.landing?{...state.landing,heightM:state.groundOffsetM,ageMs:state.target?.ageMs??Infinity,uncertaintyM:state.landing.radiusM}:null}};
+   },calibrate:calibrateNorth,onRetry:sensors,onClose:()=>stopSensors(false)
+  });
+  on(element.querySelector('[data-recovery-camera-open]'),'click',()=>{void sensors();camera.open();});
   on(element.querySelector('[data-recovery-sensors]'),'click',sensors);on(element.querySelector('[data-recovery-stop-sensors]'),'click',stopSensors);
-  on(element.querySelector('[data-recovery-north]'),'click',()=>{if(!orientation||Date.now()-orientationAt>3000){write('sensorState','방향 센서를 먼저 연결하세요.');return;}northBias=-orientation.headingDeg;manualNorth=true;render();});
+  on(element.querySelector('[data-recovery-north]'),'click',calibrateNorth);
   on(element.querySelector('[data-recovery-ground]'),'change',event=>{const value=Number(event.target.value);if(Number.isFinite(value)&&value>=-2000&&value<=10000)estimator.configure({groundOffsetM:value});render();});
   for(const [selector,field]of [['observer-height','observerHeightM'],['yaw-offset','yawOffsetDeg'],['pitch-offset','pitchOffsetDeg']])on(element.querySelector('[data-recovery-'+selector+']'),'change',event=>{if(event.target.validity.valid)config[field]=Number(event.target.value);render();});
   on(element.querySelector('[data-recovery-station-form]'),'submit',event=>{event.preventDefault();const lat=Number(element.querySelector('[data-recovery-lat]').value),lon=Number(element.querySelector('[data-recovery-lon]').value);if(api.coordinates(lat,lon)){observer={lat,lon,accuracyM:30,timestamp:Date.now(),manual:true};write('sensorState','관측 위치 직접 입력');render();}});
@@ -19357,7 +19486,7 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
   const timer=setInterval(render,200),resize=()=>{lastMapAt=0;map?.invalidateSize?.();render();};on(root,'resize',resize);
   on(root,'pagehide',stopSensors);
   render();
-  return {stopSensors,update(packet,receivedAt=Date.now(),extraAge=0){if(!packet)return;const unique=packet.runId+':'+packet.telemetry.stageId+':'+packet.telemetry.receivedAt;if(unique===lastPacketKey)return;lastPacketKey=unique;estimator.update({...packet.recovery,timestamp:receivedAt-packet.sampleAgeMs-extraAge,stageId:packet.telemetry.stageId,epochId:packet.runId});},render,snapshot:()=>estimator.snapshot(),dispose(){disposed=true;clearInterval(timer);stopSensors();listeners.forEach(fn=>fn());targetLayer?.remove();landingLayer?.remove();observerLayer?.remove();if(ownedMap)map?.remove();}};
+  return {stopSensors,update(packet,receivedAt=Date.now(),extraAge=0){if(!packet)return;const unique=packet.runId+':'+packet.telemetry.stageId+':'+packet.telemetry.receivedAt;if(unique===lastPacketKey)return;lastPacketKey=unique;estimator.update({...packet.recovery,timestamp:receivedAt-packet.sampleAgeMs-extraAge,stageId:packet.telemetry.stageId,epochId:packet.runId});},render,snapshot:()=>estimator.snapshot(),dispose(){disposed=true;clearInterval(timer);camera.dispose();stopSensors();listeners.forEach(fn=>fn());targetLayer?.remove();landingLayer?.remove();observerLayer?.remove();if(ownedMap)map?.remove();}};
  }
  (root.Flash7=root.Flash7||{}).recoveryPanel={createPanel};
 })(typeof globalThis!=='undefined'?globalThis:window);
