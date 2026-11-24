@@ -3568,6 +3568,7 @@ function requestMobileMockup3dMesh(){
 
     function resetGyroPathTracking(options){
       const opts = options || {};
+      if(typeof resetGyroSceneMotion === "function")resetGyroSceneMotion();
       if(!opts.singleStage){
         withGyroPathState(gyroStagePathStates[1], ()=>{
           resetGyroPathTracking({singleStage:true});
@@ -5211,6 +5212,13 @@ function requestMobileMockup3dMesh(){
       const inCameraPreview = !!(el.gyro3dViewport &&
         el.gyro3dViewport.classList.contains("is-camera-preview-mounted") &&
         !el.gyro3dViewport.classList.contains("is-camera-gyro-plus-mounted"));
+      let primaryUiQuat=stageTelemetryModeActive?gyroStagePathStates[1].uiAttitudeQuat:null;
+      let secondaryUiQuat=stageTelemetryModeActive?gyroStagePathStates[2].uiAttitudeQuat:null;
+      if(showWorldDecor){
+        const renderNow=Date.now();
+        primaryUiQuat=applyGyroSceneMotion(1,pathRender,gyroPathState.renderScaleY,primaryUiQuat||getGyroRocketModelQuat(),gyroRocketMeshKey,renderNow);
+        if(secondStagePathRender)secondaryUiQuat=applyGyroSceneMotion(2,secondStagePathRender,gyroPathState.renderScaleY,secondaryUiQuat||primaryUiQuat,gyroRocketMeshKey,renderNow);
+      }
       const rocketDisplayScale = showWorldDecor
         ? getGyroSceneRocketScale(gyroPathState.renderScaleY)
         : GYRO_ROCKET_SCALE * (inCameraPreview ? 1.2 : 1);
@@ -5223,12 +5231,6 @@ function requestMobileMockup3dMesh(){
       const cameraFocusEase = 1 - Math.pow(1 - separation, 4);
       // Model rendering must always use the same vehicle/UI axis convention.
       // attitudeQuat remains reserved for IMU/world trajectory calculations.
-      const primaryUiQuat = stageTelemetryModeActive
-        ? gyroStagePathStates[1].uiAttitudeQuat
-        : null;
-      const secondaryUiQuat = stageTelemetryModeActive
-        ? gyroStagePathStates[2].uiAttitudeQuat
-        : null;
       const rocketRotation = quatToMat4(
         primaryUiQuat || getGyroRocketModelQuat()
       );
@@ -5365,13 +5367,11 @@ function requestMobileMockup3dMesh(){
         ? Math.max(getGyroSceneCameraFloor(), lookTargetSource.y + gyroCameraState.panY)
         : lookTargetSource.y + gyroCameraState.panY;
       const targetZ = lookTargetSource.z + gyroCameraState.panZ;
-      const targetSmooth = (inCameraPreview && separation > 0)
+      const targetSmooth = (showWorldDecor&&gyroSceneView.mode==="vehicle")||(inCameraPreview && separation > 0)
         ? 1
         : (inCameraPreview ? 0.36 : (showWorldDecor ? 0.34 : GYRO_CAMERA_TARGET_SMOOTH));
-      gyroCameraState.targetX += (targetX - gyroCameraState.targetX) * targetSmooth;
-      gyroCameraState.targetY += (targetY - gyroCameraState.targetY) * targetSmooth;
+      updateGyroSceneCameraTarget({x:targetX,y:targetY,z:targetZ},targetSmooth,showWorldDecor&&gyroSceneView.mode==="vehicle");
       if(showWorldDecor) gyroCameraState.targetY = Math.max(getGyroSceneCameraFloor(), gyroCameraState.targetY);
-      gyroCameraState.targetZ += (targetZ - gyroCameraState.targetZ) * targetSmooth;
 
       const rocketModel = mat4Mul(
         mat4Translate(rocketRenderPos.x, rocketRenderPos.y, rocketRenderPos.z),
@@ -5509,6 +5509,7 @@ function requestMobileMockup3dMesh(){
       if(showWorldDecor && pathRender.trailWorldPoints && pathRender.trailWorldPoints.length >= 2){
         const trailMvp = viewProj;
         const trailPts = pathRender.trailWorldPoints;
+        const phaseColors=getGyroSceneTrailColors(trailPts,gyroPathState.renderScaleY,1),trailColor=(t,index,alpha)=>[...(phaseColors[index]||phaseColors.at(-1)),alpha];
         const drawTrailPrimitive = (geom, mode, additive)=>{
           const needMin = (mode === gl.TRIANGLES) ? 3 : 4;
           if(!geom || geom.count < needMin) return;
@@ -5526,8 +5527,8 @@ function requestMobileMockup3dMesh(){
           );
         };
         gl.disable(gl.DEPTH_TEST);
-        const glowGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),t=>[.76,.32,.29,.06+.1*t]);
-        const coreGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),t=>[.88,.36,.32,.58+.24*t]);
+        const glowGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),(t,i)=>trailColor(t,i,.04+.07*t));
+        const coreGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),(t,i)=>trailColor(t,i,.58+.22*t));
         drawTrailPrimitive(glowGeom,gl.TRIANGLE_STRIP,false);
         drawTrailPrimitive(coreGeom,gl.TRIANGLE_STRIP,false);
         const arrowGeom=buildGyroTrailArrowGeometry(trailPts,eye,trailWidth(1.8));
@@ -5556,6 +5557,7 @@ function requestMobileMockup3dMesh(){
             trailPts = trailPts.slice(-1);
           }
         }
+        const phaseColors=getGyroSceneTrailColors(trailPts,gyroPathState.renderScaleY,2),trailColor=(t,index,alpha)=>[...(phaseColors[index]||phaseColors.at(-1)||[.43,.66,.73]),alpha];
         const drawSecondStageTrail = (geometry, mode, additive)=>{
           const minimum = mode === gl.TRIANGLES ? 3 : 4;
           if(!geometry || geometry.count < minimum) return;
@@ -5573,8 +5575,8 @@ function requestMobileMockup3dMesh(){
           );
         };
         gl.disable(gl.DEPTH_TEST);
-        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),t=>[.42,.64,.72,.06+.1*t]),gl.TRIANGLE_STRIP,false);
-        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),t=>[.55,.76,.82,.58+.24*t]),gl.TRIANGLE_STRIP,false);
+        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),(t,i)=>trailColor(t,i,.04+.07*t)),gl.TRIANGLE_STRIP,false);
+        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),(t,i)=>trailColor(t,i,.58+.22*t)),gl.TRIANGLE_STRIP,false);
         gl.enable(gl.DEPTH_TEST);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       }
@@ -5735,9 +5737,9 @@ function requestMobileMockup3dMesh(){
       if(isFinite(rateY)) liveGyroLastRateY = rateY;
       if(!gyroGl) return;
       if(liveGyroRenderRaf) return;
-      liveGyroRenderRaf = requestAnimationFrame(()=>{
+      const draw=()=>{
         liveGyroRenderRaf = 0;
-        if(!gyroGl) return;
+        if(!gyroGl||document.hidden) return;
         const nowUi = Date.now();
         const displayPitchDeg = getGyroDisplayPitchDeg();
         renderGyroGl(gyroPitchDeg, gyroYawDeg, gyroRollDeg);
@@ -5749,7 +5751,9 @@ function requestMobileMockup3dMesh(){
 
           gyroLastUiMs = nowUi;
         }
-      });
+        if(getGyroPreviewMode()==="3d"&&Date.now()<gyroSceneMotionUntil)liveGyroRenderRaf=requestAnimationFrame(draw);
+      };
+      liveGyroRenderRaf=requestAnimationFrame(draw);
     }
 
     function scheduleOfflineGyroDefaultPreview(){

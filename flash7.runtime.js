@@ -3569,6 +3569,7 @@ function requestMobileMockup3dMesh(){
 
     function resetGyroPathTracking(options){
       const opts = options || {};
+      if(typeof resetGyroSceneMotion === "function")resetGyroSceneMotion();
       if(!opts.singleStage){
         withGyroPathState(gyroStagePathStates[1], ()=>{
           resetGyroPathTracking({singleStage:true});
@@ -5212,6 +5213,13 @@ function requestMobileMockup3dMesh(){
       const inCameraPreview = !!(el.gyro3dViewport &&
         el.gyro3dViewport.classList.contains("is-camera-preview-mounted") &&
         !el.gyro3dViewport.classList.contains("is-camera-gyro-plus-mounted"));
+      let primaryUiQuat=stageTelemetryModeActive?gyroStagePathStates[1].uiAttitudeQuat:null;
+      let secondaryUiQuat=stageTelemetryModeActive?gyroStagePathStates[2].uiAttitudeQuat:null;
+      if(showWorldDecor){
+        const renderNow=Date.now();
+        primaryUiQuat=applyGyroSceneMotion(1,pathRender,gyroPathState.renderScaleY,primaryUiQuat||getGyroRocketModelQuat(),gyroRocketMeshKey,renderNow);
+        if(secondStagePathRender)secondaryUiQuat=applyGyroSceneMotion(2,secondStagePathRender,gyroPathState.renderScaleY,secondaryUiQuat||primaryUiQuat,gyroRocketMeshKey,renderNow);
+      }
       const rocketDisplayScale = showWorldDecor
         ? getGyroSceneRocketScale(gyroPathState.renderScaleY)
         : GYRO_ROCKET_SCALE * (inCameraPreview ? 1.2 : 1);
@@ -5224,12 +5232,6 @@ function requestMobileMockup3dMesh(){
       const cameraFocusEase = 1 - Math.pow(1 - separation, 4);
       // Model rendering must always use the same vehicle/UI axis convention.
       // attitudeQuat remains reserved for IMU/world trajectory calculations.
-      const primaryUiQuat = stageTelemetryModeActive
-        ? gyroStagePathStates[1].uiAttitudeQuat
-        : null;
-      const secondaryUiQuat = stageTelemetryModeActive
-        ? gyroStagePathStates[2].uiAttitudeQuat
-        : null;
       const rocketRotation = quatToMat4(
         primaryUiQuat || getGyroRocketModelQuat()
       );
@@ -5366,13 +5368,11 @@ function requestMobileMockup3dMesh(){
         ? Math.max(getGyroSceneCameraFloor(), lookTargetSource.y + gyroCameraState.panY)
         : lookTargetSource.y + gyroCameraState.panY;
       const targetZ = lookTargetSource.z + gyroCameraState.panZ;
-      const targetSmooth = (inCameraPreview && separation > 0)
+      const targetSmooth = (showWorldDecor&&gyroSceneView.mode==="vehicle")||(inCameraPreview && separation > 0)
         ? 1
         : (inCameraPreview ? 0.36 : (showWorldDecor ? 0.34 : GYRO_CAMERA_TARGET_SMOOTH));
-      gyroCameraState.targetX += (targetX - gyroCameraState.targetX) * targetSmooth;
-      gyroCameraState.targetY += (targetY - gyroCameraState.targetY) * targetSmooth;
+      updateGyroSceneCameraTarget({x:targetX,y:targetY,z:targetZ},targetSmooth,showWorldDecor&&gyroSceneView.mode==="vehicle");
       if(showWorldDecor) gyroCameraState.targetY = Math.max(getGyroSceneCameraFloor(), gyroCameraState.targetY);
-      gyroCameraState.targetZ += (targetZ - gyroCameraState.targetZ) * targetSmooth;
 
       const rocketModel = mat4Mul(
         mat4Translate(rocketRenderPos.x, rocketRenderPos.y, rocketRenderPos.z),
@@ -5510,6 +5510,7 @@ function requestMobileMockup3dMesh(){
       if(showWorldDecor && pathRender.trailWorldPoints && pathRender.trailWorldPoints.length >= 2){
         const trailMvp = viewProj;
         const trailPts = pathRender.trailWorldPoints;
+        const phaseColors=getGyroSceneTrailColors(trailPts,gyroPathState.renderScaleY,1),trailColor=(t,index,alpha)=>[...(phaseColors[index]||phaseColors.at(-1)),alpha];
         const drawTrailPrimitive = (geom, mode, additive)=>{
           const needMin = (mode === gl.TRIANGLES) ? 3 : 4;
           if(!geom || geom.count < needMin) return;
@@ -5527,8 +5528,8 @@ function requestMobileMockup3dMesh(){
           );
         };
         gl.disable(gl.DEPTH_TEST);
-        const glowGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),t=>[.76,.32,.29,.06+.1*t]);
-        const coreGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),t=>[.88,.36,.32,.58+.24*t]);
+        const glowGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),(t,i)=>trailColor(t,i,.04+.07*t));
+        const coreGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),(t,i)=>trailColor(t,i,.58+.22*t));
         drawTrailPrimitive(glowGeom,gl.TRIANGLE_STRIP,false);
         drawTrailPrimitive(coreGeom,gl.TRIANGLE_STRIP,false);
         const arrowGeom=buildGyroTrailArrowGeometry(trailPts,eye,trailWidth(1.8));
@@ -5557,6 +5558,7 @@ function requestMobileMockup3dMesh(){
             trailPts = trailPts.slice(-1);
           }
         }
+        const phaseColors=getGyroSceneTrailColors(trailPts,gyroPathState.renderScaleY,2),trailColor=(t,index,alpha)=>[...(phaseColors[index]||phaseColors.at(-1)||[.43,.66,.73]),alpha];
         const drawSecondStageTrail = (geometry, mode, additive)=>{
           const minimum = mode === gl.TRIANGLES ? 3 : 4;
           if(!geometry || geometry.count < minimum) return;
@@ -5574,8 +5576,8 @@ function requestMobileMockup3dMesh(){
           );
         };
         gl.disable(gl.DEPTH_TEST);
-        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),t=>[.42,.64,.72,.06+.1*t]),gl.TRIANGLE_STRIP,false);
-        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),t=>[.55,.76,.82,.58+.24*t]),gl.TRIANGLE_STRIP,false);
+        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),(t,i)=>trailColor(t,i,.04+.07*t)),gl.TRIANGLE_STRIP,false);
+        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),(t,i)=>trailColor(t,i,.58+.22*t)),gl.TRIANGLE_STRIP,false);
         gl.enable(gl.DEPTH_TEST);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       }
@@ -5736,9 +5738,9 @@ function requestMobileMockup3dMesh(){
       if(isFinite(rateY)) liveGyroLastRateY = rateY;
       if(!gyroGl) return;
       if(liveGyroRenderRaf) return;
-      liveGyroRenderRaf = requestAnimationFrame(()=>{
+      const draw=()=>{
         liveGyroRenderRaf = 0;
-        if(!gyroGl) return;
+        if(!gyroGl||document.hidden) return;
         const nowUi = Date.now();
         const displayPitchDeg = getGyroDisplayPitchDeg();
         renderGyroGl(gyroPitchDeg, gyroYawDeg, gyroRollDeg);
@@ -5750,7 +5752,9 @@ function requestMobileMockup3dMesh(){
 
           gyroLastUiMs = nowUi;
         }
-      });
+        if(getGyroPreviewMode()==="3d"&&Date.now()<gyroSceneMotionUntil)liveGyroRenderRaf=requestAnimationFrame(draw);
+      };
+      liveGyroRenderRaf=requestAnimationFrame(draw);
     }
 
     function scheduleOfflineGyroDefaultPreview(){
@@ -18477,6 +18481,58 @@ function bindGyroSceneControls(){
   syncGyroSceneControls();
 }
 
+/* Display-only interpolation. Never changes received telemetry, trajectory exports or flight physics. */
+const gyroSceneMotionStates=new Map();
+let gyroSceneMotionUntil=0;
+function resetGyroSceneMotion(){gyroSceneMotionStates.clear();gyroSceneMotionUntil=0;}
+function interpolateGyroSceneQuat(a,b,t){
+  if(!a)return b;if(!b)return a;
+  const sign=a.reduce((sum,n,i)=>sum+n*b[i],0)<0?-1:1,blend=a.map((n,i)=>n+(sign*b[i]-n)*t),length=Math.hypot(...blend)||1;
+  return blend.map(n=>n/length);
+}
+function getGyroSceneMotionFrame(stageId,point,metersPerUnit,quaternion,epoch,now=Date.now()){
+  const units=getGyroSceneMetersPerUnit(metersPerUnit),stamp=Number(point?.ms),position={x:point.x*units,y:point.y*units,z:point.z*units};
+  if(!Number.isFinite(stamp)||!stamp){gyroSceneMotionStates.delete(stageId);return {position:point,quaternion,ms:point.ms};}
+  let state=gyroSceneMotionStates.get(stageId),previous=state?.samples.at(-1);
+  const jump=previous?Math.hypot(position.x-previous.position.x,position.y-previous.position.y,position.z-previous.position.z):0;
+  if(!state||state.epoch!==epoch||stamp<(previous?.ms||0)||now-(previous?.at||0)>1000||jump>Math.max(200,1500*Math.max(.02,(now-(previous?.at||now))/1000))){state={epoch,samples:[],interval:80};gyroSceneMotionStates.set(stageId,state);previous=null;}
+  const angleChanged=previous?.quaternion&&quaternion?1-Math.abs(previous.quaternion.reduce((s,n,i)=>s+n*quaternion[i],0))>1e-8:previous?.quaternion!==quaternion;
+  if(!previous||stamp!==previous.ms||jump>1e-5||angleChanged){
+    if(previous&&now>previous.at)state.interval=state.interval*.7+Math.min(250,Math.max(16,now-previous.at))*.3;
+    state.samples.push({at:now,ms:stamp,position,quaternion:quaternion?.slice()||null});state.samples=state.samples.slice(-24);
+    gyroSceneMotionUntil=Math.max(gyroSceneMotionUntil,now+Math.min(150,Math.max(50,state.interval*1.2))+90);
+  }
+  const delay=Math.min(150,Math.max(50,state.interval*1.2)),time=now-delay,samples=state.samples;
+  let left=samples[0],right=left;
+  for(let i=1;i<samples.length;i++){right=samples[i];if(right.at>=time)break;left=right;}
+  const t=left===right?0:Math.max(0,Math.min(1,(time-left.at)/Math.max(1,right.at-left.at))),value={};
+  for(const axis of ['x','y','z'])value[axis]=(left.position[axis]+(right.position[axis]-left.position[axis])*t)/units;
+  return {position:value,quaternion:interpolateGyroSceneQuat(left.quaternion,right.quaternion,t),ms:left.ms+(right.ms-left.ms)*t};
+}
+function applyGyroSceneMotion(stageId,path,units,quaternion,epoch,now=Date.now()){
+  const frame=getGyroSceneMotionFrame(stageId,path.current,units,quaternion,epoch,now),points=path.trailWorldPoints;
+  path.current={...frame.position,ms:frame.ms};
+  if(points?.length&&Number.isFinite(frame.ms)){
+    let end=points.length;while(end&&points[end-1].ms>frame.ms)end--;
+    const visible=points.slice(0,end);
+    if(visible.length&&visible.at(-1).ms===frame.ms)visible[visible.length-1]=path.current;else visible.push(path.current);
+    path.trailWorldPoints=visible;
+  }
+  return frame.quaternion||quaternion;
+}
+function getGyroSceneTrailColors(points,metersPerUnit,stageId=1){
+  if(!points.length)return [];
+  const units=getGyroSceneMetersPerUnit(metersPerUnit),rise=stageId===2?[.76,.66,.52]:[.77,.51,.42],fall=[.43,.66,.73];
+  let peak=0;for(let i=1;i<points.length;i++)if(points[i].y>points[peak].y)peak=i;
+  const drop=(points[peak].y-points.at(-1).y)*units,descending=peak<points.length-1&&drop>Math.max(1.5,(points[peak].y-points[0].y)*units*.001);
+  const pivot=Number(points[peak].ms)||0;
+  return points.map((point,index)=>{const age=(Number(point.ms)||0)-pivot,ratio=descending&&index>=peak?Math.max(0,Math.min(1,age/900)):0,blend=ratio*ratio*(3-2*ratio);return rise.map((n,i)=>n+(fall[i]-n)*blend);});
+}
+function updateGyroSceneCameraTarget(target,response,followVehicle){
+  const amount=followVehicle?1:Math.max(0,Math.min(1,response));
+  for(const [axis,key]of [['x','targetX'],['y','targetY'],['z','targetZ']])gyroCameraState[key]+=(target[axis]-gyroCameraState[key])*amount;
+}
+
 /* A clear sky and world-anchored ground grid, independent of vehicle materials. */
 function getGyroSceneEnvironmentPalette(dark){
   return dark ? {
@@ -19341,20 +19397,38 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
    return {x:width/2+dx,y:height/2+dy,inView,front,aligned:inView&&Math.hypot(dx,dy)<=reticleRadius,offsetPx:front?Math.hypot(dx,dy):Infinity,arrowX:width/2+ux*arrowDistance,arrowY:height/2+uy*arrowDistance,arrowAngleDeg:Math.atan2(uy,ux)/rad+90};
  }
  function create(view,options){
-   const doc=view.ownerDocument,video=view.querySelector('video'),marker=view.querySelector('[data-camera-target]'),arrow=view.querySelector('[data-camera-direction]'),message=view.querySelector('[data-camera-message]'),range=view.querySelector('[data-camera-range]'),quality=view.querySelector('[data-camera-quality]'),retry=view.querySelector('[data-camera-retry]'),closeButton=view.querySelector('[data-camera-close]');
+   const doc=view.ownerDocument,video=view.querySelector('video'),marker=view.querySelector('[data-camera-target]'),arrow=view.querySelector('[data-camera-direction]'),message=view.querySelector('[data-camera-message]'),range=view.querySelector('[data-camera-range]'),quality=view.querySelector('[data-camera-quality]'),retry=view.querySelector('[data-camera-retry]'),closeButton=view.querySelector('[data-camera-close]'),playButton=view.querySelector('[data-camera-play]'),sensorButton=view.querySelector('[data-camera-sensors]');
    const originalParent=view.parentNode,placeholder=doc.createComment('recovery-camera'),listeners=[];
-   let active=false,disposed=false,generation=0,stream=null,frame=null,lastFrame=0,ready=false,selected='landing',previousFocus=null,previousOverflow='',shown=null,aligned=false;
+   let active=false,disposed=false,generation=0,stream=null,frame=null,lastFrame=0,ready=false,selected='landing',previousFocus=null,previousOverflow='',shown=null,aligned=false,permissionTimer=null,videoTimer=null,sensorsRequested=false;
    const listen=(node,type,fn)=>{node.addEventListener(type,fn);listeners.push(()=>node.removeEventListener(type,fn));};
    const text=(node,value)=>{if(node.textContent!==value)node.textContent=value;};
    const clearAim=()=>{marker.hidden=true;arrow.hidden=true;aligned=false;shown=null;view.dataset.aligned='false';};
-   function stopMedia(){if(frame!==null)root.cancelAnimationFrame(frame);frame=null;ready=false;const previous=stream;stream=null;previous?.getTracks().forEach(track=>track.stop());video.pause();video.srcObject=null;clearAim();}
-   function error(error){const name=error?.name;text(message,name==='NotAllowedError'?'카메라 권한을 허용해 주세요.':name==='NotFoundError'?'후면 카메라를 찾지 못했습니다.':name==='NotReadableError'?'다른 앱의 카메라 사용을 종료해 주세요.':error?.message||'카메라를 시작하지 못했습니다.');retry.hidden=false;}
+   const current=attempt=>active&&!disposed&&attempt===generation;
+   function clearTimers(){root.clearTimeout(permissionTimer);root.clearTimeout(videoTimer);permissionTimer=videoTimer=null;}
+   function stopMedia(){clearTimers();if(frame!==null)root.cancelAnimationFrame(frame);frame=null;ready=false;const previous=stream;stream=null;previous?.getTracks().forEach(track=>track.stop());video.pause();video.srcObject=null;playButton.hidden=true;clearAim();}
+   function error(error){view.dataset.cameraState='error';const name=error?.name;text(message,name==='NotAllowedError'?'카메라 권한을 허용해 주세요.':name==='NotFoundError'?'후면 카메라를 찾지 못했습니다.':name==='NotReadableError'?'다른 앱의 카메라 사용을 종료해 주세요.':error?.message||'카메라를 시작하지 못했습니다.');retry.hidden=false;}
+   function acceptFrames(){
+     if(!active||!stream||video.srcObject!==stream||video.readyState<2||video.paused||!video.videoWidth||!video.videoHeight)return false;
+     ready=true;root.clearTimeout(videoTimer);videoTimer=null;view.dataset.cameraState='ready';playButton.hidden=true;retry.hidden=true;return true;
+   }
+   function requestPlay(attempt=generation){
+     if(!current(attempt)||!stream)return;
+     video.muted=true;video.defaultMuted=true;video.playsInline=true;video.autoplay=true;video.setAttribute('playsinline','');video.setAttribute('webkit-playsinline','');
+     view.dataset.cameraState='video';playButton.hidden=true;text(message,'카메라 영상 준비 중');
+     root.clearTimeout(videoTimer);videoTimer=root.setTimeout(()=>{
+       if(!current(attempt)||acceptFrames())return;
+       if(video.paused){view.dataset.cameraState='playback';playButton.hidden=false;text(message,'영상 재생을 눌러주세요.');}
+       else{stopMedia();error(new Error('카메라 영상 수신을 시작하지 못했습니다. 다시 연결해 주세요.'));}
+     },10000);
+     const failed=cause=>{if(!current(attempt)||ready)return;if(cause?.name==='NotAllowedError'){root.clearTimeout(videoTimer);videoTimer=null;view.dataset.cameraState='playback';playButton.hidden=false;text(message,'영상 재생을 눌러주세요.');}else{stopMedia();error(cause);}};
+     try{const playing=video.play();if(playing?.then)playing.then(()=>{if(current(attempt))acceptFrames();},failed);acceptFrames();}catch(cause){failed(cause);}
+   }
    function render(time=0){
      if(!active||disposed)return;frame=root.requestAnimationFrame(render);if(time-lastFrame<30)return;lastFrame=time;
-     if(!ready)return;
+     if(!ready&&!acceptFrames())return;
      const state=options.getState(),target=state.targets?.[selected];
-     let waiting=!state.observer?'휴대폰 위치 수신 대기':!state.pose?'방향 센서 수신 대기':!state.absolute?'북쪽 방향 보정이 필요합니다.':state.stale?'텔레메트리 수신 복구 대기':!target?(selected==='landing'?'착지 예측 데이터 대기':'기체 GPS 수신 대기'):null;
-     if(waiting){clearAim();text(message,waiting);text(range,'--');text(quality,state.absolute?'GPS·방향 데이터를 기다리고 있습니다.':'폰을 잠시 눕히고 상단을 북쪽에 맞춘 뒤 보정하세요.');return;}
+     let waiting=state.sensorError||(!state.observer?(sensorsRequested?'휴대폰 위치 수신 대기':'위치·방향 연결을 눌러주세요.'):!state.pose?'방향 센서 수신 대기':!state.absolute?'북쪽 방향 보정이 필요합니다.':state.stale?'텔레메트리 수신 복구 대기':!target?(selected==='landing'?'착지 예측 데이터 대기':'기체 GPS 수신 대기'):null);
+     if(waiting){clearAim();text(message,waiting);text(range,'--');text(quality,state.absolute?'GPS·방향 데이터를 기다리고 있습니다.':(!state.pose?'위치·방향 연결 후 센서 권한을 허용해 주세요.':'폰을 잠시 눕히고 상단을 북쪽에 맞춘 뒤 보정하세요.'));return;}
      const aim=root.Flash7.recovery.guidance(target,state.observer,null,{observerHeightM:(state.observerHeightM||0)+1.5});
      if(!aim||aim.elevationDeg===null){clearAim();text(message,'목표 높이 데이터 대기');return;}
      const width=view.clientWidth,height=view.clientHeight,pose=rotateBasis(state.pose,state.northBias||0),point=project(aim,pose,{width,height,focalPx:focal(width,height,video.videoWidth,video.videoHeight),insets:{left:30,right:30,top:height<500?90:150,bottom:height<500?100:190}});
@@ -19371,23 +19445,25 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
      text(quality,'방위 오차 약 ±'+Math.round(aim.bearingUncertaintyDeg)+'° · '+(selected==='landing'?'예상 착지 지점':'기체 위치')+' · 추정 표시');
    }
    async function startMedia(){
-     const attempt=++generation;stopMedia();retry.hidden=true;text(message,'카메라 연결 중');
+     const attempt=++generation;stopMedia();retry.hidden=true;view.dataset.cameraState='permission';text(message,'카메라 권한 확인 중');
      if(!root.isSecureContext||!root.navigator.mediaDevices?.getUserMedia){error(new Error('카메라는 HTTPS 환경에서 사용할 수 있습니다.'));return;}
+     const deadline=root.setTimeout(()=>{if(!current(attempt))return;generation++;stopMedia();error(new Error('카메라 권한 응답이 없습니다. 브라우저의 카메라 허용 설정을 확인한 뒤 다시 연결해 주세요.'));},20000);permissionTimer=deadline;
      try{
        const acquired=await root.navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
-       if(!active||disposed||attempt!==generation){acquired.getTracks().forEach(track=>track.stop());return;}
+       root.clearTimeout(deadline);if(permissionTimer===deadline)permissionTimer=null;
+       if(!current(attempt)){acquired.getTracks().forEach(track=>track.stop());return;}
        stream=acquired;
        if(!acquired.getVideoTracks().length)throw new Error('카메라 영상이 없습니다.');
        if(acquired.getVideoTracks()[0]?.getSettings?.().facingMode==='user')throw new Error('방향 안내에는 후면 카메라가 필요합니다.');
-       video.srcObject=acquired;await video.play();
-       if(!active||disposed||attempt!==generation)return;
-       ready=true;lastFrame=0;frame=root.requestAnimationFrame(render);
+       video.srcObject=acquired;lastFrame=0;frame=root.requestAnimationFrame(render);requestPlay(attempt);
        acquired.getVideoTracks().forEach(track=>track.addEventListener('ended',()=>{if(active&&stream===acquired){generation++;stopMedia();error(new Error('카메라 연결이 종료되었습니다.'));}},{once:true}));
-     }catch(cause){if(active&&!disposed&&attempt===generation){stopMedia();error(cause);}}
+     }catch(cause){root.clearTimeout(deadline);if(permissionTimer===deadline)permissionTimer=null;if(current(attempt)){stopMedia();error(cause);}}
    }
-   function close(){if(!active)return;active=false;generation++;stopMedia();view.hidden=true;doc.body.style.overflow=previousOverflow;if(placeholder.parentNode){placeholder.replaceWith(view);}previousFocus?.focus?.();options.onClose?.();}
-   function open(){if(active||disposed)return;active=true;previousFocus=doc.activeElement;previousOverflow=doc.body.style.overflow;view.before(placeholder);doc.body.append(view);doc.body.style.overflow='hidden';view.hidden=false;closeButton.focus();void startMedia();}
-   listen(closeButton,'click',close);listen(retry,'click',()=>{options.onRetry?.();void startMedia();});
+   function close(){if(!active)return;active=false;generation++;stopMedia();view.hidden=true;view.dataset.cameraState='idle';doc.body.style.overflow=previousOverflow;if(placeholder.parentNode){placeholder.replaceWith(view);}previousFocus?.focus?.();options.onClose?.();}
+   function open(){if(active||disposed)return;active=true;sensorsRequested=false;previousFocus=doc.activeElement;previousOverflow=doc.body.style.overflow;view.before(placeholder);doc.body.append(view);doc.body.style.overflow='hidden';view.hidden=false;closeButton.focus();void startMedia();}
+   listen(closeButton,'click',close);listen(retry,'click',()=>void startMedia());
+   listen(playButton,'click',()=>requestPlay());listen(sensorButton,'click',()=>{sensorsRequested=true;options.onSensors?.();});
+   for(const event of ['loadeddata','canplay','playing'])listen(video,event,acceptFrames);
    view.querySelectorAll('[data-camera-mode]').forEach(button=>listen(button,'click',()=>{selected=button.dataset.cameraMode;shown=null;aligned=false;view.querySelectorAll('[data-camera-mode]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));}));
    listen(view.querySelector('[data-camera-north]'),'click',()=>options.calibrate?.());
    listen(doc,'visibilitychange',()=>{if(doc.hidden)close();});listen(root,'pagehide',close);
@@ -19402,7 +19478,7 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
 (function(root){
  'use strict';
  function createPanel(element,options={}){
-  const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,cameraOrientation=null,cameraOrientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
+  const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,cameraOrientation=null,cameraOrientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,positionError='',directionError='',disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
   const config={observerHeightM:0,yawOffsetDeg:0,pitchOffsetDeg:0},listeners=[];
   const write=(key,value)=>{const node=element.querySelector('[data-recovery="'+key+'"]');if(node&&node.textContent!==value)node.textContent=value;};
   const on=(node,type,fn)=>{node?.addEventListener(type,fn);listeners.push(()=>node?.removeEventListener(type,fn));};
@@ -19440,7 +19516,7 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
    write('instruction',instruction);
    const arrow=element.querySelector('[data-recovery-arrow]');if(arrow)arrow.style.transform=aim&&aim.yawErrorDeg!==null?'rotate('+aim.yawErrorDeg+'deg)':'none';
    write('aimQuality',aim?'방위 불확실성 약 ±'+fmt(Math.min(180,aim.bearingUncertaintyDeg))+'° · 관측지 높이차 '+fmt(config.observerHeightM)+' m 기준':'휴대폰 화면 상단을 안테나 방향에 맞추세요.');
-   if(watch!==null||orientation||cameraOrientation)write('sensorState',!gpsFresh?'위치 수신 대기':!attitudeFresh&&(!cameraOrientation||Date.now()-cameraOrientationAt>=3000)?'방향 수신 대기':orientation?.absolute||cameraOrientation?.absolute?'절대 방위 사용':manualNorth?'수동 북쪽 기준 · 주기적 재보정':'북쪽 보정 필요');
+   if(watch!==null||orientation||cameraOrientation||positionError||directionError)write('sensorState',positionError||(!cameraOrientation&&!orientation?directionError:'')||(!gpsFresh?'위치 수신 대기':!attitudeFresh&&(!cameraOrientation||Date.now()-cameraOrientationAt>=3000)?'방향 수신 대기':orientation?.absolute||cameraOrientation?.absolute?'절대 방위 사용':manualNorth?'수동 북쪽 기준 · 주기적 재보정':'북쪽 보정 필요'));
    mapUpdate();
   }
   function orientationEvent(event){
@@ -19456,15 +19532,16 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
    if(!axis||axis.horizontalStrength<.15){orientation=null;return;}
    axis.headingDeg=(axis.headingDeg+correction+360)%360;orientation={...axis,absolute:compass||event.absolute===true};orientationAt=Date.now();
   }
-  function stopSensors(closeCamera=true){if(closeCamera)camera?.close();sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;cameraOrientation=null;manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
+  function stopSensors(closeCamera=true){if(closeCamera)camera?.close();sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;cameraOrientation=null;positionError=directionError='';manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
   async function sensors(){
    stopSensors(false);const generation=sensorGeneration;
    if(!root.isSecureContext){write('sensorState','HTTPS 또는 네이티브 앱에서 연결하세요.');return;}
    let direction=typeof root.DeviceOrientationEvent!=='undefined';
    try{if(typeof root.DeviceOrientationEvent?.requestPermission==='function')direction=await root.DeviceOrientationEvent.requestPermission(true)==='granted';}catch{direction=false;}
    if(disposed||generation!==sensorGeneration)return;
+   if(!direction)directionError=typeof root.DeviceOrientationEvent==='undefined'?'방향 센서를 지원하지 않는 기기입니다.':'방향 센서 권한을 허용해 주세요.';
    if(direction){root.addEventListener('deviceorientation',orientationEvent);root.addEventListener('deviceorientationabsolute',orientationEvent);}
-   if(navigator.geolocation)watch=navigator.geolocation.watchPosition(position=>{if(disposed||generation!==sensorGeneration)return;observer={lat:position.coords.latitude,lon:position.coords.longitude,accuracyM:position.coords.accuracy,timestamp:position.timestamp};render();},error=>{if(generation!==sensorGeneration)return;write('sensorState',error.code===1?'위치 권한이 거부되었습니다.':'위치 정보를 받지 못했습니다.');},{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
+   if(navigator.geolocation)watch=navigator.geolocation.watchPosition(position=>{if(disposed||generation!==sensorGeneration)return;positionError='';observer={lat:position.coords.latitude,lon:position.coords.longitude,accuracyM:position.coords.accuracy,timestamp:position.timestamp};render();},error=>{if(generation!==sensorGeneration)return;positionError=error.code===1?'위치 권한을 허용해 주세요.':'위치 정보를 받지 못했습니다. 야외에서 다시 연결해 주세요.';write('sensorState',positionError);},{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
    write('sensorState',direction?'센서 수신 대기':'방향 권한 없음 · 위치만 사용');
   }
   function calibrateNorth(){
@@ -19473,10 +19550,10 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
   }
   const camera=root.Flash7.recoveryCamera.create(element.querySelector('[data-recovery-camera]'),{
    getState(){const state=estimator.snapshot(),gpsFresh=observer&&(observer.manual||Date.now()-observer.timestamp<15000),poseFresh=cameraOrientation&&Date.now()-cameraOrientationAt<3000;
-    return {observer:gpsFresh?observer:null,pose:poseFresh?cameraOrientation.basis:null,absolute:!!(poseFresh&&(cameraOrientation.absolute||manualNorth)),northBias:manualNorth?northBias:0,observerHeightM:config.observerHeightM,stale:['stale','gps-stale','gps-rejected'].includes(state.status),targets:{rocket:state.target,landing:state.landing?{...state.landing,heightM:state.groundOffsetM,ageMs:state.target?.ageMs??Infinity,uncertaintyM:state.landing.radiusM}:null}};
-   },calibrate:calibrateNorth,onRetry:sensors,onClose:()=>stopSensors(false)
+    return {sensorError:positionError||(!poseFresh?directionError:''),observer:gpsFresh?observer:null,pose:poseFresh?cameraOrientation.basis:null,absolute:!!(poseFresh&&(cameraOrientation.absolute||manualNorth)),northBias:manualNorth?northBias:0,observerHeightM:config.observerHeightM,stale:['stale','gps-stale','gps-rejected'].includes(state.status),targets:{rocket:state.target,landing:state.landing?{...state.landing,heightM:state.groundOffsetM,ageMs:state.target?.ageMs??Infinity,uncertaintyM:state.landing.radiusM}:null}};
+   },calibrate:calibrateNorth,onSensors:sensors,onClose:()=>stopSensors(false)
   });
-  on(element.querySelector('[data-recovery-camera-open]'),'click',()=>{void sensors();camera.open();});
+  on(element.querySelector('[data-recovery-camera-open]'),'click',()=>camera.open());
   on(element.querySelector('[data-recovery-sensors]'),'click',sensors);on(element.querySelector('[data-recovery-stop-sensors]'),'click',stopSensors);
   on(element.querySelector('[data-recovery-north]'),'click',calibrateNorth);
   on(element.querySelector('[data-recovery-ground]'),'change',event=>{const value=Number(event.target.value);if(Number.isFinite(value)&&value>=-2000&&value<=10000)estimator.configure({groundOffsetM:value});render();});

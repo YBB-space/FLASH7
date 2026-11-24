@@ -127,7 +127,7 @@
   <!-- Preload 축소: AP 모드/저메모리 환경에서 동시 요청 버스트를 줄임 -->
   <script>
     (function(){
-    var ASSET_VER = "20261124-camera-recovery";
+    var ASSET_VER = "20261124-camera-start-fix";
       window.__flashBoot = window.__flashBoot || {jsReady:false,lastError:"",phase:"static_loader",version:ASSET_VER};
       var isLocalPreview = !!window.__flashBoot.localPreview;
       var beaconEnabled = (window.__flashBoot.beaconEnabled !== false);
@@ -365,7 +365,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-camera-recovery">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-camera-start-fix">
 </head>
 <body>
   <!-- ✅ LOCKOUT 배경 오버레이 -->
@@ -548,7 +548,7 @@
   <div class="recovery-camera-center" aria-hidden="true"><i></i></div>
   <div class="recovery-camera-target" data-camera-target hidden aria-hidden="true"><i></i><span>목표 위치</span></div>
   <div class="recovery-camera-direction" data-camera-direction hidden aria-hidden="true"></div>
-  <footer class="recovery-camera-footer"><strong data-camera-message role="status">카메라 연결 대기</strong><span data-camera-range>--</span><p data-camera-quality>GPS·방향 센서로 표시하는 추정 위치입니다.</p><div><button type="button" data-camera-retry hidden>다시 연결</button><button type="button" data-camera-north>북쪽 보정</button></div><small>GPS·방향 센서 기반 추정 위치 · 기기별 오차가 있습니다.</small></footer>
+  <footer class="recovery-camera-footer"><strong data-camera-message role="status">카메라 연결 대기</strong><span data-camera-range>--</span><p data-camera-quality>GPS·방향 센서로 표시하는 추정 위치입니다.</p><div><button type="button" data-camera-play hidden>영상 재생</button><button type="button" data-camera-sensors>위치·방향 연결</button><button type="button" data-camera-retry hidden>다시 연결</button><button type="button" data-camera-north>북쪽 보정</button></div><small>GPS·방향 센서 기반 추정 위치 · 기기별 오차가 있습니다.</small></footer>
 </section>
 
 </section>
@@ -5064,6 +5064,6 @@
     <button id="controlsOverlayClose" class="controls-overlay-close" type="button" aria-label="close">×</button>
     </div>
 
-  <script src="scripts/flash7-watchdog.js?v=20261124-camera-recovery"></script>
+  <script src="scripts/flash7-watchdog.js?v=20261124-camera-start-fix"></script>
 </body>
 </html> 

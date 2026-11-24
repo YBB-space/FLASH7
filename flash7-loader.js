@@ -18,6 +18,7 @@
       "ui/shared/control-center.js",
       "ui/shared/welcome-screen.js",
       "ui/shared/scene3d.js",
+      "ui/shared/scene3d-motion.js",
       "ui/shared/scene3d-environment.js",
       "ui/shared/flight-charts.js",
       "ui/shared/araea-flight-sim.js",

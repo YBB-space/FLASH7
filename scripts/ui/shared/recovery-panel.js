@@ -2,7 +2,7 @@
 (function(root){
  'use strict';
  function createPanel(element,options={}){
-  const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,cameraOrientation=null,cameraOrientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
+  const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,cameraOrientation=null,cameraOrientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,positionError='',directionError='',disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
   const config={observerHeightM:0,yawOffsetDeg:0,pitchOffsetDeg:0},listeners=[];
   const write=(key,value)=>{const node=element.querySelector('[data-recovery="'+key+'"]');if(node&&node.textContent!==value)node.textContent=value;};
   const on=(node,type,fn)=>{node?.addEventListener(type,fn);listeners.push(()=>node?.removeEventListener(type,fn));};
@@ -40,7 +40,7 @@
    write('instruction',instruction);
    const arrow=element.querySelector('[data-recovery-arrow]');if(arrow)arrow.style.transform=aim&&aim.yawErrorDeg!==null?'rotate('+aim.yawErrorDeg+'deg)':'none';
    write('aimQuality',aim?'방위 불확실성 약 ±'+fmt(Math.min(180,aim.bearingUncertaintyDeg))+'° · 관측지 높이차 '+fmt(config.observerHeightM)+' m 기준':'휴대폰 화면 상단을 안테나 방향에 맞추세요.');
-   if(watch!==null||orientation||cameraOrientation)write('sensorState',!gpsFresh?'위치 수신 대기':!attitudeFresh&&(!cameraOrientation||Date.now()-cameraOrientationAt>=3000)?'방향 수신 대기':orientation?.absolute||cameraOrientation?.absolute?'절대 방위 사용':manualNorth?'수동 북쪽 기준 · 주기적 재보정':'북쪽 보정 필요');
+   if(watch!==null||orientation||cameraOrientation||positionError||directionError)write('sensorState',positionError||(!cameraOrientation&&!orientation?directionError:'')||(!gpsFresh?'위치 수신 대기':!attitudeFresh&&(!cameraOrientation||Date.now()-cameraOrientationAt>=3000)?'방향 수신 대기':orientation?.absolute||cameraOrientation?.absolute?'절대 방위 사용':manualNorth?'수동 북쪽 기준 · 주기적 재보정':'북쪽 보정 필요'));
    mapUpdate();
   }
   function orientationEvent(event){
@@ -56,15 +56,16 @@
    if(!axis||axis.horizontalStrength<.15){orientation=null;return;}
    axis.headingDeg=(axis.headingDeg+correction+360)%360;orientation={...axis,absolute:compass||event.absolute===true};orientationAt=Date.now();
   }
-  function stopSensors(closeCamera=true){if(closeCamera)camera?.close();sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;cameraOrientation=null;manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
+  function stopSensors(closeCamera=true){if(closeCamera)camera?.close();sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;cameraOrientation=null;positionError=directionError='';manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
   async function sensors(){
    stopSensors(false);const generation=sensorGeneration;
    if(!root.isSecureContext){write('sensorState','HTTPS 또는 네이티브 앱에서 연결하세요.');return;}
    let direction=typeof root.DeviceOrientationEvent!=='undefined';
    try{if(typeof root.DeviceOrientationEvent?.requestPermission==='function')direction=await root.DeviceOrientationEvent.requestPermission(true)==='granted';}catch{direction=false;}
    if(disposed||generation!==sensorGeneration)return;
+   if(!direction)directionError=typeof root.DeviceOrientationEvent==='undefined'?'방향 센서를 지원하지 않는 기기입니다.':'방향 센서 권한을 허용해 주세요.';
    if(direction){root.addEventListener('deviceorientation',orientationEvent);root.addEventListener('deviceorientationabsolute',orientationEvent);}
-   if(navigator.geolocation)watch=navigator.geolocation.watchPosition(position=>{if(disposed||generation!==sensorGeneration)return;observer={lat:position.coords.latitude,lon:position.coords.longitude,accuracyM:position.coords.accuracy,timestamp:position.timestamp};render();},error=>{if(generation!==sensorGeneration)return;write('sensorState',error.code===1?'위치 권한이 거부되었습니다.':'위치 정보를 받지 못했습니다.');},{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
+   if(navigator.geolocation)watch=navigator.geolocation.watchPosition(position=>{if(disposed||generation!==sensorGeneration)return;positionError='';observer={lat:position.coords.latitude,lon:position.coords.longitude,accuracyM:position.coords.accuracy,timestamp:position.timestamp};render();},error=>{if(generation!==sensorGeneration)return;positionError=error.code===1?'위치 권한을 허용해 주세요.':'위치 정보를 받지 못했습니다. 야외에서 다시 연결해 주세요.';write('sensorState',positionError);},{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
    write('sensorState',direction?'센서 수신 대기':'방향 권한 없음 · 위치만 사용');
   }
   function calibrateNorth(){
@@ -73,10 +74,10 @@
   }
   const camera=root.Flash7.recoveryCamera.create(element.querySelector('[data-recovery-camera]'),{
    getState(){const state=estimator.snapshot(),gpsFresh=observer&&(observer.manual||Date.now()-observer.timestamp<15000),poseFresh=cameraOrientation&&Date.now()-cameraOrientationAt<3000;
-    return {observer:gpsFresh?observer:null,pose:poseFresh?cameraOrientation.basis:null,absolute:!!(poseFresh&&(cameraOrientation.absolute||manualNorth)),northBias:manualNorth?northBias:0,observerHeightM:config.observerHeightM,stale:['stale','gps-stale','gps-rejected'].includes(state.status),targets:{rocket:state.target,landing:state.landing?{...state.landing,heightM:state.groundOffsetM,ageMs:state.target?.ageMs??Infinity,uncertaintyM:state.landing.radiusM}:null}};
-   },calibrate:calibrateNorth,onRetry:sensors,onClose:()=>stopSensors(false)
+    return {sensorError:positionError||(!poseFresh?directionError:''),observer:gpsFresh?observer:null,pose:poseFresh?cameraOrientation.basis:null,absolute:!!(poseFresh&&(cameraOrientation.absolute||manualNorth)),northBias:manualNorth?northBias:0,observerHeightM:config.observerHeightM,stale:['stale','gps-stale','gps-rejected'].includes(state.status),targets:{rocket:state.target,landing:state.landing?{...state.landing,heightM:state.groundOffsetM,ageMs:state.target?.ageMs??Infinity,uncertaintyM:state.landing.radiusM}:null}};
+   },calibrate:calibrateNorth,onSensors:sensors,onClose:()=>stopSensors(false)
   });
-  on(element.querySelector('[data-recovery-camera-open]'),'click',()=>{void sensors();camera.open();});
+  on(element.querySelector('[data-recovery-camera-open]'),'click',()=>camera.open());
   on(element.querySelector('[data-recovery-sensors]'),'click',sensors);on(element.querySelector('[data-recovery-stop-sensors]'),'click',stopSensors);
   on(element.querySelector('[data-recovery-north]'),'click',calibrateNorth);
   on(element.querySelector('[data-recovery-ground]'),'change',event=>{const value=Number(event.target.value);if(Number.isFinite(value)&&value>=-2000&&value<=10000)estimator.configure({groundOffsetM:value});render();});

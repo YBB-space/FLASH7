@@ -1,8 +1,8 @@
 .recovery-panel [data-recovery-camera-open]{width:100%;margin-top:10px;background:#e0e5e7;color:#15191c;border-color:#e0e5e7;font-weight:600}
 .recovery-camera[hidden]{display:none!important}
 .recovery-camera{position:fixed;inset:0;z-index:2147483200;overflow:hidden;background:#070a0c;color:#f4f6f7;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--camera-aim:#f0f4f6;isolation:isolate}
-.recovery-camera video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;pointer-events:none}
-.recovery-camera-shade{position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(#0009,transparent 28%,transparent 62%,#000d)}
+.recovery-camera video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none}
+.recovery-camera-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(#0009,transparent 28%,transparent 62%,#000d)}
 .recovery-camera-header{position:absolute;top:calc(env(safe-area-inset-top,0px) + 20px);left:22px;right:22px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .recovery-camera-header>div{display:grid;gap:5px}.recovery-camera-header small{font-size:9px;letter-spacing:.18em;color:#c2cacf}.recovery-camera-header strong{font-size:18px;font-weight:550}
 .recovery-camera button{border:1px solid #ffffff40;border-radius:8px;background:#11181ac7;color:#e7ebed;font:500 12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:10px 14px;min-height:40px;box-shadow:none;cursor:pointer;transform:none}
@@ -17,3 +17,6 @@
 .recovery-camera-footer{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);left:22px;right:22px;text-align:center;display:grid;justify-items:center;gap:9px;text-shadow:0 1px 5px #0008}
 .recovery-camera-footer>strong{font-size:17px;font-weight:550}.recovery-camera-footer>span{font-size:20px;font-weight:400;font-variant-numeric:tabular-nums}.recovery-camera-footer p{font-size:11px;line-height:1.5;margin:0;color:#bbc6ce}.recovery-camera-footer>div{display:flex;gap:8px}.recovery-camera-footer small{max-width:340px;font-size:10px;line-height:1.5;color:#a7b3bc}
 @media(max-height:500px){.recovery-camera-header{top:calc(env(safe-area-inset-top,0px) + 10px);left:16px;right:16px}.recovery-camera-header strong{font-size:15px}.recovery-camera-modes{top:calc(env(safe-area-inset-top,0px) + 10px)}.recovery-camera-footer{bottom:calc(env(safe-area-inset-bottom,0px) + 10px);gap:4px}.recovery-camera-footer>strong{font-size:13px}.recovery-camera-footer>span{font-size:15px}.recovery-camera-footer small{display:none}.recovery-camera-footer>div{position:absolute;right:0;bottom:0}}
+
+.recovery-camera>:not(video):not(.recovery-camera-shade){z-index:2}
+.recovery-camera-footer>div{flex-wrap:wrap;justify-content:center}
