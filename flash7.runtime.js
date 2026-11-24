@@ -5227,8 +5227,10 @@ function requestMobileMockup3dMesh(){
       }
       if(showWorldDecor){
         const renderNow=Date.now();
-        primaryUiQuat=applyGyroSceneMotion(1,pathRender,gyroPathState.renderScaleY,primaryUiQuat||getGyroRocketModelQuat(),gyroRocketMeshKey,renderNow);
+        const motionEpoch=gyroRocketMeshKey+(launchPadActive?":launch-pad":"");
+        primaryUiQuat=applyGyroSceneMotion(1,pathRender,gyroPathState.renderScaleY,primaryUiQuat||getGyroRocketModelQuat(),motionEpoch,renderNow);
         if(secondStagePathRender)secondaryUiQuat=applyGyroSceneMotion(2,secondStagePathRender,gyroPathState.renderScaleY,secondaryUiQuat||primaryUiQuat,gyroRocketMeshKey,renderNow);
+        if(launchPadActive)primaryUiQuat=constrainGyroLaunchRailFrame(pathRender,primaryUiQuat,simState.railExitMs==null);
       }
       const rocketDisplayScale = showWorldDecor
         ? getGyroSceneRocketScale(gyroPathState.renderScaleY)
@@ -18730,9 +18732,17 @@ function getGyroLaunchVehicleQuat(pitchDeg,yawDeg,rollDeg){
   const elevation=Math.max(-90,Math.min(90,Number(pitchDeg)||0))*Math.PI/180,heading=(Number(yawDeg)||0)*Math.PI/180;
   const axis=[Math.cos(elevation)*Math.sin(heading),Math.sin(elevation),Math.cos(elevation)*Math.cos(heading)],w=Math.sqrt(Math.max(0,(1+axis[1])/2));
   const tilt=w<1e-6?[0,1,0,0]:[w,axis[2]/(2*w),0,-axis[0]/(2*w)];
-  const yaw=quatFromAxisAngle([0,1,0],heading),roll=quatFromAxisAngle([0,1,0],(Number(rollDeg)||0)*Math.PI/180);
-  // At vertical keep a stable pad heading so the guides line up with the rail.
-  return quatNormalize(quatMul(tilt,quatMul(yaw,roll)));
+  const roll=quatFromAxisAngle([0,1,0],(Number(rollDeg)||0)*Math.PI/180);
+  // Heading selects the direction of tilt. Only roll twists the body about +Y;
+  // a vertical rocket must not spin simply because its compass heading changes.
+  return quatNormalize(quatMul(tilt,roll));
+}
+function constrainGyroLaunchRailFrame(path,quaternion,locked){
+  if(!locked)return quaternion;
+  // Apply after display interpolation so old live poses and GPS drift cannot
+  // rotate the guides or move them away from the stationary rail.
+  path.current.x=0;path.current.z=0;
+  return getGyroLaunchVehicleQuat(GYRO_LAUNCH_RAIL.pitchDeg,GYRO_LAUNCH_RAIL.headingDeg,0);
 }
 function positionGyroLaunchPadPath(path,units){
   const lift=(GYRO_LAUNCH_RAIL.nozzleM-.05)/getGyroSceneMetersPerUnit(units),raised=point=>({...point,y:point.y+lift});
@@ -18782,7 +18792,7 @@ function disposeGyroLaunchPadBuffers(gl,buffers){for(const mesh of Object.values
 function drawGyroLaunchPad(view,style,rocketPosition,rocketRotation){
   const units=getGyroSceneMetersPerUnit(gyroSceneView.metersPerUnit),buffers=gyroGl.launchPad;
   if(!buffers)return;
-  const scale=mat4Scale(1/units,1/units,1/units),padRotation=quatToMat4(quatFromAxisAngle([0,1,0],GYRO_LAUNCH_RAIL.headingDeg*Math.PI/180));
+  const scale=mat4Scale(1/units,1/units,1/units),padRotation=quatToMat4(getGyroLaunchVehicleQuat(GYRO_LAUNCH_RAIL.pitchDeg,GYRO_LAUNCH_RAIL.headingDeg,0));
   const padStyle={...style,materialDetail:0,colorLift:0,sheen:.05,fogNear:120/units,fogFar:500/units};
   const padModel=mat4Mul(padRotation,scale),guideModel=mat4Mul(mat4Translate(rocketPosition.x,rocketPosition.y,rocketPosition.z),mat4Mul(rocketRotation,scale));
   for(const [mesh,model]of [[buffers.pad,padModel],[buffers.guides,guideModel]])drawSolidBatch(mesh.posBuf,mesh.normBuf,mesh.colBuf,mesh.count,model,view,padStyle);

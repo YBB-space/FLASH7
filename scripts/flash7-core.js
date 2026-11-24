@@ -5226,8 +5226,10 @@ function requestMobileMockup3dMesh(){
       }
       if(showWorldDecor){
         const renderNow=Date.now();
-        primaryUiQuat=applyGyroSceneMotion(1,pathRender,gyroPathState.renderScaleY,primaryUiQuat||getGyroRocketModelQuat(),gyroRocketMeshKey,renderNow);
+        const motionEpoch=gyroRocketMeshKey+(launchPadActive?":launch-pad":"");
+        primaryUiQuat=applyGyroSceneMotion(1,pathRender,gyroPathState.renderScaleY,primaryUiQuat||getGyroRocketModelQuat(),motionEpoch,renderNow);
         if(secondStagePathRender)secondaryUiQuat=applyGyroSceneMotion(2,secondStagePathRender,gyroPathState.renderScaleY,secondaryUiQuat||primaryUiQuat,gyroRocketMeshKey,renderNow);
+        if(launchPadActive)primaryUiQuat=constrainGyroLaunchRailFrame(pathRender,primaryUiQuat,simState.railExitMs==null);
       }
       const rocketDisplayScale = showWorldDecor
         ? getGyroSceneRocketScale(gyroPathState.renderScaleY)
