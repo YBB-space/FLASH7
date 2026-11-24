@@ -19223,6 +19223,21 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
   (root.Flash7=root.Flash7||{}).missionSchema={normalize};if(typeof module==='object'&&module.exports)module.exports=root.Flash7.missionSchema;
 })(typeof globalThis!=='undefined'?globalThis:window);
 
+/* Deployment-owned relay configuration. Viewers never choose a telemetry destination. */
+(function(root){
+ 'use strict';
+ // Set once when the production Worker is deployed. This is a public service URL, never a key.
+ const relayOrigin='';
+ function configuredEndpoint(){
+   if(relayOrigin)return relayOrigin;
+   const host=root.location?.hostname;
+   if(host==='localhost'||host==='127.0.0.1')return 'http://'+host+':8787';
+   throw new Error('온라인 서비스 연결 준비 중입니다.');
+ }
+ (root.Flash7=root.Flash7||{}).missionConfig={configuredEndpoint};
+ if(typeof module==='object'&&module.exports)module.exports=root.Flash7.missionConfig;
+})(typeof globalThis!=='undefined'?globalThis:window);
+
 /* Connection transport only; no board connection, command or navigation privileges. */
 (function(root){
  'use strict';
@@ -19347,18 +19362,13 @@ function initMissionOperations(appScope){
   const onlineToggle=document.getElementById('welcomeOnlineBtn'),onlineSettings=document.getElementById('welcomeOnlineSettings');
   function setOnline(value){onlineEnabled=value;onlineToggle?.setAttribute('aria-checked',String(value));}
   function showSettings(){if(onlineSettings)onlineSettings.open=true;}
-  const savedEndpoint=()=>{try{return localStorage.getItem('flash7-mission-endpoint')||'';}catch{return '';}};
-  const saveEndpoint=value=>{try{localStorage.setItem('flash7-mission-endpoint',value);}catch{}};
-  document.querySelectorAll('[data-mission-endpoint],[data-mission-join-endpoint]').forEach(node=>node.value=savedEndpoint());
-  const query=new URLSearchParams(location.search),configured=query.get('relay');
-  if(configured){try{const value=runtime.missionClient.endpoint(configured);all('[data-mission-endpoint]',node=>node.value=value);}catch{}}
   scope.listen(onlineToggle,'click',()=>{
     if(onlineEnabled){stop();return;}
+    try{runtime.missionConfig.configuredEndpoint();}catch(error){showSettings();write('[data-mission-message]',error.message);return;}
     setOnline(true);
-    const form=Array.from(document.querySelectorAll('[data-mission-publish-form]')).find(item=>item.querySelector('[data-mission-endpoint]').value&&item.querySelector('[data-mission-publish-key]').value.length>=32);
-    if(form)form.requestSubmit();else{showSettings();write('[data-mission-message]','중계 주소와 송신 키를 설정하면 현재 비행·시뮬 데이터를 공유합니다.');}
+    const form=Array.from(document.querySelectorAll('[data-mission-publish-form]')).find(item=>item.querySelector('[data-mission-publish-key]').value.length>=32);
+    if(form)form.requestSubmit();else{showSettings();write('[data-mission-message]','송신 키로 연결하면 현재 비행·시뮬 데이터를 공유합니다.');}
   });
-  all('[data-mission-endpoint]',node=>scope.listen(node,'change',()=>{all('[data-mission-endpoint]',other=>other.value=node.value);}));
   const finite=(...values)=>{for(const v of values)if(v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v)))return Number(v);return null;};
   function packet(){
     if(typeof buildDesktopSplitSnapshot!=='function'||!uiSettings)return null;
@@ -19379,7 +19389,7 @@ function initMissionOperations(appScope){
     event.preventDefault();if(busy||sharing)return;busy=true;const form=event.currentTarget,secret=form.querySelector('[data-mission-publish-key]');const version=++requestVersion;setOnline(true);all('[data-mission-start]',node=>node.disabled=true);const controller=publishRequest=new AbortController();
     const cancel=()=>controller.abort();scope.add(cancel);
     try{
-      const endpoint=runtime.missionClient.endpoint(form.querySelector('[data-mission-endpoint]').value.trim());saveEndpoint(endpoint);
+      const endpoint=runtime.missionClient.endpoint(runtime.missionConfig.configuredEndpoint());
       if(secret.value.length<32)throw new Error('송신 키를 확인하세요.');
       write('[data-mission-message]','온라인 미션을 만드는 중입니다.');
       const response=await fetch(endpoint+'/api/missions',{method:'POST',headers:{Authorization:'Bearer '+secret.value},signal:controller.signal});const result=await response.json();
@@ -19387,12 +19397,12 @@ function initMissionOperations(appScope){
       sharing={...result,endpoint};all('[data-mission-publish-key]',node=>node.value='');
       publisher=runtime.missionClient.createClient({endpoint,code:result.code,role:'host',hostToken:result.hostToken,onState(state,detail){if(state==='rejected')void stop();write('[data-mission-host-status]',({connecting:'중계 연결 중',connected:'실시간 공유 중',reconnecting:'자동 재연결 중',offline:'중계 연결 끊김',rejected:'공유 종료'})[state]||state);if(detail)write('[data-mission-message]',detail);},onMessage(message){if(message.type==='presence')write('[data-mission-presence]','조회 중 '+message.viewers+'명');}});publisher.connect();
       all('[data-mission-share-result]',node=>node.hidden=false);write('[data-mission-code]',result.code.slice(0,4)+' '+result.code.slice(4));write('[data-mission-expiry]',new Date(result.expiresAt).toLocaleTimeString('ko-KR')+'까지 유효');
-      const url=new URL('mission.html',document.baseURI);url.hash=new URLSearchParams({relay:endpoint,code:result.code}).toString();sharing.url=url.href;all('[data-mission-open]',node=>node.href=url.href);
+      const url=new URL('mission.html',document.baseURI);url.hash=new URLSearchParams({code:result.code}).toString();sharing.url=url.href;all('[data-mission-open]',node=>node.href=url.href);
       write('[data-mission-message]','코드 소지자는 선택한 미션 텔레메트리를 조회할 수 있습니다. 폰에서는 기체 명령을 실행할 수 없습니다.');
     }catch(error){if(!disposed&&version===requestVersion){setOnline(false);write('[data-mission-message]',error.name==='AbortError'?'공유 요청이 취소되었습니다.':error.message);}}finally{if(version===requestVersion){busy=false;publishRequest=null;all('[data-mission-start]',node=>node.disabled=!!sharing);}}
   }
   all('[data-mission-publish-form]',node=>scope.listen(node,'submit',start));
-  all('[data-mission-copy]',node=>scope.listen(node,'click',async()=>{if(!sharing)return;try{await navigator.clipboard.writeText(sharing.url);write('[data-mission-message]','폰 접속 링크를 복사했습니다.');}catch{write('[data-mission-message]','코드 '+sharing.code+'와 중계 주소를 폰에 입력하세요.');}}));
+  all('[data-mission-copy]',node=>scope.listen(node,'click',async()=>{if(!sharing)return;try{await navigator.clipboard.writeText(sharing.url);write('[data-mission-message]','폰 접속 링크를 복사했습니다.');}catch{write('[data-mission-message]','코드 '+sharing.code+'를 폰에 입력하세요.');}}));
   async function stop(){
     setOnline(false);requestVersion++;publishRequest?.abort();publishRequest=null;busy=false;
     const previous=sharing;publisher?.close();publisher=null;sharing=null;

@@ -127,7 +127,7 @@
   <!-- Preload 축소: AP 모드/저메모리 환경에서 동시 요청 버스트를 줄임 -->
   <script>
     (function(){
-    var ASSET_VER = "20261124-online-toggle";
+    var ASSET_VER = "20261124-online-service";
       window.__flashBoot = window.__flashBoot || {jsReady:false,lastError:"",phase:"static_loader",version:ASSET_VER};
       var isLocalPreview = !!window.__flashBoot.localPreview;
       var beaconEnabled = (window.__flashBoot.beaconEnabled !== false);
@@ -365,7 +365,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-online-toggle">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-online-service">
 </head>
 <body>
   <!-- ✅ LOCKOUT 배경 오버레이 -->
@@ -501,8 +501,7 @@
 <details class="control-center-scene mission-publish-section">
   <summary><span><strong>온라인 미션 공유</strong><small data-mission-host-status>조회 전용 텔레메트리 공유</small></span><span aria-hidden="true">⌄</span></summary>
   <form class="mission-publish-form" data-mission-publish-form>
-    <label>중계 서버<input type="url" data-mission-endpoint placeholder="https://flash7-mission-relay.….workers.dev" autocomplete="url" required></label>
-    <label>송신 키<input type="password" data-mission-publish-key autocomplete="off" minlength="32" placeholder="중계 서버에 설정한 송신 키" required></label>
+    <label>송신 키<input type="password" data-mission-publish-key autocomplete="off" minlength="32" placeholder="운영자 송신 키" required></label>
     <button type="submit" data-mission-start>미션 공유 시작</button>
   </form>
   <div class="mission-share-result" data-mission-share-result hidden>
@@ -636,8 +635,7 @@
           <button id="welcomeOnlineBtn" class="welcome-online-toggle" type="button" role="switch" aria-checked="false" aria-controls="welcomeOnlineSettings"><span>온라인 모드</span><i aria-hidden="true"></i></button>
           <details id="welcomeOnlineSettings" class="welcome-online-settings"><summary>온라인 설정</summary><div class="mission-publish-section">
   <form class="mission-publish-form" data-mission-publish-form>
-    <label>중계 서버<input type="url" data-mission-endpoint placeholder="https://flash7-mission-relay.….workers.dev" autocomplete="url" required></label>
-    <label>송신 키<input type="password" data-mission-publish-key autocomplete="off" minlength="32" placeholder="중계 서버에 설정한 송신 키" required></label>
+    <label>송신 키<input type="password" data-mission-publish-key autocomplete="off" minlength="32" placeholder="운영자 송신 키" required></label>
     <button type="submit" data-mission-start>미션 공유 시작</button>
   </form>
   <div class="mission-share-result" data-mission-share-result hidden>
@@ -5054,6 +5052,6 @@
     <button id="controlsOverlayClose" class="controls-overlay-close" type="button" aria-label="close">×</button>
     </div>
 
-  <script src="scripts/flash7-watchdog.js?v=20261124-online-toggle"></script>
+  <script src="scripts/flash7-watchdog.js?v=20261124-online-service"></script>
 </body>
 </html> 

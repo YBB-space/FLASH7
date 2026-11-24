@@ -25,6 +25,7 @@
       "ui/shared/split-link.js",
       "ui/shared/recovery-estimator.js",
       "ui/shared/mission-snapshot.js",
+      "ui/shared/mission-config.js",
       "ui/shared/mission-client.js",
       "ui/shared/recovery-panel.js",
       "ui/shared/mission-operations.js",
