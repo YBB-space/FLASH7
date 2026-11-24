@@ -20,6 +20,7 @@
       "ui/shared/scene3d.js",
       "ui/shared/scene3d-motion.js",
       "ui/shared/scene3d-environment.js",
+      "ui/shared/scene3d-launch-pad.js",
       "ui/shared/flight-charts.js",
       "ui/shared/araea-flight-sim.js",
       "ui/shared/countdown-audio.js",

@@ -3449,6 +3449,7 @@ function requestMobileMockup3dMesh(){
         gl,
         canvas: el.gyroGl,
         environment,
+        launchPad:createGyroLaunchPadBuffers(gl),
         enabledAttributes:[],
         line: {
           prog: lineProg,
@@ -3517,6 +3518,8 @@ function requestMobileMockup3dMesh(){
         width: 0,
         height: 0
       };
+      const launchPadOwner=gyroGl;
+      window.Flash7.appScope?.add(()=>disposeGyroLaunchPadBuffers(gl,launchPadOwner.launchPad));
       resetGyroCameraPose(true);
       bindGyroViewportInteractions();
       resizeGyroGl();
@@ -5183,6 +5186,7 @@ function requestMobileMockup3dMesh(){
       const gl = gyroGl.gl;
       const previewMode = getGyroPreviewMode();
       const showWorldDecor = (previewMode === "3d");
+      const launchPadActive=showWorldDecor&&gyroRocketMeshKey==="araea_i"&&isAraeaFlightSimulation();
       const separation = Math.max(0, Math.min(1, cameraStageSeparationProgress));
       const dualStagePathActive = showWorldDecor && (
         cameraStageSeparationLatched ||
@@ -5214,6 +5218,12 @@ function requestMobileMockup3dMesh(){
         !el.gyro3dViewport.classList.contains("is-camera-gyro-plus-mounted"));
       let primaryUiQuat=stageTelemetryModeActive?gyroStagePathStates[1].uiAttitudeQuat:null;
       let secondaryUiQuat=stageTelemetryModeActive?gyroStagePathStates[2].uiAttitudeQuat:null;
+      if(launchPadActive){
+        positionGyroLaunchPadPath(pathRender,gyroPathState.renderScaleY);
+        primaryUiQuat=simState.flightStartMs==null
+          ? getGyroLaunchVehicleQuat(GYRO_LAUNCH_RAIL.pitchDeg,GYRO_LAUNCH_RAIL.headingDeg,0)
+          : getGyroLaunchVehicleQuat(simState.pitchDeg,simState.yawDeg,simState.rollDeg);
+      }
       if(showWorldDecor){
         const renderNow=Date.now();
         primaryUiQuat=applyGyroSceneMotion(1,pathRender,gyroPathState.renderScaleY,primaryUiQuat||getGyroRocketModelQuat(),gyroRocketMeshKey,renderNow);
@@ -5288,7 +5298,8 @@ function requestMobileMockup3dMesh(){
       const rocketLength = GYRO_ROCKET_TARGET_LENGTH * rocketDisplayScale;
       const compactScene = !inCameraPreview && gyroGl.canvas.clientHeight < 320;
       gyroGl.proj[9] = compactScene ? -0.14 : 0;
-      const sceneFrame = getGyroSceneFlightFrame(pathRender, secondStagePathRender, rocketLength, gyroGl.width / gyroGl.height);
+      const frameReference=secondStagePathRender||(launchPadActive?{bounds:getGyroLaunchPadFrameBounds(gyroPathState.renderScaleY)}:null);
+      const sceneFrame = getGyroSceneFlightFrame(pathRender, frameReference, rocketLength, gyroGl.width / gyroGl.height);
       gyroSceneView.flightFrameDistance = sceneFrame.distance;
       if(!inCameraPreview){
         if(gyroSceneView.mode === "flight" && showWorldDecor) lookTargetSource = sceneFrame.target;
@@ -5607,6 +5618,7 @@ function requestMobileMockup3dMesh(){
         if(!stage || !stage.count) return;
         drawSolidBatch(stage.posBuf, stage.normBuf, stage.colBuf, stage.count, model, view, style);
       };
+      if(launchPadActive)drawGyroLaunchPad(view,renderStyle,rocketRenderPos,rocketRotation);
       if(stages){
         if(separation > 0.001){
           const moveEase = 1 - Math.pow(1 - separation, 3);
@@ -6017,6 +6029,8 @@ function requestMobileMockup3dMesh(){
         flightProfile:null,
         araeaFlight:null,
         flightStartMs:null,
+        railExitMs:null,
+        railExitSpeedMps:null,
         lastGeo:null,
         physicsLastMs:0,
         posE:0,

@@ -3793,7 +3793,7 @@
       const parachuteDropAltM = 18; // 6-floor building equivalent (~3 m/floor)
       let hasFlight = (simState.flightStartMs != null);
       const padHeadingDeg = 34;
-      const padPitchDeg = 88.6;
+      const padPitchDeg = araeaFlight ? GYRO_LAUNCH_RAIL.pitchDeg : 88.6;
       const mainDeployAltM = 120;
       const simTargetApogeeM = 500;
       const coastGravityMps2 = 9.7;
@@ -3871,6 +3871,7 @@
           const stepMs = prevPhysicsMs + Math.round((i + 1) * stepDt * 1000);
           const tFlight = Math.max(0, (stepMs - simState.flightStartMs) / 1000);
           const burnActive = tFlight < burnSec;
+          const previousAltitude=simState.altM,previousVerticalVelocity=simState.velU;
 
           if(!simState.apogeeMs && tFlight > Math.max(1.2, burnSec * 0.45) && simState.velU <= 0){
             simState.apogeeMs = stepMs;
@@ -4046,6 +4047,7 @@
           }else{
             simState.rollDeg = normalizeAngleDeg(simState.rollDeg + (rollRateDps * stepDt));
           }
+          if(araeaFlight)constrainAraeaLaunchRail(simState,stepMs,stepDt,previousAltitude,previousVerticalVelocity);
         }
         simState.physicsLastMs = now;
 

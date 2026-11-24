@@ -10,6 +10,20 @@ function createAraeaFlightController(){
   return {deployment:0, target:0, servoAngleDeg:0, predictedApogeeM:0, nextControlSec:0, mode:"STOWED"};
 }
 
+function constrainAraeaLaunchRail(state,stepMs,dt,previousAltitude,previousVelocity){
+  if(state.railExitMs!=null||state.landed||state.apogeeMs)return;
+  const travel=getGyroLaunchRailTravelM();
+  if(getGyroLaunchRailState(state.altM).phase==='FREE'&&state.velU>0){
+    const fraction=Math.max(0,Math.min(1,(travel-previousAltitude)/Math.max(1e-9,state.altM-previousAltitude)));
+    state.railExitMs=stepMs-(1-fraction)*dt*1000;
+    state.railExitSpeedMps=previousVelocity+(state.velU-previousVelocity)*fraction;
+    const released=1-fraction;state.posE*=released;state.posN*=released;state.velE*=released;state.velN*=released;
+    return;
+  }
+  state.posE=state.posN=state.velE=state.velN=state.accE=state.accN=0;
+  state.pitchDeg=GYRO_LAUNCH_RAIL.pitchDeg;state.yawDeg=GYRO_LAUNCH_RAIL.headingDeg;state.rollDeg=0;
+}
+
 function araeaDragAcceleration(altitude, velocity, deployment){
   const density = Math.exp(-Math.max(0, altitude) / ARAEA_FLIGHT_SIM.atmosphereHeightM);
   const drag = ARAEA_FLIGHT_SIM.bodyDrag + ARAEA_FLIGHT_SIM.brakeDrag * deployment * deployment;
