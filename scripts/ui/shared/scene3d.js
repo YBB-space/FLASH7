@@ -9,6 +9,16 @@ const GYRO_SCENE_ZOOM_MAX = 22.5;
 const GYRO_SCENE_FRAME_MAX = 500;
 const GYRO_SCENE_CAMERA_FLOOR = 0.08;
 
+function getGyroSceneProjection(distance,aspect,near,far,preset){
+  if(preset!=="top")return {matrix:mat4Perspective(GYRO_SCENE_FOV_DEG*DEG_TO_RAD,aspect,near,far),mode:"perspective",span:0};
+  const span=2*Math.max(1e-8,distance)*Math.tan(GYRO_SCENE_FOV_DEG*DEG_TO_RAD*.5),width=span*Math.max(.01,aspect);
+  return {matrix:[2/width,0,0,0, 0,2/span,0,0, 0,0,-2/(far-near),0, 0,0,-(far+near)/(far-near),1],mode:"orthographic",span};
+}
+function getGyroSceneEyeDistance(distance,projectionMode,metersPerUnit){
+  // Orthographic zoom changes the view span, not proximity to the structure.
+  return projectionMode==="orthographic"?Math.max(distance,12/getGyroSceneMetersPerUnit(metersPerUnit)):distance;
+}
+
 function getGyroSceneMetersPerUnit(value){
   const units=Number(value);return Number.isFinite(units)?Math.max(GYRO_TRAIL_BASE_METERS_PER_UNIT,units):GYRO_TRAIL_BASE_METERS_PER_UNIT;
 }
@@ -28,7 +38,8 @@ function getGyroSceneRocketScale(metersPerUnit){
   return getGyroRocketActualHeightM()/(GYRO_ROCKET_TARGET_LENGTH*scale);
 }
 
-function getGyroSceneStrokeHalfWidth(point,view,viewportHeight,pixels){
+function getGyroSceneStrokeHalfWidth(point,view,viewportHeight,pixels,orthographicSpan=0){
+  if(orthographicSpan>0)return pixels*orthographicSpan/(2*Math.max(1,viewportHeight));
   const depth=Math.max(1e-8,-(view[2]*point.x+view[6]*point.y+view[10]*point.z+view[14]));
   return Math.max(1e-10,depth*Math.tan(GYRO_SCENE_FOV_DEG*DEG_TO_RAD*.5)*pixels/Math.max(1,viewportHeight));
 }

@@ -119,7 +119,7 @@ for(const depth of [.68,1.2,22.5]) for(const height of [240,783,1200]){
   assert.ok(Math.abs(projected-1.1)<1e-8,"trail stays thin at close-up and overview distances");
 }
 const core=fs.readFileSync(path.resolve(__dirname,"../scripts/flash7-core.js"),"utf8");
-for(const name of ["vec3Cross","vec3Length","vec3Normalize","buildGyroTrailRibbonGeometry","buildGyroTrailArrowGeometry"]){
+for(const name of ["vec3Cross","vec3Length","vec3Normalize","mat4Perspective","mat4LookAt","mat4Mul","mat4TransformVec4","buildGyroTrailRibbonGeometry","buildGyroTrailArrowGeometry"]){
   const start=core.indexOf("    function "+name+"(");
   const tail=core.slice(start),next=tail.slice(1).search(/^    (?:async )?function /m);
   vm.runInContext(next<0?tail:tail.slice(0,next+1),context);
@@ -144,3 +144,17 @@ for(const units of [4.2,1000]){
  assert.ok(Math.abs(metrics.fadeFar*units-3048*12)<1e-7,'ground coverage tracks physical altitude across unit rebases');
  assert.equal(metrics.fadeFar,gridMetrics(distance*10,units,altitude).fadeFar,'zoom alone must not move ground fog');
 }
+
+// Reproduce the close top-view report with the actual projection/view helpers.
+const projectionFor=vm.runInContext('getGyroSceneProjection',context),eyeDistanceFor=vm.runInContext('getGyroSceneEyeDistance',context),lookAt=vm.runInContext('mat4LookAt',context),multiply=vm.runInContext('mat4Mul',context),transform=vm.runInContext('mat4TransformVec4',context);
+for(const units of [4.2,1000])for(const meters of [2.856,5,12]){
+ const distance=meters/units,center=[0,2.0545/units,0],pitch=84*Math.PI/180,eyeDistance=eyeDistanceFor(distance,'orthographic',units),eye=[0,center[1]+Math.sin(pitch)*eyeDistance,Math.cos(pitch)*eyeDistance],view=lookAt(eye,center,[0,1,0]),clip=clipRange(distance,center[1],units),projection=projectionFor(distance,1.5,clip.near,clip.far,'top'),vp=multiply(projection.matrix,view);
+ const rail=[[.095,.35,-.095],[.095,5.55,-.095]].map(p=>p.map(n=>n/units)),rocket=[[0,.35,0],[0,3.759,0]].map(p=>p.map(n=>n/units)),project=p=>{const q=transform(vp,...p,1);assert.equal(q[3],1);return[q[0],q[1]];};
+ const ray=points=>{const [a,b]=points.map(project);return[b[0]-a[0],b[1]-a[1]];},r=ray(rail),v=ray(rocket);
+ assert.ok(Math.abs(r[0]*v[1]-r[1]*v[0])<1e-10,'rail and rocket axes remain parallel on screen at close top-view zoom');
+ for(const point of [...rail,...rocket])assert.ok(-transform(view,...point,1)[2]>clip.near,'camera remains outside the full launcher rather than slicing through its upper rail');
+ const width=strokeWidth({x:0,y:0,z:-5},view,900,1.3,projection.span);assert.ok(Math.abs(width*2*900/projection.span-1.3)<1e-8,'orthographic trails preserve their pixel width');
+}
+const orbitProjection=projectionFor(2,1.5,.025,100,'orbit');assert.equal(orbitProjection.mode,'perspective');assert.equal(orbitProjection.matrix[11],-1);assert.equal(eyeDistanceFor(2,'perspective',4.2),2,'ordinary orbit view keeps its existing perspective and eye distance');
+const nearEye=[0,2.0545+Math.sin(84*Math.PI/180)*2.856,Math.cos(84*Math.PI/180)*2.856];assert.ok(-transform(lookAt(nearEye,[0,2.0545,0],[0,1,0]),.095,5.55,-.095,1)[2]<0,'the former close top-view camera placed the rail tip behind the eye');
+console.log('FLASH7 top view: PASS (reported near-camera rail clipping reproduced, parallel screen axes, safe eye placement, metric zoom and constant-width trails)');

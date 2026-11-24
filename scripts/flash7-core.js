@@ -3555,7 +3555,8 @@ function requestMobileMockup3dMesh(){
         Math.max(gyroCameraState.distance, gyroCameraState.desiredDistance), gyroCameraState.targetY,gyroSceneView.metersPerUnit
       ) : {near:0.05, far:950};
       const resized = gyroGl.width !== w || gyroGl.height !== h;
-      if(!resized && gyroGl.fov === fov && gyroGl.near === clip.near && gyroGl.far === clip.far) return;
+      const projection=fullScene?getGyroSceneProjection(gyroCameraState.distance,w/h,clip.near,clip.far,gyroSceneView.preset):{matrix:mat4Perspective(fov*DEG_TO_RAD,w/h,clip.near,clip.far),mode:"perspective",span:0};
+      if(!resized && gyroGl.fov === fov && gyroGl.near === clip.near && gyroGl.far === clip.far && gyroGl.projectionMode===projection.mode && gyroGl.orthographicSpan===projection.span) return;
       if(resized){
         gyroGl.width = w;
         gyroGl.height = h;
@@ -3566,7 +3567,8 @@ function requestMobileMockup3dMesh(){
       gyroGl.fov = fov;
       gyroGl.near = clip.near;
       gyroGl.far = clip.far;
-      gyroGl.proj = mat4Perspective(fov * DEG_TO_RAD, w / h, clip.near, clip.far);
+      gyroGl.proj = projection.matrix;
+      gyroGl.projectionMode=projection.mode;gyroGl.orthographicSpan=projection.span;
     }
 
     function resetGyroPathTracking(options){
@@ -5299,7 +5301,8 @@ function requestMobileMockup3dMesh(){
         : {x:0, y:GYRO_WORLD_ALTITUDE_BASE + 0.46, z:0};
       const rocketLength = GYRO_ROCKET_TARGET_LENGTH * rocketDisplayScale;
       const compactScene = !inCameraPreview && gyroGl.canvas.clientHeight < 320;
-      gyroGl.proj[9] = compactScene ? -0.14 : 0;
+      gyroGl.proj[9] = compactScene&&gyroGl.projectionMode!=="orthographic" ? -0.14 : 0;
+      gyroGl.proj[13] = compactScene&&gyroGl.projectionMode==="orthographic" ? -0.14 : 0;
       const frameReference=secondStagePathRender||(launchPadActive?{bounds:getGyroLaunchPadFrameBounds(gyroPathState.renderScaleY)}:null);
       const sceneFrame = getGyroSceneFlightFrame(pathRender, frameReference, rocketLength, gyroGl.width / gyroGl.height);
       gyroSceneView.flightFrameDistance = sceneFrame.distance;
@@ -5374,6 +5377,9 @@ function requestMobileMockup3dMesh(){
       gyroCameraState.desiredDistance = clampLocal(gyroCameraState.desiredDistance, cameraMinDistance, getGyroCameraMaxDistance());
       const cameraDistanceSmooth = (inCameraPreview && separation > 0) ? 0.24 : GYRO_CAMERA_DISTANCE_SMOOTH;
       gyroCameraState.distance += (gyroCameraState.desiredDistance - gyroCameraState.distance) * cameraDistanceSmooth;
+      if(gyroGl.projectionMode==="orthographic"){
+        resizeGyroGl();gyroGl.proj[13]=compactScene?-.14:0;
+      }
 
       const targetX = lookTargetSource.x + gyroCameraState.panX;
       const targetY = showWorldDecor
@@ -5391,10 +5397,11 @@ function requestMobileMockup3dMesh(){
         mat4Mul(rocketRotation, mat4Scale(rocketDisplayScale, rocketDisplayScale, rocketDisplayScale))
       );
       const basis = getGyroCameraBasis();
+      const eyeDistance=showWorldDecor?getGyroSceneEyeDistance(gyroCameraState.distance,gyroGl.projectionMode,gyroSceneView.metersPerUnit):gyroCameraState.distance;
       let eye = [
-        gyroCameraState.targetX + (basis.orbitDir[0] * gyroCameraState.distance),
-        gyroCameraState.targetY + (basis.orbitDir[1] * gyroCameraState.distance),
-        gyroCameraState.targetZ + (basis.orbitDir[2] * gyroCameraState.distance)
+        gyroCameraState.targetX + (basis.orbitDir[0] * eyeDistance),
+        gyroCameraState.targetY + (basis.orbitDir[1] * eyeDistance),
+        gyroCameraState.targetZ + (basis.orbitDir[2] * eyeDistance)
       ];
       let center = [gyroCameraState.targetX, gyroCameraState.targetY, gyroCameraState.targetZ];
       let view = mat4LookAt(eye, center, [0,1,0]);
@@ -5423,8 +5430,8 @@ function requestMobileMockup3dMesh(){
           const projectedCenterX = (minNdcX + maxNdcX) * 0.5;
           const projectedCenterY = (minNdcY + maxNdcY) * 0.5;
           const correctionStrength = 0.82 * cameraFocusEase;
-          const halfWidthAtTarget = gyroCameraState.distance / Math.max(1e-5, gyroGl.proj[0]);
-          const halfHeightAtTarget = gyroCameraState.distance / Math.max(1e-5, gyroGl.proj[5]);
+          const halfWidthAtTarget = (gyroGl.projectionMode==="orthographic"?1:gyroCameraState.distance) / Math.max(1e-5, gyroGl.proj[0]);
+          const halfHeightAtTarget = (gyroGl.projectionMode==="orthographic"?1:gyroCameraState.distance) / Math.max(1e-5, gyroGl.proj[5]);
           const correctionX = clampLocal(projectedCenterX * halfWidthAtTarget * correctionStrength, -0.08, 0.08);
           const correctionY = clampLocal(projectedCenterY * halfHeightAtTarget * correctionStrength, -0.08, 0.08);
           const cameraRight = [view[0], view[4], view[8]];
@@ -5434,9 +5441,9 @@ function requestMobileMockup3dMesh(){
           gyroCameraState.targetZ += (cameraRight[2] * correctionX) + (cameraUp[2] * correctionY);
           center = [gyroCameraState.targetX, gyroCameraState.targetY, gyroCameraState.targetZ];
           eye = [
-            center[0] + (basis.orbitDir[0] * gyroCameraState.distance),
-            center[1] + (basis.orbitDir[1] * gyroCameraState.distance),
-            center[2] + (basis.orbitDir[2] * gyroCameraState.distance)
+            center[0] + (basis.orbitDir[0] * eyeDistance),
+            center[1] + (basis.orbitDir[1] * eyeDistance),
+            center[2] + (basis.orbitDir[2] * eyeDistance)
           ];
           view = mat4LookAt(eye, center, [0,1,0]);
           viewProj = mat4Mul(gyroGl.proj, view);
@@ -5518,7 +5525,7 @@ function requestMobileMockup3dMesh(){
         gl.drawArrays(gl.LINES, gyroGl.sections.axisStart, gyroGl.sections.axisCount);
       }
 
-      const trailWidth=pixels=>point=>getGyroSceneStrokeHalfWidth(point,view,gyroGl.canvas.clientHeight || gyroGl.height,pixels);
+      const trailWidth=pixels=>point=>getGyroSceneStrokeHalfWidth(point,view,gyroGl.canvas.clientHeight || gyroGl.height,pixels,gyroGl.orthographicSpan);
       if(showWorldDecor && pathRender.trailWorldPoints && pathRender.trailWorldPoints.length >= 2){
         const trailMvp = viewProj;
         const trailPts = pathRender.trailWorldPoints;
