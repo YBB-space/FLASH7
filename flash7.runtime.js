@@ -19230,11 +19230,19 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
  const relayOrigin='https://flash7-mission-relay.flash7-mission-relay.workers.dev';
  function configuredEndpoint(){
    const host=root.location?.hostname;
-   if(host==='localhost'||host==='127.0.0.1')return 'http://'+host+':8787';
+   const loopback=host==='localhost'||host==='127.0.0.1';
+   if(loopback&&/(?:^|[?&])local_relay=1(?:&|$)/.test(root.location?.search||''))return 'http://'+host+':8787';
+   if(root.location?.protocol==='file:')throw new Error('온라인 미션은 HTTPS 사이트 또는 로컬 미리보기에서 열어주세요.');
    if(relayOrigin)return relayOrigin;
    throw new Error('온라인 서비스 연결 준비 중입니다.');
  }
- (root.Flash7=root.Flash7||{}).missionConfig={configuredEndpoint};
+ function viewerUrl(code){
+   const local=configuredEndpoint().startsWith('http:');
+   const url=new URL(local?'mission.html':'https://flash7.kro.kr/mission.html',local?root.location.href:undefined);
+   if(local)url.searchParams.set('local_relay','1');
+   url.hash=new URLSearchParams({code}).toString();return url.href;
+ }
+ (root.Flash7=root.Flash7||{}).missionConfig={configuredEndpoint,viewerUrl};
  if(typeof module==='object'&&module.exports)module.exports=root.Flash7.missionConfig;
 })(typeof globalThis!=='undefined'?globalThis:window);
 
@@ -19246,6 +19254,9 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
    if(url.username||url.password||url.search||url.hash||url.pathname!=='/'&&url.pathname!=='')throw new Error('중계 주소는 경로 없는 HTTPS 주소를 입력하세요.');
    if(url.protocol!=='https:'&&!(url.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(url.hostname)))throw new Error('HTTPS 중계 주소가 필요합니다.');
    return url.origin;
+ }
+ function connectionError(error){
+   return error?.name==='TypeError'&&/fetch|network|load failed/i.test(error.message||'')?'온라인 서버에 연결하지 못했습니다. 인터넷 연결을 확인하고 페이지를 새로고침해 주세요.':error?.message||'온라인 연결 오류';
  }
  function createClient(options){
    const base=endpoint(options.endpoint),code=String(options.code||'').replace(/[\s-]/g,'').toUpperCase();
@@ -19265,12 +19276,12 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
        ws.onmessage=event=>{if(disposed||current!==generation)return;lastMessage=Date.now();try{const message=JSON.parse(event.data);if(message.type!=='pong')options.onMessage?.(message);}catch(_error){state('invalid','잘못된 중계 메시지를 무시했습니다.');}};
        ws.onerror=()=>{};
        ws.onclose=event=>{if(disposed||current!==generation)return;clearInterval(heartbeat);heartbeat=null;socket=null;if([4001,4003,4004,4009].includes(event.code)){state('rejected',event.reason||'미션이 종료되었습니다.');return;}reconnect();};
-     }catch(error){if(!disposed&&current===generation){state('offline',error.message);reconnect();}}
+     }catch(error){if(!disposed&&current===generation){state('offline',connectionError(error));reconnect();}}
    }
    function reconnect(){if(disposed||retry)return;state('reconnecting');retry=setTimeout(()=>{retry=null;connect();},Math.min(15000,800*2**Math.min(attempt++,4))+Math.random()*300);}
    return {connect,send(snapshot){if(socket?.readyState!==1)return false;socket.send(JSON.stringify({type:'snapshot',sequence:++sequence,payload:snapshot}));return true;},close(){disposed=true;generation++;inflight?.abort();clearTimeout(retry);clearInterval(heartbeat);if(socket){socket.onclose=null;socket.close(1000,'Client left');}socket=null;}};
  }
- (root.Flash7=root.Flash7||{}).missionClient={endpoint,createClient};
+ (root.Flash7=root.Flash7||{}).missionClient={endpoint,createClient,connectionError};
  if(typeof module==='object'&&module.exports)module.exports=root.Flash7.missionClient;
 })(typeof globalThis!=='undefined'?globalThis:window);
 
@@ -19397,9 +19408,9 @@ function initMissionOperations(appScope){
       sharing={...result,endpoint};all('[data-mission-publish-key]',node=>node.value='');
       publisher=runtime.missionClient.createClient({endpoint,code:result.code,role:'host',hostToken:result.hostToken,onState(state,detail){if(state==='rejected')void stop();write('[data-mission-host-status]',({connecting:'중계 연결 중',connected:'실시간 공유 중',reconnecting:'자동 재연결 중',offline:'중계 연결 끊김',rejected:'공유 종료'})[state]||state);if(detail)write('[data-mission-message]',detail);},onMessage(message){if(message.type==='presence')write('[data-mission-presence]','조회 중 '+message.viewers+'명');}});publisher.connect();
       all('[data-mission-share-result]',node=>node.hidden=false);write('[data-mission-code]',result.code.slice(0,4)+' '+result.code.slice(4));write('[data-mission-expiry]',new Date(result.expiresAt).toLocaleTimeString('ko-KR')+'까지 유효');
-      const url=new URL('mission.html',document.baseURI);url.hash=new URLSearchParams({code:result.code}).toString();sharing.url=url.href;all('[data-mission-open]',node=>node.href=url.href);
+      sharing.url=runtime.missionConfig.viewerUrl(result.code);all('[data-mission-open]',node=>node.href=sharing.url);
       write('[data-mission-message]','코드 소지자는 선택한 미션 텔레메트리를 조회할 수 있습니다. 폰에서는 기체 명령을 실행할 수 없습니다.');
-    }catch(error){if(!disposed&&version===requestVersion){setOnline(false);write('[data-mission-message]',error.name==='AbortError'?'공유 요청이 취소되었습니다.':error.message);}}finally{if(version===requestVersion){busy=false;publishRequest=null;all('[data-mission-start]',node=>node.disabled=!!sharing);}}
+    }catch(error){if(!disposed&&version===requestVersion){setOnline(false);write('[data-mission-message]',error.name==='AbortError'?'공유 요청이 취소되었습니다.':runtime.missionClient.connectionError(error));}}finally{if(version===requestVersion){busy=false;publishRequest=null;all('[data-mission-start]',node=>node.disabled=!!sharing);}}
   }
   all('[data-mission-publish-form]',node=>scope.listen(node,'submit',start));
   all('[data-mission-copy]',node=>scope.listen(node,'click',async()=>{if(!sharing)return;try{await navigator.clipboard.writeText(sharing.url);write('[data-mission-message]','폰 접속 링크를 복사했습니다.');}catch{write('[data-mission-message]','코드 '+sharing.code+'를 폰에 입력하세요.');}}));

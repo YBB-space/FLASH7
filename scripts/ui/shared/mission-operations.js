@@ -44,9 +44,9 @@ function initMissionOperations(appScope){
       sharing={...result,endpoint};all('[data-mission-publish-key]',node=>node.value='');
       publisher=runtime.missionClient.createClient({endpoint,code:result.code,role:'host',hostToken:result.hostToken,onState(state,detail){if(state==='rejected')void stop();write('[data-mission-host-status]',({connecting:'중계 연결 중',connected:'실시간 공유 중',reconnecting:'자동 재연결 중',offline:'중계 연결 끊김',rejected:'공유 종료'})[state]||state);if(detail)write('[data-mission-message]',detail);},onMessage(message){if(message.type==='presence')write('[data-mission-presence]','조회 중 '+message.viewers+'명');}});publisher.connect();
       all('[data-mission-share-result]',node=>node.hidden=false);write('[data-mission-code]',result.code.slice(0,4)+' '+result.code.slice(4));write('[data-mission-expiry]',new Date(result.expiresAt).toLocaleTimeString('ko-KR')+'까지 유효');
-      const url=new URL('mission.html',document.baseURI);url.hash=new URLSearchParams({code:result.code}).toString();sharing.url=url.href;all('[data-mission-open]',node=>node.href=url.href);
+      sharing.url=runtime.missionConfig.viewerUrl(result.code);all('[data-mission-open]',node=>node.href=sharing.url);
       write('[data-mission-message]','코드 소지자는 선택한 미션 텔레메트리를 조회할 수 있습니다. 폰에서는 기체 명령을 실행할 수 없습니다.');
-    }catch(error){if(!disposed&&version===requestVersion){setOnline(false);write('[data-mission-message]',error.name==='AbortError'?'공유 요청이 취소되었습니다.':error.message);}}finally{if(version===requestVersion){busy=false;publishRequest=null;all('[data-mission-start]',node=>node.disabled=!!sharing);}}
+    }catch(error){if(!disposed&&version===requestVersion){setOnline(false);write('[data-mission-message]',error.name==='AbortError'?'공유 요청이 취소되었습니다.':runtime.missionClient.connectionError(error));}}finally{if(version===requestVersion){busy=false;publishRequest=null;all('[data-mission-start]',node=>node.disabled=!!sharing);}}
   }
   all('[data-mission-publish-form]',node=>scope.listen(node,'submit',start));
   all('[data-mission-copy]',node=>scope.listen(node,'click',async()=>{if(!sharing)return;try{await navigator.clipboard.writeText(sharing.url);write('[data-mission-message]','폰 접속 링크를 복사했습니다.');}catch{write('[data-mission-message]','코드 '+sharing.code+'를 폰에 입력하세요.');}}));

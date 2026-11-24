@@ -7,6 +7,9 @@
    if(url.protocol!=='https:'&&!(url.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(url.hostname)))throw new Error('HTTPS 중계 주소가 필요합니다.');
    return url.origin;
  }
+ function connectionError(error){
+   return error?.name==='TypeError'&&/fetch|network|load failed/i.test(error.message||'')?'온라인 서버에 연결하지 못했습니다. 인터넷 연결을 확인하고 페이지를 새로고침해 주세요.':error?.message||'온라인 연결 오류';
+ }
  function createClient(options){
    const base=endpoint(options.endpoint),code=String(options.code||'').replace(/[\s-]/g,'').toUpperCase();
    if(!/^[A-Z2-9]{8}$/.test(code))throw new Error('접근 코드 8자리를 확인하세요.');
@@ -25,11 +28,11 @@
        ws.onmessage=event=>{if(disposed||current!==generation)return;lastMessage=Date.now();try{const message=JSON.parse(event.data);if(message.type!=='pong')options.onMessage?.(message);}catch(_error){state('invalid','잘못된 중계 메시지를 무시했습니다.');}};
        ws.onerror=()=>{};
        ws.onclose=event=>{if(disposed||current!==generation)return;clearInterval(heartbeat);heartbeat=null;socket=null;if([4001,4003,4004,4009].includes(event.code)){state('rejected',event.reason||'미션이 종료되었습니다.');return;}reconnect();};
-     }catch(error){if(!disposed&&current===generation){state('offline',error.message);reconnect();}}
+     }catch(error){if(!disposed&&current===generation){state('offline',connectionError(error));reconnect();}}
    }
    function reconnect(){if(disposed||retry)return;state('reconnecting');retry=setTimeout(()=>{retry=null;connect();},Math.min(15000,800*2**Math.min(attempt++,4))+Math.random()*300);}
    return {connect,send(snapshot){if(socket?.readyState!==1)return false;socket.send(JSON.stringify({type:'snapshot',sequence:++sequence,payload:snapshot}));return true;},close(){disposed=true;generation++;inflight?.abort();clearTimeout(retry);clearInterval(heartbeat);if(socket){socket.onclose=null;socket.close(1000,'Client left');}socket=null;}};
  }
- (root.Flash7=root.Flash7||{}).missionClient={endpoint,createClient};
+ (root.Flash7=root.Flash7||{}).missionClient={endpoint,createClient,connectionError};
  if(typeof module==='object'&&module.exports)module.exports=root.Flash7.missionClient;
 })(typeof globalThis!=='undefined'?globalThis:window);
