@@ -69,6 +69,7 @@ jobs:
           JS
       - name: Deploy site
         id: deployment
-        uses: actions/deploy-pages@v4
+        # Pin the REST artifact lookup; the moving v4 tag uses a separate artifact index.
+        uses: actions/deploy-pages@f33f41b675f0ab2dc5a6863c9a170fe83af3571e # v4.0.0
         with:
           artifact_name: ${{ env.PAGES_ARTIFACT }}
