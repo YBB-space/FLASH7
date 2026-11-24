@@ -127,7 +127,7 @@
   <!-- Preload 축소: AP 모드/저메모리 환경에서 동시 요청 버스트를 줄임 -->
   <script>
     (function(){
-    var ASSET_VER = "20261124-camera-start-fix";
+    var ASSET_VER = "20261124-recovery-depth";
       window.__flashBoot = window.__flashBoot || {jsReady:false,lastError:"",phase:"static_loader",version:ASSET_VER};
       var isLocalPreview = !!window.__flashBoot.localPreview;
       var beaconEnabled = (window.__flashBoot.beaconEnabled !== false);
@@ -365,7 +365,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-camera-start-fix">
+  <link rel="stylesheet" href="styles/flash7-app.css?v=20261124-recovery-depth">
 </head>
 <body>
   <!-- ✅ LOCKOUT 배경 오버레이 -->
@@ -523,13 +523,12 @@
   </div>
   <p class="recovery-reference" data-recovery="reference">착지 지면: 발사점과 같은 높이 가정</p>
   <section class="antenna-guide" aria-label="안테나 방향 안내">
-    <header><h3>ANTENNA ASSIST</h3><span data-recovery="sensorState">폰 센서 연결 필요</span></header>
-    <div class="antenna-aim" data-recovery-aim><div class="antenna-reticle" aria-hidden="true"><i></i><b data-recovery-arrow>↑</b></div><strong data-recovery="instruction">위치·방향을 연결하세요.</strong></div>
+    <header><h3>ANTENNA ASSIST</h3><span data-recovery="sensorState">위치·방향 자동 연결</span></header>
+    <div class="antenna-aim" data-recovery-aim><div class="antenna-reticle" aria-hidden="true"><i></i><b data-recovery-arrow>↑</b></div><strong data-recovery="instruction">위치·방향 수신 대기</strong></div>
     <div class="antenna-metrics"><span>방위 <b data-recovery="bearing">--</b></span><span>고각 <b data-recovery="elevation">--</b></span><span>거리 <b data-recovery="distance">--</b></span></div>
     <p data-recovery="aimQuality">휴대폰 화면 상단을 안테나 방향에 맞추세요.</p>
     <button type="button" data-recovery-camera-open>카메라로 찾기</button>
-    <button type="button" data-recovery-sensors>위치·방향 센서 연결</button>
-    <div class="recovery-calibration"><button type="button" data-recovery-north>상단을 북쪽으로 맞춘 뒤 보정</button><button type="button" data-recovery-stop-sensors>센서 끄기</button></div>
+    <div class="recovery-calibration"><button type="button" data-recovery-north>상단을 북쪽으로 맞춘 뒤 보정</button></div>
   </section>
   <details class="recovery-settings"><summary>기준 위치·높이 설정</summary>
     <p>높이차는 모두 발사점 기준입니다. 지형 높이를 모르면 평지 가정으로 표시합니다.</p>
@@ -548,7 +547,7 @@
   <div class="recovery-camera-center" aria-hidden="true"><i></i></div>
   <div class="recovery-camera-target" data-camera-target hidden aria-hidden="true"><i></i><span>목표 위치</span></div>
   <div class="recovery-camera-direction" data-camera-direction hidden aria-hidden="true"></div>
-  <footer class="recovery-camera-footer"><strong data-camera-message role="status">카메라 연결 대기</strong><span data-camera-range>--</span><p data-camera-quality>GPS·방향 센서로 표시하는 추정 위치입니다.</p><div><button type="button" data-camera-play hidden>영상 재생</button><button type="button" data-camera-sensors>위치·방향 연결</button><button type="button" data-camera-retry hidden>다시 연결</button><button type="button" data-camera-north>북쪽 보정</button></div><small>GPS·방향 센서 기반 추정 위치 · 기기별 오차가 있습니다.</small></footer>
+  <footer class="recovery-camera-footer"><strong data-camera-message role="status">카메라 연결 대기</strong><span data-camera-range>--</span><p data-camera-quality>GPS·방향 센서로 표시하는 추정 위치입니다.</p><div><button type="button" data-camera-play hidden>영상 재생</button><button type="button" data-camera-retry hidden>다시 연결</button><button type="button" data-camera-north>북쪽 보정</button></div><small>GPS·방향 센서 기반 추정 위치 · 기기별 오차가 있습니다.</small></footer>
 </section>
 
 </section>
@@ -5064,6 +5063,6 @@
     <button id="controlsOverlayClose" class="controls-overlay-close" type="button" aria-label="close">×</button>
     </div>
 
-  <script src="scripts/flash7-watchdog.js?v=20261124-camera-start-fix"></script>
+  <script src="scripts/flash7-watchdog.js?v=20261124-recovery-depth"></script>
 </body>
 </html> 

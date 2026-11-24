@@ -134,3 +134,13 @@ assert.equal(JSON.stringify(points),original,"display geometry never changes tel
 console.log("FLASH7 3D regression: PASS (framing, zoom limits, adaptive grid, metric vehicle scale, pixel-width trails, bounded direction markers)");
 
 const originalDistance=camera.distance,originalPan=camera.panX;vm.runInContext('rebaseGyroSceneUnits(1000)',context);assert.ok(Math.abs(camera.distance*1000-originalDistance*4.2)<1e-8,'normalization preserves physical camera distance');assert.ok(Math.abs(camera.panX*1000-originalPan*4.2)<1e-8,'normalization preserves physical pan');assert.ok(Math.abs(zoomLimit('vehicle',0)*1000-22.5*4.2)<1e-8,'maximum vehicle zoom remains the same physical distance');assert.ok(clipRange(.008,3,1000).near<.008,'metric close-up camera must not clip the whole model');assert.ok(Math.abs(gridMetrics(.008,1000).fadeFar*1000-gridMetrics(2,4.2).fadeFar*4.2)<1e-8,'ground fade retains its metric distance');context.getGyroRocketActualHeightM=()=>3.409;for(const units of [4.2,1000,10000])assert.ok(Math.abs(vehicleScale(units)*1.56*units-3.409)<1e-8,'ARAEA source length remains exact at all flight extents');
+
+// Ground remains visible beneath a vehicle-follow camera at the 10,000 ft apogee.
+for(const units of [4.2,1000]){
+ const altitude=3048/units,distance=8/units,metrics=gridMetrics(distance,units,altitude);
+ const groundDistance=altitude/Math.tan(28*Math.PI/180);
+ assert.ok(metrics.span>groundDistance*1.5&&metrics.fadeFar>groundDistance*2,'high-altitude ground must not disappear into a single-color background');
+ assert.ok(clipRange(distance,altitude,units).far>Math.hypot(metrics.span,altitude),'expanded reference ground stays inside the far clip');
+ assert.ok(Math.abs(metrics.fadeFar*units-3048*12)<1e-7,'ground coverage tracks physical altitude across unit rebases');
+ assert.equal(metrics.fadeFar,gridMetrics(distance*10,units,altitude).fadeFar,'zoom alone must not move ground fog');
+}

@@ -29,9 +29,9 @@
    return {x:width/2+dx,y:height/2+dy,inView,front,aligned:inView&&Math.hypot(dx,dy)<=reticleRadius,offsetPx:front?Math.hypot(dx,dy):Infinity,arrowX:width/2+ux*arrowDistance,arrowY:height/2+uy*arrowDistance,arrowAngleDeg:Math.atan2(uy,ux)/rad+90};
  }
  function create(view,options){
-   const doc=view.ownerDocument,video=view.querySelector('video'),marker=view.querySelector('[data-camera-target]'),arrow=view.querySelector('[data-camera-direction]'),message=view.querySelector('[data-camera-message]'),range=view.querySelector('[data-camera-range]'),quality=view.querySelector('[data-camera-quality]'),retry=view.querySelector('[data-camera-retry]'),closeButton=view.querySelector('[data-camera-close]'),playButton=view.querySelector('[data-camera-play]'),sensorButton=view.querySelector('[data-camera-sensors]');
+   const doc=view.ownerDocument,video=view.querySelector('video'),marker=view.querySelector('[data-camera-target]'),arrow=view.querySelector('[data-camera-direction]'),message=view.querySelector('[data-camera-message]'),range=view.querySelector('[data-camera-range]'),quality=view.querySelector('[data-camera-quality]'),retry=view.querySelector('[data-camera-retry]'),closeButton=view.querySelector('[data-camera-close]'),playButton=view.querySelector('[data-camera-play]');
    const originalParent=view.parentNode,placeholder=doc.createComment('recovery-camera'),listeners=[];
-   let active=false,disposed=false,generation=0,stream=null,frame=null,lastFrame=0,ready=false,selected='landing',previousFocus=null,previousOverflow='',shown=null,aligned=false,permissionTimer=null,videoTimer=null,sensorsRequested=false;
+   let active=false,disposed=false,generation=0,stream=null,frame=null,lastFrame=0,ready=false,selected='landing',previousFocus=null,previousOverflow='',shown=null,aligned=false,permissionTimer=null,videoTimer=null;
    const listen=(node,type,fn)=>{node.addEventListener(type,fn);listeners.push(()=>node.removeEventListener(type,fn));};
    const text=(node,value)=>{if(node.textContent!==value)node.textContent=value;};
    const clearAim=()=>{marker.hidden=true;arrow.hidden=true;aligned=false;shown=null;view.dataset.aligned='false';};
@@ -59,8 +59,8 @@
      if(!active||disposed)return;frame=root.requestAnimationFrame(render);if(time-lastFrame<30)return;lastFrame=time;
      if(!ready&&!acceptFrames())return;
      const state=options.getState(),target=state.targets?.[selected];
-     let waiting=state.sensorError||(!state.observer?(sensorsRequested?'휴대폰 위치 수신 대기':'위치·방향 연결을 눌러주세요.'):!state.pose?'방향 센서 수신 대기':!state.absolute?'북쪽 방향 보정이 필요합니다.':state.stale?'텔레메트리 수신 복구 대기':!target?(selected==='landing'?'착지 예측 데이터 대기':'기체 GPS 수신 대기'):null);
-     if(waiting){clearAim();text(message,waiting);text(range,'--');text(quality,state.absolute?'GPS·방향 데이터를 기다리고 있습니다.':(!state.pose?'위치·방향 연결 후 센서 권한을 허용해 주세요.':'폰을 잠시 눕히고 상단을 북쪽에 맞춘 뒤 보정하세요.'));return;}
+     let waiting=state.sensorError||(!state.observer?'휴대폰 위치 수신 대기':!state.pose?'방향 센서 수신 대기':!state.absolute?'북쪽 방향 보정이 필요합니다.':state.stale?'텔레메트리 수신 복구 대기':['gps-stale','gps-rejected'].includes(state.telemetryStatus)?'기체 GPS 수신 대기':!target?(selected==='landing'?'착지 예측 데이터 대기':'기체 GPS 수신 대기'):null);
+     if(waiting){clearAim();text(message,waiting);text(range,'--');text(quality,state.absolute?'GPS·방향 데이터를 기다리고 있습니다.':(!state.pose?'브라우저의 위치·방향 권한을 허용해 주세요.':'폰을 잠시 눕히고 상단을 북쪽에 맞춘 뒤 보정하세요.'));return;}
      const aim=root.Flash7.recovery.guidance(target,state.observer,null,{observerHeightM:(state.observerHeightM||0)+1.5});
      if(!aim||aim.elevationDeg===null){clearAim();text(message,'목표 높이 데이터 대기');return;}
      const width=view.clientWidth,height=view.clientHeight,pose=rotateBasis(state.pose,state.northBias||0),point=project(aim,pose,{width,height,focalPx:focal(width,height,video.videoWidth,video.videoHeight),insets:{left:30,right:30,top:height<500?90:150,bottom:height<500?100:190}});
@@ -92,9 +92,9 @@
      }catch(cause){root.clearTimeout(deadline);if(permissionTimer===deadline)permissionTimer=null;if(current(attempt)){stopMedia();error(cause);}}
    }
    function close(){if(!active)return;active=false;generation++;stopMedia();view.hidden=true;view.dataset.cameraState='idle';doc.body.style.overflow=previousOverflow;if(placeholder.parentNode){placeholder.replaceWith(view);}previousFocus?.focus?.();options.onClose?.();}
-   function open(){if(active||disposed)return;active=true;sensorsRequested=false;previousFocus=doc.activeElement;previousOverflow=doc.body.style.overflow;view.before(placeholder);doc.body.append(view);doc.body.style.overflow='hidden';view.hidden=false;closeButton.focus();void startMedia();}
+   function open(){if(active||disposed)return;active=true;previousFocus=doc.activeElement;previousOverflow=doc.body.style.overflow;view.before(placeholder);doc.body.append(view);doc.body.style.overflow='hidden';view.hidden=false;closeButton.focus();void startMedia();}
    listen(closeButton,'click',close);listen(retry,'click',()=>void startMedia());
-   listen(playButton,'click',()=>requestPlay());listen(sensorButton,'click',()=>{sensorsRequested=true;options.onSensors?.();});
+   listen(playButton,'click',()=>requestPlay());
    for(const event of ['loadeddata','canplay','playing'])listen(video,event,acceptFrames);
    view.querySelectorAll('[data-camera-mode]').forEach(button=>listen(button,'click',()=>{selected=button.dataset.cameraMode;shown=null;aligned=false;view.querySelectorAll('[data-camera-mode]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));}));
    listen(view.querySelector('[data-camera-north]'),'click',()=>options.calibrate?.());

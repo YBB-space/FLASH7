@@ -4,6 +4,7 @@
  function createPanel(element,options={}){
   const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,cameraOrientation=null,cameraOrientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,positionError='',directionError='',disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
   const config={observerHeightM:0,yawOffsetDeg:0,pitchOffsetDeg:0},listeners=[];
+  let active=false,sensorStarted=false,visibilityObserver=null;
   const write=(key,value)=>{const node=element.querySelector('[data-recovery="'+key+'"]');if(node&&node.textContent!==value)node.textContent=value;};
   const on=(node,type,fn)=>{node?.addEventListener(type,fn);listeners.push(()=>node?.removeEventListener(type,fn));};
   const fmt=(n,d=0)=>typeof n==='number'&&Number.isFinite(n)?n.toFixed(d):'--';
@@ -33,8 +34,9 @@
    const attitude=attitudeFresh&&(orientation.absolute||manualNorth)?{headingDeg:(orientation.headingDeg+northBias+360)%360,pitchDeg:orientation.pitchDeg}:null;
    const aim=api.guidance(current.target,gpsFresh?observer:null,attitude,config);
    write('bearing',aim?fmt(aim.bearingDeg)+'°':'--');write('elevation',aim?fmt(aim.elevationDeg,1)+'°':'--');write('distance',aim?(aim.distanceM>=1000?fmt(aim.distanceM/1000,2)+' km':fmt(aim.distanceM)+' m'):'--');
-   let instruction='위치·방향을 연결하세요.';
-   if(current.status==='stale'||current.target?.ageMs>5000)instruction='수신 복구 대기';
+   let instruction='위치·방향 수신 대기';
+   if(current.status==='stale')instruction='수신 복구 대기';
+   else if(['gps-stale','gps-rejected'].includes(current.status)||current.target?.ageMs>5000)instruction='기체 GPS 수신 대기';
    else if(aim&&aim.yawErrorDeg===null)instruction='방위각을 기준으로 조준하세요.';
    else if(aim){const yaw=aim.yawErrorDeg,pitch=aim.pitchErrorDeg;instruction=[Math.abs(yaw)<5?'좌우 정렬':(yaw>0?'오른쪽 ':'왼쪽 ')+fmt(Math.abs(yaw))+'°',pitch===null?'':Math.abs(pitch)<5?'높이 정렬':(pitch>0?'위로 ':'아래로 ')+fmt(Math.abs(pitch))+'°'].filter(Boolean).join(' · ');}
    write('instruction',instruction);
@@ -56,16 +58,22 @@
    if(!axis||axis.horizontalStrength<.15){orientation=null;return;}
    axis.headingDeg=(axis.headingDeg+correction+360)%360;orientation={...axis,absolute:compass||event.absolute===true};orientationAt=Date.now();
   }
-  function stopSensors(closeCamera=true){if(closeCamera)camera?.close();sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;cameraOrientation=null;positionError=directionError='';manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
+  function stopSensors(closeCamera=true){sensorStarted=false;if(closeCamera)camera?.close();sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;cameraOrientation=null;positionError=directionError='';manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','위치·방향 자동 연결');render();}
+  function setActive(value){
+   active=!!value;if(disposed)return;
+   if(active&&!element.ownerDocument.hidden){if(!sensorStarted)void sensors();}
+   else stopSensors();
+  }
   async function sensors(){
-   stopSensors(false);const generation=sensorGeneration;
-   if(!root.isSecureContext){write('sensorState','HTTPS 또는 네이티브 앱에서 연결하세요.');return;}
+   stopSensors(false);sensorStarted=true;const generation=sensorGeneration;
+   if(!root.isSecureContext){positionError='HTTPS 또는 네이티브 앱에서 연결하세요.';write('sensorState',positionError);return;}
    let direction=typeof root.DeviceOrientationEvent!=='undefined';
    try{if(typeof root.DeviceOrientationEvent?.requestPermission==='function')direction=await root.DeviceOrientationEvent.requestPermission(true)==='granted';}catch{direction=false;}
    if(disposed||generation!==sensorGeneration)return;
    if(!direction)directionError=typeof root.DeviceOrientationEvent==='undefined'?'방향 센서를 지원하지 않는 기기입니다.':'방향 센서 권한을 허용해 주세요.';
    if(direction){root.addEventListener('deviceorientation',orientationEvent);root.addEventListener('deviceorientationabsolute',orientationEvent);}
    if(navigator.geolocation)watch=navigator.geolocation.watchPosition(position=>{if(disposed||generation!==sensorGeneration)return;positionError='';observer={lat:position.coords.latitude,lon:position.coords.longitude,accuracyM:position.coords.accuracy,timestamp:position.timestamp};render();},error=>{if(generation!==sensorGeneration)return;positionError=error.code===1?'위치 권한을 허용해 주세요.':'위치 정보를 받지 못했습니다. 야외에서 다시 연결해 주세요.';write('sensorState',positionError);},{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
+   else positionError='위치 정보를 지원하지 않는 환경입니다.';
    write('sensorState',direction?'센서 수신 대기':'방향 권한 없음 · 위치만 사용');
   }
   function calibrateNorth(){
@@ -74,20 +82,21 @@
   }
   const camera=root.Flash7.recoveryCamera.create(element.querySelector('[data-recovery-camera]'),{
    getState(){const state=estimator.snapshot(),gpsFresh=observer&&(observer.manual||Date.now()-observer.timestamp<15000),poseFresh=cameraOrientation&&Date.now()-cameraOrientationAt<3000;
-    return {sensorError:positionError||(!poseFresh?directionError:''),observer:gpsFresh?observer:null,pose:poseFresh?cameraOrientation.basis:null,absolute:!!(poseFresh&&(cameraOrientation.absolute||manualNorth)),northBias:manualNorth?northBias:0,observerHeightM:config.observerHeightM,stale:['stale','gps-stale','gps-rejected'].includes(state.status),targets:{rocket:state.target,landing:state.landing?{...state.landing,heightM:state.groundOffsetM,ageMs:state.target?.ageMs??Infinity,uncertaintyM:state.landing.radiusM}:null}};
-   },calibrate:calibrateNorth,onSensors:sensors,onClose:()=>stopSensors(false)
+    return {sensorError:positionError||(!poseFresh?directionError:''),observer:gpsFresh?observer:null,pose:poseFresh?cameraOrientation.basis:null,absolute:!!(poseFresh&&(cameraOrientation.absolute||manualNorth)),northBias:manualNorth?northBias:0,observerHeightM:config.observerHeightM,telemetryStatus:state.status,stale:state.status==='stale',targets:{rocket:state.target,landing:state.landing?{...state.landing,heightM:state.groundOffsetM,ageMs:state.target?.ageMs??Infinity,uncertaintyM:state.landing.radiusM}:null}};
+   },calibrate:calibrateNorth,onClose:()=>{if(!active)stopSensors(false);}
   });
-  on(element.querySelector('[data-recovery-camera-open]'),'click',()=>camera.open());
-  on(element.querySelector('[data-recovery-sensors]'),'click',sensors);on(element.querySelector('[data-recovery-stop-sensors]'),'click',stopSensors);
+  on(element.querySelector('[data-recovery-camera-open]'),'click',()=>{setActive(true);if(directionError)void sensors();camera.open();});
   on(element.querySelector('[data-recovery-north]'),'click',calibrateNorth);
   on(element.querySelector('[data-recovery-ground]'),'change',event=>{const value=Number(event.target.value);if(Number.isFinite(value)&&value>=-2000&&value<=10000)estimator.configure({groundOffsetM:value});render();});
   for(const [selector,field]of [['observer-height','observerHeightM'],['yaw-offset','yawOffsetDeg'],['pitch-offset','pitchOffsetDeg']])on(element.querySelector('[data-recovery-'+selector+']'),'change',event=>{if(event.target.validity.valid)config[field]=Number(event.target.value);render();});
   on(element.querySelector('[data-recovery-station-form]'),'submit',event=>{event.preventDefault();const lat=Number(element.querySelector('[data-recovery-lat]').value),lon=Number(element.querySelector('[data-recovery-lon]').value);if(api.coordinates(lat,lon)){observer={lat,lon,accuracyM:30,timestamp:Date.now(),manual:true};write('sensorState','관측 위치 직접 입력');render();}});
   on(element.querySelector('[data-recovery-reset]'),'click',()=>{estimator.reset();lastPacketKey='';render();});
   const timer=setInterval(render,200),resize=()=>{lastMapAt=0;map?.invalidateSize?.();render();};on(root,'resize',resize);
-  on(root,'pagehide',stopSensors);
+  on(root,'pagehide',()=>stopSensors());
+  on(element.ownerDocument,'visibilitychange',()=>{if(element.ownerDocument.hidden)stopSensors();else if(active)setActive(true);});
+  if(options.observeVisibility!==false&&root.IntersectionObserver){visibilityObserver=new root.IntersectionObserver(entries=>{if(!camera.isOpen())setActive(entries.some(entry=>entry.isIntersecting));});visibilityObserver.observe(element);}
   render();
-  return {stopSensors,update(packet,receivedAt=Date.now(),extraAge=0){if(!packet)return;const unique=packet.runId+':'+packet.telemetry.stageId+':'+packet.telemetry.receivedAt;if(unique===lastPacketKey)return;lastPacketKey=unique;estimator.update({...packet.recovery,timestamp:receivedAt-packet.sampleAgeMs-extraAge,stageId:packet.telemetry.stageId,epochId:packet.runId});},render,snapshot:()=>estimator.snapshot(),dispose(){disposed=true;clearInterval(timer);camera.dispose();stopSensors();listeners.forEach(fn=>fn());targetLayer?.remove();landingLayer?.remove();observerLayer?.remove();if(ownedMap)map?.remove();}};
+  return {setActive,update(packet,receivedAt=Date.now(),extraAge=0){if(!packet)return;const unique=packet.runId+':'+packet.telemetry.stageId+':'+packet.telemetry.receivedAt;if(unique===lastPacketKey)return;lastPacketKey=unique;estimator.update({...packet.recovery,timestamp:receivedAt-packet.sampleAgeMs-extraAge,stageId:packet.telemetry.stageId,epochId:packet.runId});},render,snapshot:()=>estimator.snapshot(),dispose(){disposed=true;active=false;visibilityObserver?.disconnect();clearInterval(timer);camera.dispose();stopSensors();listeners.forEach(fn=>fn());targetLayer?.remove();landingLayer?.remove();observerLayer?.remove();if(ownedMap)map?.remove();}};
  }
  (root.Flash7=root.Flash7||{}).recoveryPanel={createPanel};
 })(typeof globalThis!=='undefined'?globalThis:window);

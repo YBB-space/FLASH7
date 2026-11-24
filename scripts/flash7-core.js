@@ -5527,8 +5527,8 @@ function requestMobileMockup3dMesh(){
           );
         };
         gl.disable(gl.DEPTH_TEST);
-        const glowGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),(t,i)=>trailColor(t,i,.04+.07*t));
-        const coreGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),(t,i)=>trailColor(t,i,.58+.22*t));
+        const glowGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.7),(t,i)=>trailColor(t,i,.04+.07*t));
+        const coreGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1.3),(t,i)=>trailColor(t,i,.58+.22*t));
         drawTrailPrimitive(glowGeom,gl.TRIANGLE_STRIP,false);
         drawTrailPrimitive(coreGeom,gl.TRIANGLE_STRIP,false);
         const arrowGeom=buildGyroTrailArrowGeometry(trailPts,eye,trailWidth(1.8));
@@ -5575,8 +5575,8 @@ function requestMobileMockup3dMesh(){
           );
         };
         gl.disable(gl.DEPTH_TEST);
-        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),(t,i)=>trailColor(t,i,.04+.07*t)),gl.TRIANGLE_STRIP,false);
-        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),(t,i)=>trailColor(t,i,.58+.22*t)),gl.TRIANGLE_STRIP,false);
+        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.7),(t,i)=>trailColor(t,i,.04+.07*t)),gl.TRIANGLE_STRIP,false);
+        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1.3),(t,i)=>trailColor(t,i,.58+.22*t)),gl.TRIANGLE_STRIP,false);
         gl.enable(gl.DEPTH_TEST);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       }

@@ -5528,8 +5528,8 @@ function requestMobileMockup3dMesh(){
           );
         };
         gl.disable(gl.DEPTH_TEST);
-        const glowGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),(t,i)=>trailColor(t,i,.04+.07*t));
-        const coreGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),(t,i)=>trailColor(t,i,.58+.22*t));
+        const glowGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.7),(t,i)=>trailColor(t,i,.04+.07*t));
+        const coreGeom = buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1.3),(t,i)=>trailColor(t,i,.58+.22*t));
         drawTrailPrimitive(glowGeom,gl.TRIANGLE_STRIP,false);
         drawTrailPrimitive(coreGeom,gl.TRIANGLE_STRIP,false);
         const arrowGeom=buildGyroTrailArrowGeometry(trailPts,eye,trailWidth(1.8));
@@ -5576,8 +5576,8 @@ function requestMobileMockup3dMesh(){
           );
         };
         gl.disable(gl.DEPTH_TEST);
-        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.2),(t,i)=>trailColor(t,i,.04+.07*t)),gl.TRIANGLE_STRIP,false);
-        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1),(t,i)=>trailColor(t,i,.58+.22*t)),gl.TRIANGLE_STRIP,false);
+        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(2.7),(t,i)=>trailColor(t,i,.04+.07*t)),gl.TRIANGLE_STRIP,false);
+        drawSecondStageTrail(buildGyroTrailRibbonGeometry(trailPts,eye,trailWidth(1.3),(t,i)=>trailColor(t,i,.58+.22*t)),gl.TRIANGLE_STRIP,false);
         gl.enable(gl.DEPTH_TEST);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       }
@@ -18544,22 +18544,22 @@ function getGyroSceneEnvironmentPalette(dark){
   };
 }
 
-function getGyroSceneGridMetrics(distance,metersPerUnit=GYRO_TRAIL_BASE_METERS_PER_UNIT){
+function getGyroSceneGridMetrics(distance,metersPerUnit=GYRO_TRAIL_BASE_METERS_PER_UNIT,eyeHeight=0){
   const ratio=GYRO_TRAIL_BASE_METERS_PER_UNIT/getGyroSceneMetersPerUnit(metersPerUnit);
   const numericDistance = Number(distance);
   const safeDistance = Math.max(0.05, Number.isFinite(numericDistance) ? numericDistance : 1);
-  return {
-    span:Math.max(1200*ratio, safeDistance * 18),
-    fadeNear:120*ratio, fadeFar:900*ratio
-  };
+  const height=Math.max(0,Number(eyeHeight)||0),fadeFar=Math.max(900*ratio,height*12);
+  return {span:Math.max(1200*ratio,fadeFar*1.4,safeDistance*18),
+    fadeNear:Math.max(120*ratio,height*.9),fadeFar};
 }
 
 function getGyroSceneClipRange(distance, targetY, metersPerUnit=GYRO_TRAIL_BASE_METERS_PER_UNIT){
   const ratio=GYRO_TRAIL_BASE_METERS_PER_UNIT/getGyroSceneMetersPerUnit(metersPerUnit);
   const safeDistance = Math.max(0.05, Number(distance) || 1);
+  const height=Math.abs(Number(targetY)||0)+safeDistance,metrics=getGyroSceneGridMetrics(safeDistance,metersPerUnit,height);
   return {
     near:Math.max(0.025*ratio, Math.min(0.25*ratio, safeDistance / 2000)),
-    far:Math.max(1800*ratio, Math.abs(Number(targetY) || 0) + safeDistance * 24)
+    far:Math.max(1800*ratio,Math.hypot(metrics.span*1.5,height)+safeDistance*2)
   };
 }
 
@@ -18613,6 +18613,8 @@ function createGyroSceneEnvironment(gl){
       vec2 screen = (gl_FragCoord.xy / vec2(uWidth, uHeight) * 2.0 - 1.0 + uProjectionOffset) / uProjection;
       float elevation = dot(vec3(screen, 1.0), uViewY) / length(vec3(screen, 1.0));
       vec3 sky = mix(uHorizonColor, uSkyColor, smoothstep(-0.035, 0.75, elevation));
+      float altitudeBlend = 1.0 - exp(-max(0.0, uEyeHeight * uMetersPerUnit) / 8000.0);
+      sky += vec3(-0.045, -0.018, 0.012) * altitudeBlend;
       if(uSky > 0.5){
         gl_FragColor = vec4(sky, 1.0);
       }else{
@@ -18624,11 +18626,18 @@ function createGyroSceneEnvironment(gl){
         float slope = abs(uEyeHeight / uFadeFar) / max(0.0001, distanceXZ);
         fade *= smoothstep(0.0, 0.035, slope);
         vec3 ground = mix(uGroundColor, uHorizonColor, (1.0 - fade) * 0.18);
+        // Low-contrast, world-anchored survey texture supplies scale/parallax.
+        // This is a reference ground, not geographic terrain or a height map.
+        vec2 meters = vWorld * uMetersPerUnit;
+        float broad = sin(meters.x / 620.0) * sin(meters.y / 840.0);
+        float detail = sin(meters.x / 110.0 + sin(meters.y / 210.0)) * sin(meters.y / 150.0);
+        ground += vec3(broad * 0.022 + detail * 0.009);
         if(uGrid > 0.5){
           // These spacings belong to the world. Subpixel levels fade through
           // their pixel footprint, rather than growing along with the camera.
-          float grid = min(0.23, gridLine(1.0) * 0.07 + gridLine(5.0) * 0.13
-            + gridLine(25.0) * 0.09 + gridLine(125.0) * 0.07 + gridLine(625.0) * 0.05);
+          float grid = min(0.30, gridLine(1.0) * 0.07 + gridLine(5.0) * 0.13
+            + gridLine(25.0) * 0.09 + gridLine(125.0) * 0.10 + gridLine(625.0) * 0.14
+            + gridLine(3125.0) * 0.12 + gridLine(15625.0) * 0.08);
           ground = mix(ground, uLineColor, grid * fade);
         }
         gl_FragColor = vec4(ground, fade);
@@ -18648,7 +18657,7 @@ function createGyroSceneEnvironment(gl){
 function drawGyroSceneEnvironment(sky, palette, viewProj, eye, distance, view){
   const {gl, environment, width, height, proj} = gyroGl;
   const units=getGyroSceneMetersPerUnit(gyroSceneView.metersPerUnit),snap=256*GYRO_TRAIL_BASE_METERS_PER_UNIT/units;
-  const metrics = getGyroSceneGridMetrics(distance,units);
+  const metrics = getGyroSceneGridMetrics(distance,units,eye[1]);
   gl.useProgram(environment.prog);
   bindGyroVertexAttributes([environment.aPos]);
   gl.bindBuffer(gl.ARRAY_BUFFER, environment.posBuf);
@@ -19285,6 +19294,7 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
   'use strict';
   const value=(v,min=-1e9,max=1e9)=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))&&Number(v)>=min&&Number(v)<=max?Number(v):null;
   const text=(v,n=80)=>typeof v==='string'?v.slice(0,n):'';
+  const timestamp=v=>value(v,0,Number.MAX_SAFE_INTEGER);
   const vec=v=>[0,1,2].map(i=>value(Array.isArray(v)?v[i]:null));
   function normalize(input){
     if(!input||typeof input!=='object'||Array.isArray(input)||input.version!==1)return null;
@@ -19292,12 +19302,12 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
     const quick=s.quick||{},gps=r.gps||{};
     const timeline=s.timeline||{},steps=Array.isArray(timeline.steps)?timeline.steps.slice(0,12).filter(p=>typeof p==='string').map(p=>text(p,20)):[];
     const link=s.linkQuality||{};
-    return {version:1,runId:text(input.runId,64),sentAt:value(input.sentAt,0),sampleAgeMs:value(input.sampleAgeMs,0,86400000)??86400000,
-      telemetry:{receivedAt:value(s.receivedAt,0),source:text(s.source,12),connected:s.connected===true,simulation:s.simulation===true,stageId:s.stageId,mission:text(s.mission),state:text(s.state,40),countdown:text(s.countdown,24),altitude:value(s.altitude),speed:value(s.speed),gforce:value(s.gforce),gyro:vec(s.gyro),
+    return {version:1,runId:text(input.runId,64),sentAt:timestamp(input.sentAt),sampleAgeMs:value(input.sampleAgeMs,0,86400000)??86400000,
+      telemetry:{receivedAt:timestamp(s.receivedAt),source:text(s.source,12),connected:s.connected===true,simulation:s.simulation===true,stageId:s.stageId,mission:text(s.mission),state:text(s.state,40),countdown:text(s.countdown,24),altitude:value(s.altitude),speed:value(s.speed),gforce:value(s.gforce),gyro:vec(s.gyro),
         quick:{connection:text(quick.connection),chip:text(quick.chip,20),perf:text(quick.perf,20),power:text(quick.power,20),storage:text(quick.storage,24),delaySeconds:value(quick.delaySeconds,0,3600),arm:text(quick.arm,24),armLocked:quick.armLocked===true,pyro:text(quick.pyro,40),attitude:vec(quick.attitude)},
         timeline:{steps,active:text(timeline.active,20),progress:value(timeline.progress,0,1)},
         airbrake:s.simulation===true&&s.airbrake?{deploymentPercent:value(s.airbrake.deploymentPercent,0,100),servoAngleDeg:value(s.airbrake.servoAngleDeg,0,180),predictedApogeeM:value(s.airbrake.predictedApogeeM,0),mode:text(s.airbrake.mode,20)}:null,
-        linkQuality:{now:value(link.now,0),stages:Array.isArray(link.stages)?link.stages.slice(0,2).map(p=>({stageId:p.stageId===2?2:1,time:value(p.time,0),available:p.available===true,rssi:value(p.rssi,-150,0),loss:value(p.loss,0,100),hz:value(p.hz,0,1000)})):[]}},
+        linkQuality:{now:timestamp(link.now),stages:Array.isArray(link.stages)?link.stages.slice(0,2).map(p=>({stageId:p.stageId===2?2:1,time:timestamp(p.time),available:p.available===true,rssi:value(p.rssi,-150,0),loss:value(p.loss,0,100),hz:value(p.hz,0,1000)})):[]}},
       recovery:{phase:text(r.phase,30),altitudeM:value(r.altitudeM,-1000,1000000),verticalSpeedMps:value(r.verticalSpeedMps,-1500,1500),chuteCommanded:r.chuteCommanded===true,chuteConfirmed:r.chuteConfirmed===true,
         gps:{lat:value(gps.lat,-90,90),lon:value(gps.lon,-180,180),alt:value(gps.alt,-1000,1000000),fix:gps.fix===true,ageMs:value(gps.ageMs,0,86400000),accuracyM:value(gps.accuracyM,0,10000)}}};
   }
@@ -19397,9 +19407,9 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
    return {x:width/2+dx,y:height/2+dy,inView,front,aligned:inView&&Math.hypot(dx,dy)<=reticleRadius,offsetPx:front?Math.hypot(dx,dy):Infinity,arrowX:width/2+ux*arrowDistance,arrowY:height/2+uy*arrowDistance,arrowAngleDeg:Math.atan2(uy,ux)/rad+90};
  }
  function create(view,options){
-   const doc=view.ownerDocument,video=view.querySelector('video'),marker=view.querySelector('[data-camera-target]'),arrow=view.querySelector('[data-camera-direction]'),message=view.querySelector('[data-camera-message]'),range=view.querySelector('[data-camera-range]'),quality=view.querySelector('[data-camera-quality]'),retry=view.querySelector('[data-camera-retry]'),closeButton=view.querySelector('[data-camera-close]'),playButton=view.querySelector('[data-camera-play]'),sensorButton=view.querySelector('[data-camera-sensors]');
+   const doc=view.ownerDocument,video=view.querySelector('video'),marker=view.querySelector('[data-camera-target]'),arrow=view.querySelector('[data-camera-direction]'),message=view.querySelector('[data-camera-message]'),range=view.querySelector('[data-camera-range]'),quality=view.querySelector('[data-camera-quality]'),retry=view.querySelector('[data-camera-retry]'),closeButton=view.querySelector('[data-camera-close]'),playButton=view.querySelector('[data-camera-play]');
    const originalParent=view.parentNode,placeholder=doc.createComment('recovery-camera'),listeners=[];
-   let active=false,disposed=false,generation=0,stream=null,frame=null,lastFrame=0,ready=false,selected='landing',previousFocus=null,previousOverflow='',shown=null,aligned=false,permissionTimer=null,videoTimer=null,sensorsRequested=false;
+   let active=false,disposed=false,generation=0,stream=null,frame=null,lastFrame=0,ready=false,selected='landing',previousFocus=null,previousOverflow='',shown=null,aligned=false,permissionTimer=null,videoTimer=null;
    const listen=(node,type,fn)=>{node.addEventListener(type,fn);listeners.push(()=>node.removeEventListener(type,fn));};
    const text=(node,value)=>{if(node.textContent!==value)node.textContent=value;};
    const clearAim=()=>{marker.hidden=true;arrow.hidden=true;aligned=false;shown=null;view.dataset.aligned='false';};
@@ -19427,8 +19437,8 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
      if(!active||disposed)return;frame=root.requestAnimationFrame(render);if(time-lastFrame<30)return;lastFrame=time;
      if(!ready&&!acceptFrames())return;
      const state=options.getState(),target=state.targets?.[selected];
-     let waiting=state.sensorError||(!state.observer?(sensorsRequested?'휴대폰 위치 수신 대기':'위치·방향 연결을 눌러주세요.'):!state.pose?'방향 센서 수신 대기':!state.absolute?'북쪽 방향 보정이 필요합니다.':state.stale?'텔레메트리 수신 복구 대기':!target?(selected==='landing'?'착지 예측 데이터 대기':'기체 GPS 수신 대기'):null);
-     if(waiting){clearAim();text(message,waiting);text(range,'--');text(quality,state.absolute?'GPS·방향 데이터를 기다리고 있습니다.':(!state.pose?'위치·방향 연결 후 센서 권한을 허용해 주세요.':'폰을 잠시 눕히고 상단을 북쪽에 맞춘 뒤 보정하세요.'));return;}
+     let waiting=state.sensorError||(!state.observer?'휴대폰 위치 수신 대기':!state.pose?'방향 센서 수신 대기':!state.absolute?'북쪽 방향 보정이 필요합니다.':state.stale?'텔레메트리 수신 복구 대기':['gps-stale','gps-rejected'].includes(state.telemetryStatus)?'기체 GPS 수신 대기':!target?(selected==='landing'?'착지 예측 데이터 대기':'기체 GPS 수신 대기'):null);
+     if(waiting){clearAim();text(message,waiting);text(range,'--');text(quality,state.absolute?'GPS·방향 데이터를 기다리고 있습니다.':(!state.pose?'브라우저의 위치·방향 권한을 허용해 주세요.':'폰을 잠시 눕히고 상단을 북쪽에 맞춘 뒤 보정하세요.'));return;}
      const aim=root.Flash7.recovery.guidance(target,state.observer,null,{observerHeightM:(state.observerHeightM||0)+1.5});
      if(!aim||aim.elevationDeg===null){clearAim();text(message,'목표 높이 데이터 대기');return;}
      const width=view.clientWidth,height=view.clientHeight,pose=rotateBasis(state.pose,state.northBias||0),point=project(aim,pose,{width,height,focalPx:focal(width,height,video.videoWidth,video.videoHeight),insets:{left:30,right:30,top:height<500?90:150,bottom:height<500?100:190}});
@@ -19460,9 +19470,9 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
      }catch(cause){root.clearTimeout(deadline);if(permissionTimer===deadline)permissionTimer=null;if(current(attempt)){stopMedia();error(cause);}}
    }
    function close(){if(!active)return;active=false;generation++;stopMedia();view.hidden=true;view.dataset.cameraState='idle';doc.body.style.overflow=previousOverflow;if(placeholder.parentNode){placeholder.replaceWith(view);}previousFocus?.focus?.();options.onClose?.();}
-   function open(){if(active||disposed)return;active=true;sensorsRequested=false;previousFocus=doc.activeElement;previousOverflow=doc.body.style.overflow;view.before(placeholder);doc.body.append(view);doc.body.style.overflow='hidden';view.hidden=false;closeButton.focus();void startMedia();}
+   function open(){if(active||disposed)return;active=true;previousFocus=doc.activeElement;previousOverflow=doc.body.style.overflow;view.before(placeholder);doc.body.append(view);doc.body.style.overflow='hidden';view.hidden=false;closeButton.focus();void startMedia();}
    listen(closeButton,'click',close);listen(retry,'click',()=>void startMedia());
-   listen(playButton,'click',()=>requestPlay());listen(sensorButton,'click',()=>{sensorsRequested=true;options.onSensors?.();});
+   listen(playButton,'click',()=>requestPlay());
    for(const event of ['loadeddata','canplay','playing'])listen(video,event,acceptFrames);
    view.querySelectorAll('[data-camera-mode]').forEach(button=>listen(button,'click',()=>{selected=button.dataset.cameraMode;shown=null;aligned=false;view.querySelectorAll('[data-camera-mode]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));}));
    listen(view.querySelector('[data-camera-north]'),'click',()=>options.calibrate?.());
@@ -19480,6 +19490,7 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
  function createPanel(element,options={}){
   const api=root.Flash7.recovery,estimator=api.createEstimator();let current=estimator.snapshot(),observer=null,orientation=null,orientationAt=0,cameraOrientation=null,cameraOrientationAt=0,manualNorth=false,northBias=0,watch=null,sensorGeneration=0,positionError='',directionError='',disposed=false,lastPacketKey='',lastMapAt=0,map=null,ownedMap=false,targetLayer=null,landingLayer=null,observerLayer=null,centered=false;
   const config={observerHeightM:0,yawOffsetDeg:0,pitchOffsetDeg:0},listeners=[];
+  let active=false,sensorStarted=false,visibilityObserver=null;
   const write=(key,value)=>{const node=element.querySelector('[data-recovery="'+key+'"]');if(node&&node.textContent!==value)node.textContent=value;};
   const on=(node,type,fn)=>{node?.addEventListener(type,fn);listeners.push(()=>node?.removeEventListener(type,fn));};
   const fmt=(n,d=0)=>typeof n==='number'&&Number.isFinite(n)?n.toFixed(d):'--';
@@ -19509,8 +19520,9 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
    const attitude=attitudeFresh&&(orientation.absolute||manualNorth)?{headingDeg:(orientation.headingDeg+northBias+360)%360,pitchDeg:orientation.pitchDeg}:null;
    const aim=api.guidance(current.target,gpsFresh?observer:null,attitude,config);
    write('bearing',aim?fmt(aim.bearingDeg)+'°':'--');write('elevation',aim?fmt(aim.elevationDeg,1)+'°':'--');write('distance',aim?(aim.distanceM>=1000?fmt(aim.distanceM/1000,2)+' km':fmt(aim.distanceM)+' m'):'--');
-   let instruction='위치·방향을 연결하세요.';
-   if(current.status==='stale'||current.target?.ageMs>5000)instruction='수신 복구 대기';
+   let instruction='위치·방향 수신 대기';
+   if(current.status==='stale')instruction='수신 복구 대기';
+   else if(['gps-stale','gps-rejected'].includes(current.status)||current.target?.ageMs>5000)instruction='기체 GPS 수신 대기';
    else if(aim&&aim.yawErrorDeg===null)instruction='방위각을 기준으로 조준하세요.';
    else if(aim){const yaw=aim.yawErrorDeg,pitch=aim.pitchErrorDeg;instruction=[Math.abs(yaw)<5?'좌우 정렬':(yaw>0?'오른쪽 ':'왼쪽 ')+fmt(Math.abs(yaw))+'°',pitch===null?'':Math.abs(pitch)<5?'높이 정렬':(pitch>0?'위로 ':'아래로 ')+fmt(Math.abs(pitch))+'°'].filter(Boolean).join(' · ');}
    write('instruction',instruction);
@@ -19532,16 +19544,22 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
    if(!axis||axis.horizontalStrength<.15){orientation=null;return;}
    axis.headingDeg=(axis.headingDeg+correction+360)%360;orientation={...axis,absolute:compass||event.absolute===true};orientationAt=Date.now();
   }
-  function stopSensors(closeCamera=true){if(closeCamera)camera?.close();sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;cameraOrientation=null;positionError=directionError='';manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','센서 꺼짐');render();}
+  function stopSensors(closeCamera=true){sensorStarted=false;if(closeCamera)camera?.close();sensorGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;observer=null;orientation=null;cameraOrientation=null;positionError=directionError='';manualNorth=false;northBias=0;root.removeEventListener('deviceorientation',orientationEvent);root.removeEventListener('deviceorientationabsolute',orientationEvent);write('sensorState','위치·방향 자동 연결');render();}
+  function setActive(value){
+   active=!!value;if(disposed)return;
+   if(active&&!element.ownerDocument.hidden){if(!sensorStarted)void sensors();}
+   else stopSensors();
+  }
   async function sensors(){
-   stopSensors(false);const generation=sensorGeneration;
-   if(!root.isSecureContext){write('sensorState','HTTPS 또는 네이티브 앱에서 연결하세요.');return;}
+   stopSensors(false);sensorStarted=true;const generation=sensorGeneration;
+   if(!root.isSecureContext){positionError='HTTPS 또는 네이티브 앱에서 연결하세요.';write('sensorState',positionError);return;}
    let direction=typeof root.DeviceOrientationEvent!=='undefined';
    try{if(typeof root.DeviceOrientationEvent?.requestPermission==='function')direction=await root.DeviceOrientationEvent.requestPermission(true)==='granted';}catch{direction=false;}
    if(disposed||generation!==sensorGeneration)return;
    if(!direction)directionError=typeof root.DeviceOrientationEvent==='undefined'?'방향 센서를 지원하지 않는 기기입니다.':'방향 센서 권한을 허용해 주세요.';
    if(direction){root.addEventListener('deviceorientation',orientationEvent);root.addEventListener('deviceorientationabsolute',orientationEvent);}
    if(navigator.geolocation)watch=navigator.geolocation.watchPosition(position=>{if(disposed||generation!==sensorGeneration)return;positionError='';observer={lat:position.coords.latitude,lon:position.coords.longitude,accuracyM:position.coords.accuracy,timestamp:position.timestamp};render();},error=>{if(generation!==sensorGeneration)return;positionError=error.code===1?'위치 권한을 허용해 주세요.':'위치 정보를 받지 못했습니다. 야외에서 다시 연결해 주세요.';write('sensorState',positionError);},{enableHighAccuracy:true,maximumAge:2000,timeout:15000});
+   else positionError='위치 정보를 지원하지 않는 환경입니다.';
    write('sensorState',direction?'센서 수신 대기':'방향 권한 없음 · 위치만 사용');
   }
   function calibrateNorth(){
@@ -19550,20 +19568,21 @@ function stopCountdownAudio(){if(countdownVoicePlayer) countdownVoicePlayer.stop
   }
   const camera=root.Flash7.recoveryCamera.create(element.querySelector('[data-recovery-camera]'),{
    getState(){const state=estimator.snapshot(),gpsFresh=observer&&(observer.manual||Date.now()-observer.timestamp<15000),poseFresh=cameraOrientation&&Date.now()-cameraOrientationAt<3000;
-    return {sensorError:positionError||(!poseFresh?directionError:''),observer:gpsFresh?observer:null,pose:poseFresh?cameraOrientation.basis:null,absolute:!!(poseFresh&&(cameraOrientation.absolute||manualNorth)),northBias:manualNorth?northBias:0,observerHeightM:config.observerHeightM,stale:['stale','gps-stale','gps-rejected'].includes(state.status),targets:{rocket:state.target,landing:state.landing?{...state.landing,heightM:state.groundOffsetM,ageMs:state.target?.ageMs??Infinity,uncertaintyM:state.landing.radiusM}:null}};
-   },calibrate:calibrateNorth,onSensors:sensors,onClose:()=>stopSensors(false)
+    return {sensorError:positionError||(!poseFresh?directionError:''),observer:gpsFresh?observer:null,pose:poseFresh?cameraOrientation.basis:null,absolute:!!(poseFresh&&(cameraOrientation.absolute||manualNorth)),northBias:manualNorth?northBias:0,observerHeightM:config.observerHeightM,telemetryStatus:state.status,stale:state.status==='stale',targets:{rocket:state.target,landing:state.landing?{...state.landing,heightM:state.groundOffsetM,ageMs:state.target?.ageMs??Infinity,uncertaintyM:state.landing.radiusM}:null}};
+   },calibrate:calibrateNorth,onClose:()=>{if(!active)stopSensors(false);}
   });
-  on(element.querySelector('[data-recovery-camera-open]'),'click',()=>camera.open());
-  on(element.querySelector('[data-recovery-sensors]'),'click',sensors);on(element.querySelector('[data-recovery-stop-sensors]'),'click',stopSensors);
+  on(element.querySelector('[data-recovery-camera-open]'),'click',()=>{setActive(true);if(directionError)void sensors();camera.open();});
   on(element.querySelector('[data-recovery-north]'),'click',calibrateNorth);
   on(element.querySelector('[data-recovery-ground]'),'change',event=>{const value=Number(event.target.value);if(Number.isFinite(value)&&value>=-2000&&value<=10000)estimator.configure({groundOffsetM:value});render();});
   for(const [selector,field]of [['observer-height','observerHeightM'],['yaw-offset','yawOffsetDeg'],['pitch-offset','pitchOffsetDeg']])on(element.querySelector('[data-recovery-'+selector+']'),'change',event=>{if(event.target.validity.valid)config[field]=Number(event.target.value);render();});
   on(element.querySelector('[data-recovery-station-form]'),'submit',event=>{event.preventDefault();const lat=Number(element.querySelector('[data-recovery-lat]').value),lon=Number(element.querySelector('[data-recovery-lon]').value);if(api.coordinates(lat,lon)){observer={lat,lon,accuracyM:30,timestamp:Date.now(),manual:true};write('sensorState','관측 위치 직접 입력');render();}});
   on(element.querySelector('[data-recovery-reset]'),'click',()=>{estimator.reset();lastPacketKey='';render();});
   const timer=setInterval(render,200),resize=()=>{lastMapAt=0;map?.invalidateSize?.();render();};on(root,'resize',resize);
-  on(root,'pagehide',stopSensors);
+  on(root,'pagehide',()=>stopSensors());
+  on(element.ownerDocument,'visibilitychange',()=>{if(element.ownerDocument.hidden)stopSensors();else if(active)setActive(true);});
+  if(options.observeVisibility!==false&&root.IntersectionObserver){visibilityObserver=new root.IntersectionObserver(entries=>{if(!camera.isOpen())setActive(entries.some(entry=>entry.isIntersecting));});visibilityObserver.observe(element);}
   render();
-  return {stopSensors,update(packet,receivedAt=Date.now(),extraAge=0){if(!packet)return;const unique=packet.runId+':'+packet.telemetry.stageId+':'+packet.telemetry.receivedAt;if(unique===lastPacketKey)return;lastPacketKey=unique;estimator.update({...packet.recovery,timestamp:receivedAt-packet.sampleAgeMs-extraAge,stageId:packet.telemetry.stageId,epochId:packet.runId});},render,snapshot:()=>estimator.snapshot(),dispose(){disposed=true;clearInterval(timer);camera.dispose();stopSensors();listeners.forEach(fn=>fn());targetLayer?.remove();landingLayer?.remove();observerLayer?.remove();if(ownedMap)map?.remove();}};
+  return {setActive,update(packet,receivedAt=Date.now(),extraAge=0){if(!packet)return;const unique=packet.runId+':'+packet.telemetry.stageId+':'+packet.telemetry.receivedAt;if(unique===lastPacketKey)return;lastPacketKey=unique;estimator.update({...packet.recovery,timestamp:receivedAt-packet.sampleAgeMs-extraAge,stageId:packet.telemetry.stageId,epochId:packet.runId});},render,snapshot:()=>estimator.snapshot(),dispose(){disposed=true;active=false;visibilityObserver?.disconnect();clearInterval(timer);camera.dispose();stopSensors();listeners.forEach(fn=>fn());targetLayer?.remove();landingLayer?.remove();observerLayer?.remove();if(ownedMap)map?.remove();}};
  }
  (root.Flash7=root.Flash7||{}).recoveryPanel={createPanel};
 })(typeof globalThis!=='undefined'?globalThis:window);
